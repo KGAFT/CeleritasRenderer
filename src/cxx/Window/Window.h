@@ -65,6 +65,10 @@ private:
 	GLFWwindow* windowHandle;
 	const char* title;
 	bool isBorderless = false;
+
+	double lastX = 0;
+	double lastY = 0;
+
 	int currentMode = WINDOW_NORMAL_CURSOR_MODE;
 
 	std::vector<IMouseMovementCallback*> movementCallbacks;
@@ -79,12 +83,116 @@ private:
 			}
 		}
 	}
+
+	void preCalculateMouse(double* xChangeOut, double* yChangeOut) {
+        *xChangeOut = 0;
+        *yChangeOut = 0;
+		double cursorX = 0;
+		double cursorY = 0;
+		double xChange = 0;
+		double yChange = 0;
+		switch (currentMode) {
+		case WINDOW_ACTION_CURSOR_MODE:
+			glfwGetCursorPos(windowHandle, &cursorX, &cursorY);
+			
+			if (abs(cursorX - width / 2) > 0) {
+				xChange = (cursorX - width / 2) / abs(cursorX - width / 2);
+			}
+			if (abs(cursorY - height / 2) > 0) {
+				yChange = (cursorY - height / 2) / abs(cursorY - height / 2);
+			}
+			*xChangeOut = xChange;
+			*yChangeOut = yChange;
+			glfwSetCursorPos(windowHandle, width / 2, height / 2);
+			break;
+		case WINDOW_NORMAL_CURSOR_MODE:
+			glfwGetCursorPos(windowHandle, &cursorX, &cursorY);
+			if (cursorX != lastX || cursorY != lastY) {
+				lastX = cursorX;
+				lastY = cursorY;
+				*xChangeOut = cursorX;
+				*yChangeOut = cursorY;
+			}
+			break;
+		}
+	}
+	void refreshMovementCallbacks() {
+		std::vector<IMouseMovementCallback*> newMovementCallbacks;
+		for (const auto element : movementCallbacks) {
+			if (element != nullptr) {
+				newMovementCallbacks.push_back(element);
+			}
+		}
+		this->movementCallbacks = newMovementCallbacks;
+	}
+
+	void refreshKeyboardCallbacks() {
+		std::vector<IKeyActionCallback*> newKeyCallbacks;
+		for (const auto element : keyActionCallbacks) {
+			if (element != nullptr) {
+				newKeyCallbacks.push_back(element);
+			}
+		}
+		this->keyActionCallbacks = newKeyCallbacks;
+	}
+
+	void checkMovementCallbacks() {
+		double x, y = 0;
+		preCalculateMouse(&x, &y);
+		bool requiredRefresh = false;
+		if (x != 0 || y != 0) {
+			for (const auto& element : movementCallbacks) {
+				if (element != nullptr) {
+					if (element->getCallbackMode() == currentMode || element->getCallbackMode() == WINDOW_MOUSE_CALLBACK_BOTH_MODE) {
+						element->mouseMoved(x, y);
+					}
+				}
+				else {
+					requiredRefresh = true;
+				}
+			}
+		}
+		if (requiredRefresh) {
+			refreshMovementCallbacks();
+		}
+	}
+
+	void checkKeyBoardCallbacks() {
+		bool requiredRefresh = false;
+		for (const auto& element : keyActionCallbacks) {
+			if (element != nullptr) {
+				int amount = 0;
+				int* keys = element->getKeys(&amount);
+				for (int i = 0; i < amount; i++) {
+					if (glfwGetKey(windowHandle, keys[i])) {
+						element->keyPressed(keys[i]);
+					}
+				}
+			}
+			else {
+				requiredRefresh = true;
+			}
+		}
+		if (requiredRefresh) {
+			refreshKeyboardCallbacks();
+		}
+	}
+
 public:
 	bool needToClose() {
 		return glfwWindowShouldClose(windowHandle);
 	}
+
+	void preRenderEvents() {
+		checkKeyBoardCallbacks();
+		checkMovementCallbacks();
+	}
+
 	void postRenderEvents() {
 		glfwPollEvents();
+	}
+	int getInputMode() {
+		return currentMode;
 	}
 
 	void setMonitor(Monitor* monitor) {
@@ -121,6 +229,8 @@ public:
 		}
 		
 	}
+
+
 	void registerResizeCallback(IWindowResizeCallback* resizeCallback) {
 		resizeCallbacks.push_back(resizeCallback);
 	}
