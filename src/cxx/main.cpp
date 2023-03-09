@@ -7,7 +7,9 @@ int main() {
     
     Window::createWindow(1024, 768, "Hello world!", nullptr);
 
-    Window::getInstance()->setMonitor(monitors[1]);
+    Window::getInstance()->borderless();
+    Window::getInstance()->borderless();
+
     while (!Window::getInstance()->needToClose()) {
         Window::getInstance()->postRenderEvents();
     }

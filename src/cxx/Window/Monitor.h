@@ -17,8 +17,9 @@ private:
 			try {
 				std::string name(glfwGetMonitorName(monitors[i]));
 				int width, height = 0;
-				glfwGetMonitorPhysicalSize(monitors[i], &width, &height);
-				Monitor::monitors.push_back(new Monitor(monitors[i], name, width, height));
+				int x, y = 0;
+				glfwGetMonitorWorkarea(monitors[i],&x, &y,  &width, &height);
+				Monitor::monitors.push_back(new Monitor(monitors[i], name, width-x, height-y));
 			}
 			catch (std::exception& e) {
 				std::cerr << e.what() << std::endl;
