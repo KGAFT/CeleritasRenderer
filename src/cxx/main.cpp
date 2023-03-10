@@ -2,6 +2,8 @@
 #include "Window/Monitor.h"
 #include "Vulkan/VulkanInstance.h"
 #include "Vulkan/VulkanDevice/VulkanDevice.h"
+#include "Vulkan/VulkanSwapChain.h"
+
 int main() {
     Window::initializeContext();
     int monitorCount = 0;
@@ -14,9 +16,14 @@ int main() {
 
     VulkanInstance instance;
     std::cout<<instance.createInstance("CeleritasEngine", true)<<std::endl;
+    VkPhysicalDevice deviceToCreate;
     for (const auto &item: VulkanDevice::enumerateSupportedDevices(instance.getInstance(), Window::getInstance())){
         std::cout<<item.second.deviceName<<std::endl;
+        deviceToCreate = item.first;
+        break;
     }
+    VulkanDevice device(deviceToCreate, Window::getInstance(), instance.getInstance(), true);
+    VulkanSwapChain swapChain(&device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
     while (!Window::getInstance()->needToClose()) {
         Window::getInstance()->preRenderEvents();
         Window::getInstance()->postRenderEvents();

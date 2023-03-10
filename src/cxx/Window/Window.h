@@ -209,7 +209,15 @@ public:
 		glfwSetWindowMonitor(windowHandle, monitor->getMonitor(), 0, 0, width, height, glfwGetVideoMode(monitor->getMonitor())->refreshRate);
 	}
 
-	void setSize(int width, int height) {
+    int getWidth() const {
+        return width;
+    }
+
+    int getHeight() const {
+        return height;
+    }
+
+    void setSize(int width, int height) {
 		this->width = width;
 		this->height = height;
 		glfwSetWindowSize(windowHandle, width, height);
