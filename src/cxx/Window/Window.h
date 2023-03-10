@@ -1,10 +1,13 @@
 #pragma once
 
+
+#include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
 #include "Monitor.h"
 #include "IKeyActionCallback.h"
 #include "IMouseMovementCallback.h"
 #include "IWindowResizeCallback.h"
+
 
 #define WINDOW_ACTION_CURSOR_MODE 0
 #define WINDOW_NORMAL_CURSOR_MODE 1
@@ -68,7 +71,7 @@ private:
 
 	double lastX = 0;
 	double lastY = 0;
-
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
 	int currentMode = WINDOW_NORMAL_CURSOR_MODE;
 
 	std::vector<IMouseMovementCallback*> movementCallbacks;
@@ -182,6 +185,13 @@ public:
 	bool needToClose() {
 		return glfwWindowShouldClose(windowHandle);
 	}
+
+    VkSurfaceKHR getWindowSurface(VkInstance instance) {
+        if (surface == VK_NULL_HANDLE) {
+            glfwCreateWindowSurface(instance, windowHandle, nullptr, &surface);
+        }
+        return surface;
+    }
 
 	void preRenderEvents() {
 		checkKeyBoardCallbacks();

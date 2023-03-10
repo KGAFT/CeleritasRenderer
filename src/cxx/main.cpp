@@ -1,7 +1,7 @@
 #include "Window/Window.h"
 #include "Window/Monitor.h"
-#include "TestKeyboardCallback.h"
-#include "TestMouseCallback.h"
+#include "Vulkan/VulkanInstance.h"
+#include "Vulkan/VulkanDevice/VulkanDevice.h"
 int main() {
     Window::initializeContext();
     int monitorCount = 0;
@@ -11,10 +11,12 @@ int main() {
 
     Window::getInstance()->borderless();
     Window::getInstance()->borderless();
-    TestKeyboardCallback keyBoard(Window::getInstance());
-    TestMouseCallbacK* mouseCb = new TestMouseCallbacK();
-    Window::getInstance()->registerKeyCallback(&keyBoard);
-    Window::getInstance()->registerMouseCallback(mouseCb);
+
+    VulkanInstance instance;
+    std::cout<<instance.createInstance("CeleritasEngine", true)<<std::endl;
+    for (const auto &item: VulkanDevice::enumerateSupportedDevices(instance.getInstance(), Window::getInstance())){
+        std::cout<<item.second.deviceName<<std::endl;
+    }
     while (!Window::getInstance()->needToClose()) {
         Window::getInstance()->preRenderEvents();
         Window::getInstance()->postRenderEvents();
