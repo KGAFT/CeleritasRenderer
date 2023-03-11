@@ -4,7 +4,8 @@
 #include "Vulkan/VulkanDevice/VulkanDevice.h"
 #include "Vulkan/VulkanSwapChain.h"
 #include "Vulkan/VulkanRenderPass.h"
-
+#include "Vulkan/VulkanSync/VulkanOneFrameSync.h"
+#include "Vulkan/VulkanSync/VulkanThreeFrameSync.h"
 int main() {
     Window::initializeContext();
     int monitorCount = 0;
@@ -28,14 +29,16 @@ int main() {
     VkFormat format = swapChain.getSwapChainImageFormat();
     VulkanRenderPass renderPass(&device, swapChain.getSwapChainImageViews(), Window::getInstance()->getWidth(),
                                 Window::getInstance()->getHeight(), 1, &format, 1);
-
-    
+    VulkanOneFrameSync oneFrameSync(&device);
+    VulkanThreeFrameSync threeFrameSync(&device);
     while (!Window::getInstance()->needToClose()) {
         Window::getInstance()->preRenderEvents();
         Window::getInstance()->postRenderEvents();
     }
     renderPass.destroy();
     swapChain.destroy();
+    threeFrameSync.destroy();
+    oneFrameSync.destroy();
     device.destroy();
     int wait = 0;
     std::cin>>wait;
