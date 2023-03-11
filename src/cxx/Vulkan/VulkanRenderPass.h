@@ -7,6 +7,9 @@
 
 #include "VulkanDevice/VulkanDevice.h"
 
+/**
+ * @TODO: Add destroy and recreate methods
+ */
 
 class VulkanRenderPass {
 private:
@@ -17,6 +20,47 @@ private:
     std::vector<VkDeviceMemory> depthImageMemories;
     std::vector<VkImageView> depthImageViews;
     VkFormat depthFormat;
+    bool destroyed =false;
+public:
+    VulkanRenderPass(VulkanDevice* device, std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount) : device(device){
+        createRenderPass(imagesFormat, formatCount, imagePerStepAmount);
+        createDepthResources(width, height, images.size()/imagePerStepAmount);
+        createFrameBuffers(images.size()/imagePerStepAmount, width, height, images, imagePerStepAmount);
+    }
+
+    void destroy() {
+        for (const auto &item: frameBuffers) {
+            vkDestroyFramebuffer(device->getDevice(), item, nullptr);
+        }
+        for (const auto &item: depthImageViews) {
+            vkDestroyImageView(device->getDevice(), item, nullptr);
+        }
+        for (const auto &item: depthImageMemories) {
+            vkFreeMemory(device->getDevice(), item, nullptr);
+        }
+        for (const auto &item: depthImages){
+            vkDestroyImage(device->getDevice(), item, nullptr);
+        }
+        vkDestroyRenderPass(device->getDevice(), renderPass, nullptr);
+        depthImages.clear();
+        frameBuffers.clear();
+        depthImageViews.clear();
+        depthImageMemories.clear();
+        destroyed = true;
+    }
+    ~VulkanRenderPass() {
+        if(!destroyed){
+            destroy();
+        }
+
+    }
+    void recreate(std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount) {
+        destroy();
+        destroyed = false;
+        createRenderPass(imagesFormat, formatCount, imagePerStepAmount);
+        createDepthResources(width, height, images.size()/imagePerStepAmount);
+        createFrameBuffers(images.size()/imagePerStepAmount, width, height, images, imagePerStepAmount);
+    }
 private:
     void createDepthResources(int width, int height, int imagesAmount) {
         VkFormat depthFormat = findDepthFormat();
@@ -154,7 +198,7 @@ private:
         }
     }
 
-    void createFrameBuffers(int amount, int width, int height, std::vector<VkImageView> imagesToAttach,
+    void createFrameBuffers(int amount, int width, int height, std::vector<VkImageView>& imagesToAttach,
                             const int imagePerStepAmount) {
         frameBuffers.resize(amount);
         for (unsigned int i = 0; i < amount; i++) {
@@ -162,6 +206,7 @@ private:
             for (int si = i * imagePerStepAmount; si < i * imagePerStepAmount + imagePerStepAmount; ++si) {
                 attachments.push_back(imagesToAttach[si]);
             }
+            attachments.push_back(depthImageViews[i]);
             VkFramebufferCreateInfo framebufferInfo = {};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = renderPass;

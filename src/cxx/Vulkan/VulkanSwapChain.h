@@ -53,6 +53,10 @@ public:
         destroy();
     }
 
+    std::vector<VkImageView> &getSwapChainImageViews()  {
+        return swapChainImageViews;
+    }
+
 private:
     void createSwapChain() {
         DeviceSuitability::SwapChainSupportDetails swapChainSupport = DeviceSuitability::querySwapChainSupport(

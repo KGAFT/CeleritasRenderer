@@ -2,4 +2,6 @@
 /.vs
 /cmake-build-debug
 /LibNativeWin
+/LibNativeLin
 /.idea
+/build
