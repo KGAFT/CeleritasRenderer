@@ -25,6 +25,7 @@ if(UNIX)
     set(SystemNatives -static-libgcc -Wl,-Bstatic -lpthread -Wl,-Bdynamic)
 endif()
 
+file(COPY shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(lib/glfw)
 add_subdirectory(lib/glm)

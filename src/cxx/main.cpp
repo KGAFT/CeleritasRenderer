@@ -6,9 +6,13 @@
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanSync/VulkanOneFrameSync.h"
 #include "Vulkan/VulkanSync/VulkanThreeFrameSync.h"
+#include "Util/ShaderLoader.h"
 int main() {
     Window::initializeContext();
     int monitorCount = 0;
+    std::vector<ShaderInfo> shaders = ShaderLoader::parseShader("shaders/TestVulkanShader/.shaderconf");
+
+
     Monitor **monitors = Monitor::enumerateMonitors(&monitorCount);
 
     Window::createWindow(1024, 768, "Hello world!", nullptr);

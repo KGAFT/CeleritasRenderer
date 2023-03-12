@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include "../VulkanDevice/VulkanDevice.h"
 
 class VulkanOneFrameSync
 {
