@@ -1,69 +1,117 @@
 #pragma once
 
-#include <fstream>
-#include <string>
-#include <vector>
-#include <cstring>
-#include "StringUtil.h"
+#include <shaderc/shaderc.h>
+#include <vulkan/vulkan.h>
 
-#define VERTEX_SHADER 0
-#define FRAGMENT_SHADER 1
-#define GEOMETRY_SHADER 2
-
-struct ShaderInfo
-{
-    bool needToCompile;
-    std::string path;
-    int type;
-};
-
+#include "ShaderConfParser.h"
+#include "../Vulkan/VulkanDevice/VulkanDevice.h"
 class ShaderLoader
 {
-public:
-    static std::vector<ShaderInfo> parseShader(const char *pathToFile)
+private:
+    static inline shaderc_compiler_t compiler = shaderc_compiler_initialize();
+    static VkShaderModule compileAndCreateModule(ShaderInfo &info, VulkanDevice* device)
     {
-        std::fstream file(pathToFile);
-        std::vector<ShaderInfo> result;
-        parseShaders(result, file);
-        file.close();
-        return result;
+        const char *content = nullptr;
+        size_t size;
+        std::vector<char> binary;
+        if (info.needToCompile)
+        {
+            std::string fileName = info.path.substr(info.path.find_last_of("/") + 1);
+            content = compileShader(info.path.c_str(), getShaderType(info.type), fileName.c_str(), &size);
+        }
+        else
+        {
+            binary = readBinaryFile(info.path);
+        }
+        if (content == nullptr)
+        {
+            content = binary.data();
+            size = binary.size();
+        }
+        VkShaderModuleCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo.codeSize = size;
+        createInfo.pCode = reinterpret_cast<const uint32_t *>(content);
+        VkShaderModule shaderModule;
+        if (vkCreateShaderModule(device->getDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create shader module");
+        }
+        return shaderModule;
     }
 
-private:
-    static void parseShaders(std::vector<ShaderInfo> &result, std::fstream &file)
+    static const char *
+    compileShader(const char *pathToShader, shaderc_shader_kind shaderType, const char *fileName, size_t *size)
     {
-        if (file.is_open())
+        std::string shaderCode = readCode(pathToShader);
+        shaderc_compilation_result_t result = shaderc_compile_into_spv(compiler, shaderCode.c_str(),
+                                                                       shaderCode.size() * sizeof(char),
+                                                                       shaderType, fileName, "main", nullptr);
+        if (result == nullptr)
         {
-            std::string currentLine = "";
-            while (std::getline(file, currentLine))
-            {
-                if (currentLine.size() > 5)
-                {
-                    ShaderInfo info{};
-                    std::vector<std::string> parsedLine;
-                    StringUtil::split(currentLine, parsedLine, ' ');
-                    info.needToCompile = StringUtil::parseBoolean(parsedLine[2]);
-                    info.type = getShaderType(parsedLine[0]);
-                    info.path = parsedLine[1];
-                    result.push_back(info);
-                }
-            }
+            throw std::runtime_error("Failed to compile shader: " + std::string(fileName));
         }
+        if (shaderc_result_get_compilation_status(result) != shaderc_compilation_status_success)
+        {
+            throw std::runtime_error("Failed to compile shader " + std::string(fileName) + "into SPIR-V:\n " +
+                                     shaderc_result_get_error_message(result));
+        }
+        const char *code = shaderc_result_get_bytes(result);
+        *size = shaderc_result_get_length(result);
+        return code;
     }
-    static int getShaderType(std::string &rawType)
+
+    static std::string readCode(const char *filePath)
     {
-        if (!std::strcmp(rawType.c_str(), "VERTEX_SHADER"))
+        std::ifstream fileReader(filePath, std::ios::binary);
+        if (fileReader)
         {
-            return VERTEX_SHADER;
+            std::string content;
+            fileReader.seekg(0, std::ios::end);
+            content.resize(fileReader.tellg());
+            fileReader.seekg(0, std::ios::beg);
+            fileReader.read(&content[0], content.size());
+            fileReader.close();
+            return content;
         }
-        if (!std::strcmp(rawType.c_str(), "FRAGMENT_SHADER"))
+        return std::string();
+    }
+
+    static std::vector<char> readBinaryFile(std::string &filepath)
+    {
+        std::string enginePath = filepath;
+        std::ifstream file{enginePath, std::ios::ate | std::ios::binary};
+
+        if (!file.is_open())
         {
-            return FRAGMENT_SHADER;
+            throw std::runtime_error("failed to open file: " + enginePath);
         }
-        if (!std::strcmp(rawType.c_str(), "GEOMETRY_SHADER"))
+
+        size_t fileSize = static_cast<size_t>(file.tellg());
+        std::vector<char> buffer(fileSize);
+
+        file.seekg(0);
+        file.read(buffer.data(), fileSize);
+
+        file.close();
+        return buffer;
+    }
+
+    static shaderc_shader_kind getShaderType(int shaderType)
+    {
+
+        if (shaderType == FRAGMENT_SHADER)
         {
-            return GEOMETRY_SHADER;
+            return shaderc_glsl_fragment_shader;
         }
-        return -1;
+        if (shaderType == VERTEX_SHADER)
+        {
+            return shaderc_glsl_vertex_shader;
+        }
+        if (shaderType == GEOMETRY_SHADER)
+        {
+            return shaderc_glsl_geometry_shader;
+        }
+        return shaderc_glsl_vertex_shader;
     }
 };
