@@ -17,7 +17,7 @@ struct ShaderInfo
     int type;
 };
 
-class ShaderLoader
+class ShaderConfParser
 {
 public:
     static std::vector<ShaderInfo> parseShader(const char *pathToDirectory)

@@ -10,7 +10,7 @@
 int main() {
     Window::initializeContext();
     int monitorCount = 0;
-    std::vector<ShaderInfo> shaders = ShaderLoader::parseShader("shaders/TestVulkanShader/.shaderconf");
+    
 
 
     Monitor **monitors = Monitor::enumerateMonitors(&monitorCount);
@@ -29,6 +29,9 @@ int main() {
         break;
     }
     VulkanDevice device(deviceToCreate, Window::getInstance(), instance.getInstance(), true);
+
+    VulkanShader* shader = ShaderLoader::loadShaders("shaders/TestVulkanShader", &device);
+
     VulkanSwapChain swapChain(&device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
     VkFormat format = swapChain.getSwapChainImageFormat();
     VulkanRenderPass renderPass(&device, swapChain.getSwapChainImageViews(), Window::getInstance()->getWidth(),
@@ -43,6 +46,7 @@ int main() {
     swapChain.destroy();
     threeFrameSync.destroy();
     oneFrameSync.destroy();
+    delete shader;
     device.destroy();
     int wait = 0;
     std::cin>>wait;

@@ -5,11 +5,24 @@
 
 #include "ShaderConfParser.h"
 #include "../Vulkan/VulkanDevice/VulkanDevice.h"
+#include "../Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h"
 class ShaderLoader
 {
+public:
+    static VulkanShader *loadShaders(const char *pathToDir, VulkanDevice *device)
+    {
+        std::vector<ShaderInfo> shaders = ShaderConfParser::parseShader(pathToDir);
+        std::map<VkShaderModule, int> shadersToCreate;
+        for (auto &element : shaders)
+        {
+            shadersToCreate.insert(std::pair<VkShaderModule, int>(compileAndCreateModule(element, device), element.type));
+        }
+        return new VulkanShader(device, shadersToCreate);
+    }
+
 private:
     static inline shaderc_compiler_t compiler = shaderc_compiler_initialize();
-    static VkShaderModule compileAndCreateModule(ShaderInfo &info, VulkanDevice* device)
+    static VkShaderModule compileAndCreateModule(ShaderInfo &info, VulkanDevice *device)
     {
         const char *content = nullptr;
         size_t size;
