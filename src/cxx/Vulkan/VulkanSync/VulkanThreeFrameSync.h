@@ -30,7 +30,7 @@ public:
     void destroy()
     {
         vkDeviceWaitIdle(device->getDevice());
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 2; i++)
         {
             vkDestroySemaphore(device->getDevice(), imageAvailableSemaphores[i], nullptr);
             vkDestroySemaphore(device->getDevice(), renderFinishedSemaphores[i], nullptr);
