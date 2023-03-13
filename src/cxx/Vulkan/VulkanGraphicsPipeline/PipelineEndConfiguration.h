@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+#include <vector>
 
 struct VertexInput{
     unsigned int location;
@@ -14,18 +15,19 @@ struct PushConstantInfo{
 };
 
 struct UniformBufferInfo{
-    int location;
+    int binding;
     size_t size;
     VkShaderStageFlags shaderStages;
 };
 
 struct SamplerInfo{
-    int location;
-    VkShaderStageFags shaderStages;
+    int binding;
+    VkShaderStageFlags shaderStages;
 };
 
 struct PipelineEndConfig{
     std::vector<SamplerInfo> samplers;
     std::vector<UniformBufferInfo> uniformBuffers;
     std::vector<VertexInput> vertexInputs;
+    std::vector<PushConstantInfo> pushConstantInfos;
 };
