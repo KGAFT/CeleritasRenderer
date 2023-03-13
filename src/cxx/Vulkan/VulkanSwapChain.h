@@ -8,6 +8,8 @@
 #pragma once
 
 class VulkanSwapChain {
+    friend class VulkanSyncManager;
+
 private:
     std::vector<VkImage> swapChainImages;
     std::vector<VkImageView> swapChainImageViews;

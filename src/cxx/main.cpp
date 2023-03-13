@@ -4,8 +4,7 @@
 #include "Vulkan/VulkanDevice/VulkanDevice.h"
 #include "Vulkan/VulkanSwapChain.h"
 #include "Vulkan/VulkanRenderPass.h"
-#include "Vulkan/VulkanSync/VulkanOneFrameSync.h"
-#include "Vulkan/VulkanSync/VulkanThreeFrameSync.h"
+#include "Vulkan/VulkanSync/VulkanSyncManager.h"
 #include "Util/ShaderLoader.h"
 int main() {
     Window::initializeContext();
@@ -36,16 +35,18 @@ int main() {
     VkFormat format = swapChain.getSwapChainImageFormat();
     VulkanRenderPass renderPass(&device, swapChain.getSwapChainImageViews(), Window::getInstance()->getWidth(),
                                 Window::getInstance()->getHeight(), 1, &format, 1);
-    VulkanOneFrameSync oneFrameSync(&device);
-    VulkanThreeFrameSync threeFrameSync(&device);
+
+    VulkanSyncManager syncManager(&device, &swapChain);
+    VulkanSyncManager secondSyncManager(&device, nullptr);
     while (!Window::getInstance()->needToClose()) {
         Window::getInstance()->preRenderEvents();
         Window::getInstance()->postRenderEvents();
     }
     renderPass.destroy();
+    syncManager.destroy();
+    secondSyncManager.destroy();
     swapChain.destroy();
-    threeFrameSync.destroy();
-    oneFrameSync.destroy();
+
     delete shader;
     device.destroy();
     int wait = 0;

@@ -20,6 +20,7 @@ private:
     std::vector<VkFence> imagesInFlight;
     VulkanDevice *device;
     bool destroyed = false;
+    int currentFrame = 0;
 
 public:
     VulkanThreeFrameSync(VulkanDevice *device) : device(device)
@@ -38,23 +39,34 @@ public:
         destroyed = true;
     }
 
-    void prepareForNextImage(int currentFrame)
+    unsigned int prepareForNextImage(VkSwapchainKHR swapChain)
     {
+        unsigned int result = 0;
         vkWaitForFences(
             device->getDevice(),
             1,
             &inFlightFences[currentFrame],
             VK_TRUE,
             std::numeric_limits<uint64_t>::max());
+     
+        vkAcquireNextImageKHR(
+            device->getDevice(),
+            swapChain,
+            std::numeric_limits<uint64_t>::max(),
+            imageAvailableSemaphores[currentFrame], // must be a not signaled semaphore
+            VK_NULL_HANDLE,
+            &result);
+
+        return result;
     }
 
-    void submitCommandBuffers(int currentFrame, VkCommandBuffer *buffers, uint32_t *imageIndex)
+    void submitCommandBuffers(VkCommandBuffer *buffers, VkSwapchainKHR swapChain, unsigned int* currentImage)
     {
-        if (imagesInFlight[*imageIndex] != VK_NULL_HANDLE)
+        if (imagesInFlight[*currentImage] != VK_NULL_HANDLE)
         {
-            vkWaitForFences(device->getDevice(), 1, &imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
+            vkWaitForFences(device->getDevice(), 1, &imagesInFlight[*currentImage], VK_TRUE, UINT64_MAX);
         }
-        imagesInFlight[*imageIndex] = inFlightFences[currentFrame];
+        imagesInFlight[*currentImage] = inFlightFences[currentFrame];
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -78,6 +90,22 @@ public:
         {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
+
+        VkPresentInfoKHR presentInfo = {};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
+
+        VkSwapchainKHR swapChains[] = {swapChain};
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapChains;
+
+        presentInfo.pImageIndices = currentImage;
+
+        auto result = vkQueuePresentKHR(device->getPresentQueue(), &presentInfo);
+
+        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
     ~VulkanThreeFrameSync()
