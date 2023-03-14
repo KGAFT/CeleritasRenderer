@@ -41,6 +41,8 @@ public:
             return 0;
         }
     }
+
+
     /**
      * Second step to begin render
      */
@@ -78,6 +80,16 @@ public:
             destroyed = true;
         }
     }
+
+    unsigned int getCurrentMode(){
+        if(threeFrameSync!=nullptr){
+            return 3;
+        }
+        else{
+            return 1;
+        }
+    }
+
     ~VulkanSyncManager()
     {
         destroy();

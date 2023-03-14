@@ -54,6 +54,11 @@ public:
         }
 
     }
+
+    const std::vector<VkFramebuffer> &getFrameBuffers() const {
+        return frameBuffers;
+    }
+
     void recreate(std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount) {
         destroy();
         destroyed = false;
