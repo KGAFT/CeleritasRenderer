@@ -10,9 +10,22 @@ class VulkanGraphicsPipeline{
 private:
     VkPipeline graphicsPipeline;
     VulkanDevice* device;
+    GraphicsPipelineConfigurer configurer;
+    VulkanShader* shader;
+    PipelineConfiguration::PipelineConfigInfo configInfo;
+    VulkanRenderPass* renderPass;
 
-    void create(VulkanRenderPass* renderPass, VulkanShader *shader, PipelineConfiguration::PipelineConfigInfo &configInfo,
-                GraphicsPipelineConfigurer& configurer) {
+public:
+    VulkanGraphicsPipeline(VulkanDevice *device,
+                           GraphicsPipelineConfigurer configurer, VulkanShader *shader,
+                           PipelineConfiguration::PipelineConfigInfo configInfo, VulkanRenderPass *renderPass)
+            : graphicsPipeline(graphicsPipeline), device(device), configurer(configurer), shader(shader),
+              configInfo(configInfo), renderPass(renderPass) {
+        create();
+    }
+
+private:
+    void create() {
 
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};

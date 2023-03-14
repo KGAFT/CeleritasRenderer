@@ -11,16 +11,15 @@ private:
     VkPipelineLayout pipelineLayout;
     VkDescriptorSetLayout descriptorSetLayout;
     VulkanDevice *device;
-    PipelineEndConfig endConfig;
     VkVertexInputBindingDescription inputBindDesc;
     std::vector<VkVertexInputAttributeDescription> inputAttribDescs;
 public:
-    GraphicsPipelineConfigurer(VulkanDevice *device, PipelineEndConfig endConfiguration) : device(device), endConfig(endConfiguration)
+    GraphicsPipelineConfigurer(VulkanDevice *device, PipelineEndConfig* endConfiguration) : device(device)
     {
-        loadDescriptorSetLayout(&endConfig);
-        loadPipelineLayout(&endConfig);
-        prepareBinding(endConfig.vertexInputs);
-        prepareInputAttribs(endConfig.vertexInputs);
+        loadDescriptorSetLayout(endConfiguration);
+        loadPipelineLayout(endConfiguration);
+        prepareBinding(endConfiguration->vertexInputs);
+        prepareInputAttribs(endConfiguration->vertexInputs);
     }
 
 private:
@@ -59,12 +58,13 @@ private:
         }
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        pipelineLayoutInfo.setLayoutCount = 0;
         if (descriptorSetLayout != VK_NULL_HANDLE)
         {
             pipelineLayoutInfo.setLayoutCount = 1;
             pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
         }
-        pipelineLayoutInfo.setLayoutCount = 0;
+
         pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
         pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
 

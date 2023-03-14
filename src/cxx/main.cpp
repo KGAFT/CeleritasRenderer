@@ -7,7 +7,15 @@
 #include "Vulkan/VulkanSync/VulkanSyncManager.h"
 #include "Vulkan/VulkanGraphicsPipeline/PipelineEndConfiguration.h"
 #include "Vulkan/VulkanGraphicsPipeline/GraphicsPipelineConfigurer.h"
+#include "Vulkan/VulkanGraphicsPipeline/VulkanGraphicsPipeline.h"
 #include "Util/ShaderLoader.h"
+#include <glm/glm.hpp>
+struct PushConstantData{
+    glm::mat4 cameraMatrix;
+    glm::mat4 modelMatrix;
+    glm::vec3 cameraPosition;
+};
+
 int main() {
     Window::initializeContext();
     int monitorCount = 0;
@@ -43,9 +51,12 @@ int main() {
 
     PipelineEndConfig endConfig{};
     endConfig.vertexInputs.push_back({0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
-    endConfig.vertexInputs.push_back({0, 4, sizeof(float), VK_FORMAT_R32G32B32A32_SFLOAT});
-    GraphicsPipelineConfigurer configurer(&device, endConfig);
-     
+    endConfig.vertexInputs.push_back({1, 4, sizeof(float), VK_FORMAT_R32G32B32A32_SFLOAT});
+    endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstantData)});
+    endConfig.uniformBuffers.push_back({0, sizeof(glm::vec3), VK_SHADER_STAGE_VERTEX_BIT});
+    GraphicsPipelineConfigurer configurer(&device, &endConfig);
+    PipelineConfiguration::PipelineConfigInfo config = PipelineConfiguration::defaultPipelineConfigInfo(Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
+    VulkanGraphicsPipeline graphicsPipeline(&device, configurer, shader, config, &renderPass);
     while (!Window::getInstance()->needToClose()) {
         Window::getInstance()->preRenderEvents();
         Window::getInstance()->postRenderEvents();
