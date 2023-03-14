@@ -61,6 +61,11 @@ public:
         createDepthResources(width, height, images.size()/imagePerStepAmount);
         createFrameBuffers(images.size()/imagePerStepAmount, width, height, images, imagePerStepAmount);
     }
+
+     VkRenderPass getRenderPass(){
+        return renderPass;
+    }
+
 private:
     void createDepthResources(int width, int height, int imagesAmount) {
         VkFormat depthFormat = findDepthFormat();

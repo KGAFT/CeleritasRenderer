@@ -6,6 +6,7 @@
 
 class GraphicsPipelineConfigurer
 {
+    friend class VulkanGraphicsPipeline;
 private:
     VkPipelineLayout pipelineLayout;
     VkDescriptorSetLayout descriptorSetLayout;
@@ -63,6 +64,7 @@ private:
             pipelineLayoutInfo.setLayoutCount = 1;
             pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
         }
+        pipelineLayoutInfo.setLayoutCount = 0;
         pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
         pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
 
