@@ -5,6 +5,8 @@
 #include "Vulkan/VulkanSwapChain.h"
 #include "Vulkan/VulkanRenderPass.h"
 #include "Vulkan/VulkanSync/VulkanSyncManager.h"
+#include "Vulkan/VulkanGraphicsPipeline/PipelineEndConfiguration.h"
+#include "Vulkan/VulkanGraphicsPipeline/GraphicsPipelineConfigurer.h"
 #include "Util/ShaderLoader.h"
 int main() {
     Window::initializeContext();
@@ -38,6 +40,12 @@ int main() {
 
     VulkanSyncManager syncManager(&device, &swapChain);
     VulkanSyncManager secondSyncManager(&device, nullptr);
+
+    PipelineEndConfig endConfig{};
+    endConfig.vertexInputs.push_back({0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
+    endConfig.vertexInputs.push_back({0, 4, sizeof(float), VK_FORMAT_R32G32B32A32_SFLOAT});
+    GraphicsPipelineConfigurer configurer(&device, endConfig);
+     
     while (!Window::getInstance()->needToClose()) {
         Window::getInstance()->preRenderEvents();
         Window::getInstance()->postRenderEvents();

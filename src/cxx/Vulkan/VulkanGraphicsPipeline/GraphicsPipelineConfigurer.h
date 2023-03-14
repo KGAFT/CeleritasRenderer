@@ -18,6 +18,8 @@ public:
     {
         loadDescriptorSetLayout(&endConfig);
         loadPipelineLayout(&endConfig);
+        prepareBinding(endConfig.vertexInputs);
+        prepareInputAttribs(endConfig.vertexInputs);
     }
 
 private:
@@ -70,6 +72,30 @@ private:
             throw std::runtime_error("failed to create pipeline layout!");
         }
     }
+
+    void prepareBinding(std::vector<VertexInput>& inputs){
+        size_t size = 0;
+        for(const auto& element: inputs){
+            size+=element.typeSize*element.coordinatesAmount;
+        }
+        inputBindDesc.binding = 0;
+        inputBindDesc.stride = size;
+        inputBindDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    }
+
+    void prepareInputAttribs(std::vector<VertexInput>& inputs){
+        size_t offsetCount = 0;
+        for(const auto& element: inputs){
+            VkVertexInputAttributeDescription attribDesc{};
+            attribDesc.binding = 0;
+            attribDesc.location = element.location;
+            attribDesc.offset = offsetCount;
+            attribDesc.format = element.format;
+            inputAttribDescs.push_back(attribDesc);
+            offsetCount+=element.typeSize*element.coordinatesAmount;
+        }
+    }
+
 
     VkPushConstantRange infoToRange(PushConstantInfo &info)
     {

@@ -7,6 +7,7 @@ struct VertexInput{
     unsigned int location;
     unsigned int coordinatesAmount;
     size_t typeSize;
+    VkFormat format;
 };
 
 struct PushConstantInfo{
