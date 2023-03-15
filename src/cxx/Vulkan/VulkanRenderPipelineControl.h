@@ -9,16 +9,13 @@
 class VulkanRenderPipelineControl {
 private:
     VulkanSyncManager *syncManager;
-    VulkanGraphicsPipeline *graphicsPipeline;
     VulkanDevice *device;
     VulkanRenderPass *renderPass;
     std::vector<VkCommandBuffer> commandBuffers;
     unsigned int currentCmd = 0;
 public:
-    VulkanRenderPipelineControl(VulkanSyncManager *syncManager, VulkanGraphicsPipeline *graphicsPipeline,
+    VulkanRenderPipelineControl(VulkanSyncManager *syncManager,
                                 VulkanDevice *device, VulkanRenderPass *renderPass) : syncManager(syncManager),
-                                                                                      graphicsPipeline(
-                                                                                              graphicsPipeline),
                                                                                       device(device),
                                                                                       renderPass(renderPass) {
         createCommandBuffer(syncManager->getCurrentMode());

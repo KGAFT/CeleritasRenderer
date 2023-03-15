@@ -61,7 +61,7 @@ int main() {
     PipelineConfiguration::PipelineConfigInfo config = PipelineConfiguration::defaultPipelineConfigInfo(Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
     VulkanGraphicsPipeline graphicsPipeline(&device, configurer, shader, config, &renderPass);
 
-    VulkanRenderPipelineControl control(&syncManager, &graphicsPipeline, &device, &renderPass);
+    VulkanRenderPipelineControl control(&syncManager, &device, &renderPass);
 
     while (!Window::getInstance()->needToClose()) {
         Window::getInstance()->preRenderEvents();
