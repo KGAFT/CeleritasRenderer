@@ -4,6 +4,9 @@
 #pragma once
 #include <vulkan/vulkan.h>
 class IDescriptorObject{
+public:
+    virtual unsigned int getBinding() = 0;
+
     virtual VkDescriptorType getDescriptorType() = 0;
     /**
      * @return nullptr_t if not sampler
@@ -17,7 +20,7 @@ class IDescriptorObject{
     /**
      * @return nullptr_t if not ubo;
      */
-    virtual VkBuffer getBuffer() = 0;
+    virtual VkBuffer getBuffer(unsigned int currentInstance) = 0;
     /**
     * @return nullptr_t if not ubo;
     */
