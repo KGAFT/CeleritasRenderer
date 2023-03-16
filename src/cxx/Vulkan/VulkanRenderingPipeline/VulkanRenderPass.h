@@ -5,7 +5,7 @@
 
 #include <vulkan/vulkan.h>
 
-#include "VulkanDevice/VulkanDevice.h"
+#include "../VulkanDevice/VulkanDevice.h"
 
 /**
  * @TODO: Add destroy and recreate methods

@@ -10,7 +10,7 @@ class VulkanPushConstantManager{
 private:
     std::vector<VulkanPushConstant *> pushConstants;
 public:
-    void registerPushConstant(VulkanPushConstantManager *pushConstant) {
+    void registerPushConstant(VulkanPushConstant *pushConstant) {
         pushConstants.push_back(pushConstant);
     }
     void loadConstantsToShader(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) {

@@ -9,10 +9,11 @@ class GraphicsPipelineConfigurer
     friend class VulkanGraphicsPipeline;
 private:
     VkPipelineLayout pipelineLayout;
-    VkDescriptorSetLayout descriptorSetLayout;
+    VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
     VulkanDevice *device;
     VkVertexInputBindingDescription inputBindDesc;
     std::vector<VkVertexInputAttributeDescription> inputAttribDescs;
+    bool destroyed = false;
 public:
     GraphicsPipelineConfigurer(VulkanDevice *device, PipelineEndConfig* endConfiguration) : device(device)
     {
@@ -22,6 +23,25 @@ public:
         prepareInputAttribs(endConfiguration->vertexInputs);
     }
 
+     VkPipelineLayout getPipelineLayout(){
+        return pipelineLayout;
+    }
+
+    VkDescriptorSetLayout getDescriptorSetLayout(){
+        return descriptorSetLayout;
+    }
+    void destroy(){
+        if(!destroyed){
+            vkDestroyPipelineLayout(device->getDevice(), pipelineLayout, nullptr);
+            if(descriptorSetLayout!=VK_NULL_HANDLE){
+                vkDestroyDescriptorSetLayout(device->getDevice(), descriptorSetLayout, nullptr);
+            }
+            destroyed = true;
+        }
+    }
+    ~GraphicsPipelineConfigurer(){
+        destroy();
+    }
 private:
     void loadDescriptorSetLayout(PipelineEndConfig *endConfiguration)
     {

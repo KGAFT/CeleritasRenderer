@@ -4,24 +4,50 @@
 #include "PipelineImmediateConfig.h"
 #include "VulkanShader/VulkanShader.h"
 #include "GraphicsPipelineConfigurer.h"
-#include "../VulkanRenderPass.h"
+#include "../VulkanRenderingPipeline/VulkanRenderPass.h"
 
 class VulkanGraphicsPipeline{
 private:
     VkPipeline graphicsPipeline;
     VulkanDevice* device;
-    GraphicsPipelineConfigurer configurer;
+    GraphicsPipelineConfigurer* configurer;
     VulkanShader* shader;
     PipelineConfiguration::PipelineConfigInfo configInfo;
     VulkanRenderPass* renderPass;
+    bool destroyed = false;
 
 public:
     VulkanGraphicsPipeline(VulkanDevice *device,
-                           GraphicsPipelineConfigurer configurer, VulkanShader *shader,
+                           GraphicsPipelineConfigurer* configurer, VulkanShader *shader,
                            PipelineConfiguration::PipelineConfigInfo configInfo, VulkanRenderPass *renderPass)
             : graphicsPipeline(graphicsPipeline), device(device), configurer(configurer), shader(shader),
               configInfo(configInfo), renderPass(renderPass) {
         create();
+    }
+
+     VkPipeline getGraphicsPipeline()  {
+        return graphicsPipeline;
+    }
+
+    GraphicsPipelineConfigurer *getConfigurer() {
+        return configurer;
+    }
+    ~VulkanGraphicsPipeline(){
+        destroy();
+    }
+
+    void recreate(PipelineConfiguration::PipelineConfigInfo configInfo, VulkanRenderPass *renderPass) {
+        this->configInfo = configInfo;
+        this->renderPass = renderPass;
+        destroy();
+        destroyed = false;
+        create();
+    }
+
+    void destroy(){
+        if(!destroyed){
+            vkDestroyPipeline(device->getDevice(), graphicsPipeline, nullptr);
+        }
     }
 
 private:
@@ -30,10 +56,10 @@ private:
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexAttributeDescriptionCount =configurer.inputAttribDescs.size();
+        vertexInputInfo.vertexAttributeDescriptionCount =configurer->inputAttribDescs.size();
         vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.pVertexAttributeDescriptions = configurer.inputAttribDescs.data();
-        vertexInputInfo.pVertexBindingDescriptions = &configurer.inputBindDesc;
+        vertexInputInfo.pVertexAttributeDescriptions = configurer->inputAttribDescs.data();
+        vertexInputInfo.pVertexBindingDescriptions = &configurer->inputBindDesc;
 
         VkPipelineViewportStateCreateInfo viewportInfo{};
         viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -55,7 +81,7 @@ private:
         pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
         pipelineInfo.pDynamicState = nullptr;
 
-        pipelineInfo.layout = configurer.pipelineLayout;
+        pipelineInfo.layout = configurer->pipelineLayout;
         pipelineInfo.renderPass = renderPass->getRenderPass();
         pipelineInfo.subpass = configInfo.subpass;
 

@@ -3,8 +3,8 @@
 //
 #pragma once
 
-#include "VulkanGraphicsPipeline/VulkanGraphicsPipeline.h"
-#include "VulkanSync/VulkanSyncManager.h"
+#include "../VulkanGraphicsPipeline/VulkanGraphicsPipeline.h"
+#include "../VulkanSync/VulkanSyncManager.h"
 
 class VulkanRenderPipelineControl {
 private:
@@ -29,6 +29,15 @@ public:
         vkEndCommandBuffer(commandBuffers[currentCmd]);
         syncManager->endRender(commandBuffers[currentCmd]);
     }
+
+    void setRenderPass(VulkanRenderPass *renderPass) {
+        VulkanRenderPipelineControl::renderPass = renderPass;
+    }
+
+    unsigned int getCurrentCmd()  {
+        return currentCmd;
+    }
+
 private:
 
     void createCommandBuffer(unsigned int amount) {

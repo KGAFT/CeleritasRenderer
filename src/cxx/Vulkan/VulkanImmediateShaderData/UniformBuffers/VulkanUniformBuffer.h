@@ -9,7 +9,7 @@
 #include "../../VulkanDevice/VulkanDevice.h"
 #include "../../VulkanDescriptors/IDescriptorObject.h"
 
-class VulkanUniformBuffer : IDescriptorObject {
+class VulkanUniformBuffer : public IDescriptorObject {
 private:
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;

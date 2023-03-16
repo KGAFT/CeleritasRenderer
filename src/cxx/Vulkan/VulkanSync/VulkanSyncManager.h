@@ -42,6 +42,9 @@ public:
         }
     }
 
+    unsigned int getCurrentImage() {
+        return currentImage;
+    }
 
     /**
      * Second step to begin render
@@ -65,6 +68,11 @@ public:
             oneFrameSync->submitCommandBuffer(commandBuffer);
         }
     }
+
+    VulkanSwapChain *getSwapChain() {
+        return swapChain;
+    }
+
     void destroy()
     {
         if (!destroyed)
