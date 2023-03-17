@@ -7,6 +7,9 @@
 #include "../Vulkan/VulkanDevice/VulkanDevice.h"
 #include "../Vulkan/VulkanSwapChain.h"
 #include "../Vulkan/VulkanLogger/DefaultVulkanLoggerCallback.h"
+#include "Pipelines/AssemblyPipeline/AssemblyPipeline.h"
+#include "../Vulkan/VulkanImage/VulkanImage.h"
+
 struct EngineDevice{
     std::string name;
     VkPhysicalDevice device;
@@ -16,9 +19,11 @@ struct EngineDevice{
 class Engine{
 private:
     static inline VulkanInstance* instance = nullptr;
+    static inline bool debugBuild = false;
 public:
     static void createInstance(const char* appName, bool debugBuild){
         instance = new VulkanInstance;
+        Engine::debugBuild = debugBuild;
         if(!instance->createInstance(appName, debugBuild)){
             throw std::runtime_error("Failed to init Vulkan API");
         }
@@ -41,5 +46,25 @@ private:
     VulkanDevice* device;
     Window* window;
     VulkanSwapChain* swapChain;
+    AssemblyPipeline* assemblyPipeline;
+    VulkanImage* uiPlaceHolder;
+    VulkanImage* gamePlaceHolder;
+public:
+    Engine(EngineDevice& deviceToCreate, Window* window) : window(window){
+        if(instance== nullptr){
+            throw std::runtime_error("Error: you need to create instance firstly");
+        }
+        device = new VulkanDevice(deviceToCreate.device, window, instance->getInstance(), debugBuild);
+        swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
+        uiPlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
+        gamePlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
+        assemblyPipeline = new AssemblyPipeline(device, swapChain, window);
+        assemblyPipeline->getGameSampler()->setSamplerImageView(gamePlaceHolder->getView());
+        assemblyPipeline->getUISampler()->setSamplerImageView(uiPlaceHolder->getView());
+        assemblyPipeline->getCorrect().outCorrectAmplifier.a = 0.5f;
+    }
 
+    void update(){
+        assemblyPipeline->update();
+    }
 };

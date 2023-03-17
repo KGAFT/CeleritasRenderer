@@ -5,14 +5,53 @@
 
 #include <vulkan/vulkan.h>
 #include "../VulkanDevice/VulkanDevice.h"
-
+#include "../../External/stb_image.h"
 class VulkanImage {
 public:
     static VulkanImage *createImage(VulkanDevice *device, unsigned int width, unsigned int height) {
         VkImage image;
         createImage(device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                     image);
-        return new VulkanImage(image, device);
+        return new VulkanImage(image, device, VK_NULL_HANDLE);
+    }
+    static VulkanImage* loadTexture(const char* pathToTexture, VulkanDevice* device){
+        int imageWidth, imageHeight, imageChannels;
+        stbi_uc *imageData = stbi_load(pathToTexture, &imageWidth, &imageHeight, &imageChannels, STBI_rgb_alpha);
+
+        VkDeviceSize imageSize = imageWidth * imageHeight * 4;
+
+        if (!imageData) {
+            throw std::runtime_error("failed to load texture image!");
+        }
+
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+        device->createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+                             stagingBufferMemory);
+
+        void *data;
+        vkMapMemory(device->getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+        memcpy(data, imageData, static_cast<size_t>(imageSize));
+        vkUnmapMemory(device->getDevice(), stagingBufferMemory);
+
+        stbi_image_free(imageData);
+        VkImage image;
+        VkDeviceMemory imageMemory;
+        createImage(device, imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                    image);
+
+        createImageMemory(device, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, imageMemory, image);
+        transitionImageLayout(device, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
+                              VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        copyBufferToImage(device, stagingBuffer, image, imageWidth, imageHeight);
+        transitionImageLayout(device, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        vkDestroyBuffer(device->getDevice(), stagingBuffer, nullptr);
+        vkFreeMemory(device->getDevice(), stagingBufferMemory, nullptr);
+
+        return new VulkanImage(image, device, imageMemory);
     }
 
 private:
@@ -58,7 +97,7 @@ private:
         vkBindImageMemory(device->getDevice(), image, imageMemory, 0);
     }
 
-    void transitionImageLayout(VulkanDevice *device, VkImage image, VkFormat format, VkImageLayout oldLayout,
+    static void transitionImageLayout(VulkanDevice *device, VkImage image, VkFormat format, VkImageLayout oldLayout,
                                VkImageLayout newLayout) {
         VkCommandBuffer commandBuffer = device->beginSingleTimeCommands();
 
@@ -107,7 +146,7 @@ private:
         device->endSingleTimeCommands(commandBuffer);
     }
 
-    void copyBufferToImage(VulkanDevice *device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+    static void copyBufferToImage(VulkanDevice *device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
         VkCommandBuffer commandBuffer = device->beginSingleTimeCommands();
 
         VkBufferImageCopy region{};
@@ -134,8 +173,9 @@ private:
     VkImage image;
     VulkanDevice *device;
     VkImageView view;
+    VkDeviceMemory imageMemory;
 public:
-    VulkanImage(VkImage image, VulkanDevice *device) : image(image), device(device) {
+    VulkanImage(VkImage image, VulkanDevice *device, VkDeviceMemory imageMemory) :imageMemory(imageMemory), image(image), device(device) {
         view = device->createImageView(image, VK_FORMAT_R8G8B8A8_SRGB);
     }
 

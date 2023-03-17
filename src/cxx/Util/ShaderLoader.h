@@ -6,6 +6,7 @@
 #include "ShaderConfParser.h"
 #include "../Vulkan/VulkanDevice/VulkanDevice.h"
 #include "../Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h"
+
 class ShaderLoader
 {
 public:

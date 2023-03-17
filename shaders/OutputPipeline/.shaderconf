@@ -1,2 +1,2 @@
 VERTEX_SHADER main.vert TRUE
-FRAGMENT_SHADER default.frag TRUE
+FRAGMENT_SHADER main.frag TRUE

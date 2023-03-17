@@ -88,6 +88,7 @@ public:
         if(descriptors!= nullptr){
             descriptors->writeDescriptorObjects(reinterpret_cast<IDescriptorObject **>(uniformBuffers.data()), uniformBuffers.size(), control->getCurrentCmd());
             descriptors->writeDescriptorObjects(reinterpret_cast<IDescriptorObject **>(samplers.data()), samplers.size(), control->getCurrentCmd());
+            descriptors->bind(control->getCurrentCmd(), rendInfo.first, configurer->getPipelineLayout());
         }
 
         currentCommandBuffer = rendInfo.first;
@@ -148,6 +149,19 @@ public:
     ~VulkanEndRenderPipeline(){
         destroy();
     }
+
+    std::vector<VulkanSampler *> &getSamplers() {
+        return samplers;
+    }
+
+    std::vector<VulkanUniformBuffer *> &getUniformBuffers() {
+        return uniformBuffers;
+    }
+
+    std::vector<VulkanPushConstant *> &getPushConstants() {
+        return pushConstants;
+    }
+
 private:
 
     void createPushConstants(PipelineEndConfig* endConfig){
