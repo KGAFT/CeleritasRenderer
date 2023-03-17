@@ -114,7 +114,9 @@ public:
         control->setRenderPass(renderPass);
 
     }
-
+    VkImageView getCurrentImage(){
+        return imageViews[control->getCurrentCmd()];
+    }
     void destroy(){
         if(!destroyed){
             vkDeviceWaitIdle(device->getDevice());
