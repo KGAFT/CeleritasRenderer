@@ -10,7 +10,7 @@ class VulkanImage {
 public:
     static VulkanImage *createImage(VulkanDevice *device, unsigned int width, unsigned int height) {
         VkImage image;
-        createImage(device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT,
+        createImage(device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                     image);
         return new VulkanImage(image, device);
     }
