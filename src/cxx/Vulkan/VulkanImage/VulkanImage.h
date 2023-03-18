@@ -12,7 +12,11 @@ public:
         VkImage image;
         createImage(device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                     image);
-        return new VulkanImage(image, device, VK_NULL_HANDLE);
+        VkDeviceMemory imageMemory;
+        createImageMemory(device, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, imageMemory, image);
+        transitionImageLayout(device, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
+                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        return new VulkanImage(image, device, imageMemory, VK_FORMAT_R8G8B8A8_SRGB);
     }
     static VulkanImage* loadTexture(const char* pathToTexture, VulkanDevice* device){
         int imageWidth, imageHeight, imageChannels;
@@ -51,7 +55,7 @@ public:
         vkDestroyBuffer(device->getDevice(), stagingBuffer, nullptr);
         vkFreeMemory(device->getDevice(), stagingBufferMemory, nullptr);
 
-        return new VulkanImage(image, device, imageMemory);
+        return new VulkanImage(image, device, imageMemory, VK_FORMAT_R8G8B8A8_SRGB);
     }
 
 private:
@@ -130,7 +134,15 @@ private:
 
             sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        } else {
+        }
+        else if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL){
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        }
+        else {
             throw std::invalid_argument("unsupported layout transition!");
         }
 
@@ -173,9 +185,11 @@ private:
     VkImage image;
     VulkanDevice *device;
     VkImageView view;
-    VkDeviceMemory imageMemory;
+    VkDeviceMemory imageMemory = VK_NULL_HANDLE;
+    VkFormat format;
+    bool destroyed = false;
 public:
-    VulkanImage(VkImage image, VulkanDevice *device, VkDeviceMemory imageMemory) :imageMemory(imageMemory), image(image), device(device) {
+    VulkanImage(VkImage image, VulkanDevice *device, VkDeviceMemory imageMemory, VkFormat format) : format(format), imageMemory(imageMemory), image(image), device(device) {
         view = device->createImageView(image, VK_FORMAT_R8G8B8A8_SRGB);
     }
 
@@ -189,5 +203,23 @@ public:
 
     VkImageView getView() {
         return view;
+    }
+
+    VkFormat getFormat()  {
+        return format;
+    }
+
+    void destroy(){
+        if(!destroyed){
+            vkDestroyImageView(device->getDevice(),view, nullptr);
+            if(imageMemory!=VK_NULL_HANDLE){
+                vkFreeMemory(device->getDevice(), imageMemory, nullptr);
+            }
+            vkDestroyImage(device->getDevice(), image, nullptr);
+            destroyed = true;
+        }
+    }
+    ~VulkanImage(){
+        destroy();
     }
 };

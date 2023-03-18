@@ -7,9 +7,6 @@
 
 #include "../VulkanDevice/VulkanDevice.h"
 
-/**
- * @TODO: Add destroy and recreate methods
- */
 
 class VulkanRenderPass {
 private:
@@ -20,10 +17,11 @@ private:
     std::vector<VkDeviceMemory> depthImageMemories;
     std::vector<VkImageView> depthImageViews;
     VkFormat depthFormat;
+    bool output = false;
     bool destroyed =false;
 public:
-    VulkanRenderPass(VulkanDevice* device, std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount) : device(device){
-        createRenderPass(imagesFormat, formatCount, imagePerStepAmount);
+    VulkanRenderPass(VulkanDevice* device, std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount, bool output) : output(output), device(device){
+        createRenderPass(imagesFormat, formatCount, imagePerStepAmount, output);
         createDepthResources(width, height, images.size()/imagePerStepAmount);
         createFrameBuffers(images.size()/imagePerStepAmount, width, height, images, imagePerStepAmount);
     }
@@ -62,7 +60,7 @@ public:
     void recreate(std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount) {
         destroy();
         destroyed = false;
-        createRenderPass(imagesFormat, formatCount, imagePerStepAmount);
+        createRenderPass(imagesFormat, formatCount, imagePerStepAmount, output);
         createDepthResources(width, height, images.size()/imagePerStepAmount);
         createFrameBuffers(images.size()/imagePerStepAmount, width, height, images, imagePerStepAmount);
     }
@@ -123,7 +121,7 @@ private:
 
 
     std::vector<VkAttachmentDescription>
-    prepareColorAttachmentDescription(VkFormat *imageFormat, int formatCount, int amount) {
+    prepareColorAttachmentDescription(VkFormat *imageFormat, int formatCount, int amount, bool output) {
         std::vector<VkAttachmentDescription> result;
         bool useOneFormat = formatCount == 1;
         for (int i = 0; i < amount; ++i) {
@@ -139,7 +137,7 @@ private:
             colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            colorAttachment.finalLayout = output?VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             result.push_back(colorAttachment);
         }
         return result;
@@ -156,7 +154,7 @@ private:
         return result;
     }
 
-    void createRenderPass(VkFormat *imageFormat, int formatCount, int attachImagesAmount) {
+    void createRenderPass(VkFormat *imageFormat, int formatCount, int attachImagesAmount, bool output) {
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format = findDepthFormat();
         depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -172,7 +170,7 @@ private:
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
         std::vector<VkAttachmentDescription> attachments = prepareColorAttachmentDescription(imageFormat, formatCount,
-                                                                                             attachImagesAmount);
+                                                                                             attachImagesAmount, output);
         std::vector<VkAttachmentReference> references = prepareColorReference(attachImagesAmount);
 
 

@@ -100,21 +100,31 @@ public:
         control->endRender();
 
     }
-    void resized(int width, int height) override {
+    void resized(int width, int height, std::vector<VkImageView>* newImageViews, int imagePerStepAmount, VkFormat imageFormat) {
         vkDeviceWaitIdle(device->getDevice());
         currentWidth = width;
         currentHeight = height;
         if(syncManager->getSwapChain()!=nullptr){
             syncManager->getSwapChain()->recreate(width, height);
             imageViews = syncManager->getSwapChain()->getSwapChainImageViews();
-            imagePerStepAmount = 1;
-            imageFormat = syncManager->getSwapChain()->getSwapChainImageFormat();
+            this->imagePerStepAmount = 1;
+            this->imageFormat = syncManager->getSwapChain()->getSwapChainImageFormat();
+        }
+        else{
+            imageViews = *newImageViews;
+            this->imagePerStepAmount= imagePerStepAmount;
+            this->imageFormat = imageFormat;
         }
         renderPass->recreate(imageViews, width, height, imagePerStepAmount, &imageFormat, 1);
         graphicsPipeline->recreate(PipelineConfiguration::defaultPipelineConfigInfo(width, height), renderPass);
         control->setRenderPass(renderPass);
 
     }
+
+    void resized(int width, int height) override{
+        resized(width, height, nullptr, 0, VK_FORMAT_R32G32B32_SFLOAT);
+    }
+
     VkImageView getCurrentImage(){
         return imageViews[control->getCurrentCmd()];
     }
@@ -183,7 +193,8 @@ private:
 
     void createRenderPass(int width, int height, int imagePerStepAmount, VkFormat imageFormat){
         this->imagePerStepAmount = imagePerStepAmount;
-        renderPass = new VulkanRenderPass(device, imageViews, width, height, imagePerStepAmount, &imageFormat, 1);
+        renderPass = new VulkanRenderPass(device, imageViews, width, height, imagePerStepAmount, &imageFormat, 1, syncManager->getSwapChain()!=
+                                                                                                                  nullptr);
     }
     void createGraphicsPipeline(PipelineEndConfig *endConfig, int width, int height){
         configurer = new GraphicsPipelineConfigurer(device, endConfig);

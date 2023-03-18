@@ -9,6 +9,7 @@
 #include "../Vulkan/VulkanLogger/DefaultVulkanLoggerCallback.h"
 #include "Pipelines/AssemblyPipeline/AssemblyPipeline.h"
 #include "../Vulkan/VulkanImage/VulkanImage.h"
+#include "Pipelines/UIPipeline/UIPipeline.h"
 
 struct EngineDevice{
     std::string name;
@@ -49,6 +50,7 @@ private:
     AssemblyPipeline* assemblyPipeline;
     VulkanImage* uiPlaceHolder;
     VulkanImage* gamePlaceHolder;
+    UIPipeline* uiPipeline;
 public:
     Engine(EngineDevice& deviceToCreate, Window* window) : window(window){
         if(instance== nullptr){
@@ -62,9 +64,13 @@ public:
         assemblyPipeline->getGameSampler()->setSamplerImageView(gamePlaceHolder->getView());
         assemblyPipeline->getUISampler()->setSamplerImageView(uiPlaceHolder->getView());
         assemblyPipeline->getCorrect().outCorrectAmplifier.a = 0.5f;
+        uiPipeline = new UIPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
+
     }
 
     void update(){
+        VkImageView imageView = uiPipeline->update();
+        assemblyPipeline->getUISampler()->setSamplerImageView(imageView);
         assemblyPipeline->update();
     }
 };

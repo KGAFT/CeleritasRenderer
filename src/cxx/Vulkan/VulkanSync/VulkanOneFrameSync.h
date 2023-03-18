@@ -10,7 +10,7 @@ private:
     VkSemaphore waitSemaphore;
     VulkanDevice *device;
     bool destroyed = false;
-
+    VkFence fence;
 public:
     VulkanOneFrameSync(VulkanDevice *device) : device(device)
     {
@@ -30,6 +30,7 @@ public:
 
     void submitCommandBuffer(VkCommandBuffer commandBuffer)
     {
+        vkDeviceWaitIdle(device->getDevice());
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
