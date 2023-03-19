@@ -30,7 +30,7 @@ public:
 
     void submitCommandBuffer(VkCommandBuffer commandBuffer)
     {
-        vkDeviceWaitIdle(device->getDevice());
+
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -41,7 +41,9 @@ public:
         submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
         submitInfo.pWaitDstStageMask = waitStages;
-        vkQueueSubmit(device->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueSubmit(device->getGraphicsQueue(), 1, &submitInfo, fence);
+        vkWaitForFences(device->getDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
+        vkResetFences(device->getDevice(), 1, &fence);
         std::swap(availableSemaphore, waitSemaphore);
     }
 
@@ -60,5 +62,10 @@ private:
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
         vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &availableSemaphore);
         vkCreateSemaphore(device->getDevice(), &semaphoreInfo, nullptr, &waitSemaphore);
+
+        VkFenceCreateInfo fenceInfo = {};
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        vkCreateFence(device->getDevice(), &fenceInfo, nullptr, &fence);
     }
 };
