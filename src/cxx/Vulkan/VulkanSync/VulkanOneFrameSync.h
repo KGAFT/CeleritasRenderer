@@ -30,7 +30,7 @@ public:
 
     void submitCommandBuffer(VkCommandBuffer commandBuffer)
     {
-
+        vkResetFences(device->getDevice(), 1, &fence);
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -43,7 +43,7 @@ public:
         submitInfo.pWaitDstStageMask = waitStages;
         vkQueueSubmit(device->getGraphicsQueue(), 1, &submitInfo, fence);
         vkWaitForFences(device->getDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
-        vkResetFences(device->getDevice(), 1, &fence);
+
         std::swap(availableSemaphore, waitSemaphore);
     }
 
