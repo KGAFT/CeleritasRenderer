@@ -33,11 +33,11 @@ public:
         for (const auto &item: depthImageViews) {
             vkDestroyImageView(device->getDevice(), item, nullptr);
         }
-        for (const auto &item: depthImageMemories) {
-            vkFreeMemory(device->getDevice(), item, nullptr);
-        }
         for (const auto &item: depthImages){
             vkDestroyImage(device->getDevice(), item, nullptr);
+        }
+        for (const auto &item: depthImageMemories) {
+            vkFreeMemory(device->getDevice(), item, nullptr);
         }
         vkDestroyRenderPass(device->getDevice(), renderPass, nullptr);
         depthImages.clear();
@@ -58,6 +58,7 @@ public:
     }
 
     void recreate(std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount) {
+        vkDeviceWaitIdle(device->getDevice());
         destroy();
         destroyed = false;
         createRenderPass(imagesFormat, formatCount, imagePerStepAmount, output);
@@ -165,20 +166,24 @@ private:
         depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-        VkAttachmentReference depthAttachmentRef{};
-        depthAttachmentRef.attachment = 1;
-        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 
         std::vector<VkAttachmentDescription> attachments = prepareColorAttachmentDescription(imageFormat, formatCount,
                                                                                              attachImagesAmount, output);
         std::vector<VkAttachmentReference> references = prepareColorReference(attachImagesAmount);
 
+        VkAttachmentReference depthAttachmentRef{};
+        depthAttachmentRef.attachment = attachments.size();
+        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
         VkSubpassDescription subpass = {};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
         subpass.colorAttachmentCount = references.size();
         subpass.pColorAttachments = references.data();
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
+        subpass.inputAttachmentCount = 0;
+        subpass.pInputAttachments = nullptr;
+        subpass.pResolveAttachments = nullptr;
 
         VkSubpassDependency dependency = {};
         dependency.dstSubpass = 0;

@@ -47,7 +47,7 @@ private:
     VulkanPushConstantManager* manager;
 public:
     VulkanEndRenderPipeline(VulkanDevice *device, VulkanSyncManager *syncManager, VulkanShader *shader,
-                            PipelineEndConfig *endConfig, int startFrameBufferWidth, int startFrameBufferHeight, std::vector<VkImageView>& imageViews, int imagePerStepAmount, VkFormat imageFormat) : device(device), imageViews(imageViews), imageFormat(imageFormat), syncManager(syncManager), shader(shader),
+                            PipelineEndConfig *endConfig, int startFrameBufferWidth, int startFrameBufferHeight, std::vector<VkImageView>& imageViews, int imagePerStepAmount, VkFormat imageFormat) : imagePerStepAmount(imagePerStepAmount), device(device), imageViews(imageViews), imageFormat(imageFormat), syncManager(syncManager), shader(shader),
                                                             endConfig(endConfig), currentWidth(startFrameBufferWidth), currentHeight(startFrameBufferHeight) {
         createRenderPass(startFrameBufferWidth, startFrameBufferHeight, imagePerStepAmount, imageFormat);
         createGraphicsPipeline(endConfig, startFrameBufferWidth, startFrameBufferHeight);
@@ -115,14 +115,14 @@ public:
             this->imagePerStepAmount= imagePerStepAmount;
             this->imageFormat = imageFormat;
         }
-        renderPass->recreate(imageViews, width, height, imagePerStepAmount, &imageFormat, 1);
+        renderPass->recreate(imageViews, width, height, this->imagePerStepAmount, &this->imageFormat, 1);
         graphicsPipeline->recreate(PipelineConfiguration::defaultPipelineConfigInfo(width, height), renderPass);
         control->setRenderPass(renderPass);
 
     }
 
     void resized(int width, int height) override{
-        resized(width, height, nullptr, 0, VK_FORMAT_R32G32B32_SFLOAT);
+        resized(width, height, nullptr, this->imagePerStepAmount,  VK_FORMAT_R32G32B32_SFLOAT);
     }
 
     VkImageView getCurrentImage(){
