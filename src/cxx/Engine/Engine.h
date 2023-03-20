@@ -51,6 +51,7 @@ private:
     VulkanImage* uiPlaceHolder;
     VulkanImage* gamePlaceHolder;
     UIPipeline* uiPipeline;
+    long long frameCounter = 0;
 public:
     Engine(EngineDevice& deviceToCreate, Window* window) : window(window){
         if(instance== nullptr){
@@ -69,8 +70,15 @@ public:
     }
 
     void update(){
-        VkImageView imageView = uiPipeline->update();
+        VkImageView imageView;
+        if(frameCounter%2==0){
+            imageView = uiPipeline->update().first;
+        }
+        else{
+            imageView = uiPipeline->update().second;
+        }
         assemblyPipeline->getUISampler()->setSamplerImageView(imageView);
         assemblyPipeline->update();
+        frameCounter++;
     }
 };

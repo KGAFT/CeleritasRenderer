@@ -19,8 +19,9 @@ private:
     VkFormat depthFormat;
     bool output = false;
     bool destroyed =false;
+    int attachmentCount = 0;
 public:
-    VulkanRenderPass(VulkanDevice* device, std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount, bool output) : output(output), device(device){
+    VulkanRenderPass(VulkanDevice* device, std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount, bool output) : attachmentCount(imagePerStepAmount), output(output), device(device){
         createRenderPass(imagesFormat, formatCount, imagePerStepAmount, output);
         createDepthResources(width, height, images.size()/imagePerStepAmount);
         createFrameBuffers(images.size()/imagePerStepAmount, width, height, images, imagePerStepAmount);
@@ -58,6 +59,7 @@ public:
     }
 
     void recreate(std::vector<VkImageView>& images, int width, int height, int imagePerStepAmount, VkFormat* imagesFormat, int formatCount) {
+        this->attachmentCount = imagePerStepAmount;
         vkDeviceWaitIdle(device->getDevice());
         destroy();
         destroyed = false;
@@ -66,7 +68,11 @@ public:
         createFrameBuffers(images.size()/imagePerStepAmount, width, height, images, imagePerStepAmount);
     }
 
-     VkRenderPass getRenderPass(){
+    int getAttachmentCount() const {
+        return attachmentCount;
+    }
+
+    VkRenderPass getRenderPass(){
         return renderPass;
     }
 

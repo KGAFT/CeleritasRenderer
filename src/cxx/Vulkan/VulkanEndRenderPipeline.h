@@ -2,6 +2,7 @@
 // Created by KGAFT on 3/16/2023.
 //
 #pragma once
+
 #include <array>
 #include <vulkan/vulkan.h>
 #include "VulkanSync/VulkanSyncManager.h"
@@ -17,49 +18,54 @@
 #include "VulkanDescriptors/VulkanDescriptors.h"
 #include "VulkanImmediateShaderData/PushConstants/VulkanPushConstantManager.h"
 
-class VulkanEndRenderPipeline : public IWindowResizeCallback{
+class VulkanEndRenderPipeline : public IWindowResizeCallback {
 private:
-    VulkanDevice* device;
-    VulkanSyncManager* syncManager;
-    VulkanShader* shader;
-    PipelineEndConfig* endConfig;
-    std::vector<VkImageView>& imageViews;
+    VulkanDevice *device;
+    VulkanSyncManager *syncManager;
+    VulkanShader *shader;
+    PipelineEndConfig *endConfig;
+    std::vector<VkImageView> &imageViews;
     int currentWidth;
     int currentHeight;
     bool destroyed = false;
 private:
-    VulkanRenderPass* renderPass;
-    VulkanGraphicsPipeline* graphicsPipeline;
-    GraphicsPipelineConfigurer* configurer;
-    VulkanRenderPipelineControl* control;
+    VulkanRenderPass *renderPass;
+    VulkanGraphicsPipeline *graphicsPipeline;
+    GraphicsPipelineConfigurer *configurer;
+    VulkanRenderPipelineControl *control;
 
-    std::vector<VulkanUniformBuffer*> uniformBuffers;
-    std::vector<VulkanSampler*> samplers;
-    std::vector<VulkanPushConstant*> pushConstants;
+    std::vector<VulkanUniformBuffer *> uniformBuffers;
+    std::vector<VulkanSampler *> samplers;
+    std::vector<VulkanPushConstant *> pushConstants;
 
     int imagePerStepAmount = 0;
     VkFormat imageFormat;
 
     VkRenderPassBeginInfo renderPassInfo{};
-    float clearColorValues[4] = {0,0,0,1};
+    float clearColorValues[4] = {0, 0, 0, 1};
     VkCommandBuffer currentCommandBuffer;
-    VulkanDescriptors* descriptors = nullptr;
-    VulkanPushConstantManager* manager;
+    VulkanDescriptors *descriptors = nullptr;
+    VulkanPushConstantManager *manager;
+
 public:
     VulkanEndRenderPipeline(VulkanDevice *device, VulkanSyncManager *syncManager, VulkanShader *shader,
-                            PipelineEndConfig *endConfig, int startFrameBufferWidth, int startFrameBufferHeight, std::vector<VkImageView>& imageViews, int imagePerStepAmount, VkFormat imageFormat) : imagePerStepAmount(imagePerStepAmount), device(device), imageViews(imageViews), imageFormat(imageFormat), syncManager(syncManager), shader(shader),
-                                                            endConfig(endConfig), currentWidth(startFrameBufferWidth), currentHeight(startFrameBufferHeight) {
+                            PipelineEndConfig *endConfig, int startFrameBufferWidth, int startFrameBufferHeight,
+                            std::vector<VkImageView> &imageViews, int imagePerStepAmount, VkFormat imageFormat)
+            : imagePerStepAmount(imagePerStepAmount), device(device), imageViews(imageViews), imageFormat(imageFormat),
+              syncManager(syncManager), shader(shader),
+              endConfig(endConfig), currentWidth(startFrameBufferWidth), currentHeight(startFrameBufferHeight) {
         createRenderPass(startFrameBufferWidth, startFrameBufferHeight, imagePerStepAmount, imageFormat);
         createGraphicsPipeline(endConfig, startFrameBufferWidth, startFrameBufferHeight);
         createControl();
-        if(configurer->getDescriptorSetLayout()!=VK_NULL_HANDLE){
-            descriptors = new VulkanDescriptors(device, configurer->getDescriptorSetLayout(), syncManager->getCurrentMode());
+        if (configurer->getDescriptorSetLayout() != VK_NULL_HANDLE) {
+            descriptors = new VulkanDescriptors(device, configurer->getDescriptorSetLayout(),
+                                                syncManager->getCurrentMode());
         }
 
         manager = new VulkanPushConstantManager();
         createPushConstants(endConfig);
 
-        for (const auto &item: pushConstants){
+        for (const auto &item: pushConstants) {
             manager->registerPushConstant(item);
         }
 
@@ -67,86 +73,94 @@ public:
         createUniforms(endConfig);
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     }
+
+
     /**
      * Update immediate  data before this
      */
-    VkCommandBuffer beginRender(){
+    VkCommandBuffer beginRender() {
         std::pair rendInfo = control->beginRender();
         renderPassInfo.renderPass = renderPass->getRenderPass();
         renderPassInfo.framebuffer = rendInfo.second;
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = {static_cast<uint32_t>(currentWidth), static_cast<uint32_t>(currentHeight)};
-        std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {clearColorValues[0], clearColorValues[1], clearColorValues[2], clearColorValues[3]};
-        clearValues[1].depthStencil = {1.0f, 0};
-        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-        renderPassInfo.pClearValues = clearValues.data();
+        unsigned int clearValuesCount = 0 ;
+        prepareClearValues(nullptr, &clearValuesCount);
+        VkClearValue clearValues[clearValuesCount];
+        prepareClearValues(clearValues, &clearValuesCount);
+        renderPassInfo.clearValueCount = clearValuesCount;
+        renderPassInfo.pClearValues = clearValues;
 
         vkCmdBeginRenderPass(rendInfo.first, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(rendInfo.first, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipeline());
         manager->loadConstantsToShader(rendInfo.first, configurer->getPipelineLayout());
-        if(descriptors!= nullptr){
-            descriptors->writeDescriptorObjects(reinterpret_cast<IDescriptorObject **>(uniformBuffers.data()), uniformBuffers.size(), control->getCurrentCmd());
-            descriptors->writeDescriptorObjects(reinterpret_cast<IDescriptorObject **>(samplers.data()), samplers.size(), control->getCurrentCmd());
+        if (descriptors != nullptr) {
+            descriptors->writeDescriptorObjects(reinterpret_cast<IDescriptorObject **>(uniformBuffers.data()),
+                                                uniformBuffers.size(), control->getCurrentCmd());
+            descriptors->writeDescriptorObjects(reinterpret_cast<IDescriptorObject **>(samplers.data()),
+                                                samplers.size(), control->getCurrentCmd());
             descriptors->bind(control->getCurrentCmd(), rendInfo.first, configurer->getPipelineLayout());
         }
 
         currentCommandBuffer = rendInfo.first;
         return rendInfo.first;
     }
-    void endRender(){
+
+    void endRender() {
         vkCmdEndRenderPass(currentCommandBuffer);
 
         control->endRender();
 
     }
-    void resized(int width, int height, std::vector<VkImageView>* newImageViews, int imagePerStepAmount, VkFormat imageFormat) {
+
+    void resized(int width, int height, std::vector<VkImageView> *newImageViews, int imagePerStepAmount,
+                 VkFormat imageFormat) {
         vkDeviceWaitIdle(device->getDevice());
         currentWidth = width;
         currentHeight = height;
-        if(syncManager->getSwapChain()!=nullptr){
+        if (syncManager->getSwapChain() != nullptr) {
             syncManager->getSwapChain()->recreate(width, height);
             imageViews = syncManager->getSwapChain()->getSwapChainImageViews();
             this->imagePerStepAmount = 1;
             this->imageFormat = syncManager->getSwapChain()->getSwapChainImageFormat();
-        }
-        else{
+        } else {
             imageViews = *newImageViews;
-            this->imagePerStepAmount= imagePerStepAmount;
+            this->imagePerStepAmount = imagePerStepAmount;
             this->imageFormat = imageFormat;
         }
         renderPass->recreate(imageViews, width, height, this->imagePerStepAmount, &this->imageFormat, 1);
-        graphicsPipeline->recreate(PipelineConfiguration::defaultPipelineConfigInfo(width, height), renderPass);
+        graphicsPipeline->recreate(PipelineConfiguration::defaultPipelineConfigInfo(width, height, renderPass->getAttachmentCount()), renderPass);
         control->setRenderPass(renderPass);
 
     }
 
-    void resized(int width, int height) override{
-        resized(width, height, nullptr, this->imagePerStepAmount,  VK_FORMAT_R32G32B32_SFLOAT);
+    void resized(int width, int height) override {
+        resized(width, height, nullptr, this->imagePerStepAmount, VK_FORMAT_R32G32B32_SFLOAT);
     }
 
-    VkImageView getCurrentImage(){
+    VkImageView getCurrentImage() {
         return imageViews[control->getCurrentCmd()];
     }
-    void destroy(){
-        if(!destroyed){
+
+    void destroy() {
+        if (!destroyed) {
             vkDeviceWaitIdle(device->getDevice());
-            for (const auto &item: uniformBuffers){
+            for (const auto &item: uniformBuffers) {
                 delete item;
             }
             uniformBuffers.clear();
-            for (const auto &item: samplers){
+            for (const auto &item: samplers) {
                 delete item;
             }
             samplers.clear();
-            for (const auto &item: pushConstants){
+            for (const auto &item: pushConstants) {
                 delete item;
             }
             pushConstants.clear();
-            if(manager!= nullptr){
+            if (manager != nullptr) {
                 delete manager;
             }
-            if(descriptors!=nullptr){
+            if (descriptors != nullptr) {
                 delete descriptors;
             }
             delete control;
@@ -156,7 +170,8 @@ public:
             destroyed = true;
         }
     }
-    ~VulkanEndRenderPipeline(){
+
+    ~VulkanEndRenderPipeline() {
         destroy();
     }
 
@@ -173,34 +188,51 @@ public:
     }
 
 private:
+    void prepareClearValues(VkClearValue * result, unsigned int *count) {
+        *count = renderPass->getAttachmentCount() + 1;
+        if(result == nullptr){
+            return;
+        }
+        for (int i = 0; i < renderPass->getAttachmentCount(); ++i) {
+            result[i].color = {clearColorValues[0], clearColorValues[1], clearColorValues[2], clearColorValues[3]};
+        }
+        result[renderPass->getAttachmentCount()].depthStencil  = {1.0f, 0};
+    }
 
-    void createPushConstants(PipelineEndConfig* endConfig){
-        for (const auto &item: endConfig->pushConstantInfos){
+    void createPushConstants(PipelineEndConfig *endConfig) {
+        for (const auto &item: endConfig->pushConstantInfos) {
             pushConstants.push_back(new VulkanPushConstant(item.size, item.shaderStages));
         }
     }
-    void createUniforms(PipelineEndConfig* endConfig){
-        for (const auto &item: endConfig->uniformBuffers){
-            uniformBuffers.push_back(new VulkanUniformBuffer(device, item.size, item.shaderStages, item.binding, syncManager->getCurrentMode()));
+
+    void createUniforms(PipelineEndConfig *endConfig) {
+        for (const auto &item: endConfig->uniformBuffers) {
+            uniformBuffers.push_back(new VulkanUniformBuffer(device, item.size, item.shaderStages, item.binding,
+                                                             syncManager->getCurrentMode()));
         }
     }
 
-    void createSamplers(PipelineEndConfig* endConfig){
-        for (const auto &item: endConfig->samplers){
+    void createSamplers(PipelineEndConfig *endConfig) {
+        for (const auto &item: endConfig->samplers) {
             samplers.push_back(new VulkanSampler(device, item.binding));
         }
     }
 
-    void createRenderPass(int width, int height, int imagePerStepAmount, VkFormat imageFormat){
+    void createRenderPass(int width, int height, int imagePerStepAmount, VkFormat imageFormat) {
         this->imagePerStepAmount = imagePerStepAmount;
-        renderPass = new VulkanRenderPass(device, imageViews, width, height, imagePerStepAmount, &imageFormat, 1, syncManager->getSwapChain()!=
-                                                                                                                  nullptr);
+        renderPass = new VulkanRenderPass(device, imageViews, width, height, imagePerStepAmount, &imageFormat, 1,
+                                          syncManager->getSwapChain() !=
+                                          nullptr);
     }
-    void createGraphicsPipeline(PipelineEndConfig *endConfig, int width, int height){
+
+    void createGraphicsPipeline(PipelineEndConfig *endConfig, int width, int height) {
         configurer = new GraphicsPipelineConfigurer(device, endConfig);
-        graphicsPipeline = new VulkanGraphicsPipeline(device, configurer, shader, PipelineConfiguration::defaultPipelineConfigInfo(width, height), renderPass);
+        graphicsPipeline = new VulkanGraphicsPipeline(device, configurer, shader,
+                                                      PipelineConfiguration::defaultPipelineConfigInfo(width, height, renderPass->getAttachmentCount()),
+                                                      renderPass);
     }
-    void createControl(){
+
+    void createControl() {
         control = new VulkanRenderPipelineControl(syncManager, device, renderPass);
     }
 };

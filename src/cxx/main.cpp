@@ -29,9 +29,5 @@ int main() {
 
         Window::getInstance()->postRenderEvents();
     }
-
-
-    int wait = 0;
-    std::cin>>wait;
     return 0;
 }
