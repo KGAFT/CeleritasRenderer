@@ -36,7 +36,7 @@ public:
         std::vector<VkImageView> views;
         views.push_back(colorImage->getView());
         views.push_back(vertexImage->getView());
-        endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, startWidth*widthScale, startHeight*heightScale, views, 2, colorImage->getFormat());
+        endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, startWidth*widthScale, startHeight*heightScale, views, 1, colorImage->getFormat());
         float data[]{
             0,0,0,      1, 0, 0, 1,
             0, 0.5,0,   0, 1, 0, 1,
