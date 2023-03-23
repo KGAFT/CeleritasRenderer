@@ -84,12 +84,13 @@ public:
         renderPassInfo.framebuffer = rendInfo.second;
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = {static_cast<uint32_t>(currentWidth), static_cast<uint32_t>(currentHeight)};
-        unsigned int clearValuesCount = 0 ;
-        prepareClearValues(nullptr, &clearValuesCount);
-        VkClearValue clearValues[clearValuesCount];
-        prepareClearValues(clearValues, &clearValuesCount);
+        unsigned int clearValuesCount = prepareClearValues(nullptr);
+        std::vector<VkClearValue> clearValuesData;
+        clearValuesData.resize(clearValuesCount);
+       
+        prepareClearValues(clearValuesData.data());
         renderPassInfo.clearValueCount = clearValuesCount;
-        renderPassInfo.pClearValues = clearValues;
+        renderPassInfo.pClearValues = clearValuesData.data();
 
         vkCmdBeginRenderPass(rendInfo.first, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(rendInfo.first, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipeline());
@@ -188,15 +189,15 @@ public:
     }
 
 private:
-    void prepareClearValues(VkClearValue * result, unsigned int *count) {
-        *count = renderPass->getAttachmentCount() + 1;
+    const unsigned int prepareClearValues(VkClearValue * result) const {
         if(result == nullptr){
-            return;
+            return renderPass->getAttachmentCount() + 1 ;
         }
         for (int i = 0; i < renderPass->getAttachmentCount(); ++i) {
             result[i].color = {clearColorValues[0], clearColorValues[1], clearColorValues[2], clearColorValues[3]};
         }
         result[renderPass->getAttachmentCount()].depthStencil  = {1.0f, 0};
+        return renderPass->getAttachmentCount() + 1;
     }
 
     void createPushConstants(PipelineEndConfig *endConfig) {
