@@ -10,7 +10,7 @@ class VulkanImage {
 public:
     static VulkanImage *createImage(VulkanDevice *device, unsigned int width, unsigned int height) {
         VkImage image;
-        createImage(device, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        device->createImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                     image);
         VkDeviceMemory imageMemory;
         createImageMemory(device, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, imageMemory, image);
@@ -42,7 +42,7 @@ public:
         stbi_image_free(imageData);
         VkImage image;
         VkDeviceMemory imageMemory;
-        createImage(device, imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        device->createImage(imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                     image);
 
         createImageMemory(device, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, imageMemory, image);
@@ -59,30 +59,6 @@ public:
     }
 
 private:
-    static void
-    createImage(VulkanDevice *device, unsigned int width, unsigned int height, VkFormat format, VkImageTiling tiling,
-                VkImageUsageFlags usage, VkImage &image) {
-        VkImageCreateInfo imageInfo{};
-        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageInfo.extent.width = width;
-        imageInfo.extent.height = height;
-        imageInfo.extent.depth = 1;
-        imageInfo.mipLevels = 1;
-        imageInfo.arrayLayers = 1;
-        imageInfo.format = format;
-        imageInfo.tiling = tiling;
-        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = usage;
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-        if (vkCreateImage(device->getDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create image!");
-        }
-
-
-    }
 
     static void createImageMemory(VulkanDevice *device, VkMemoryPropertyFlags properties,
                                   VkDeviceMemory &imageMemory, VkImage &image) {

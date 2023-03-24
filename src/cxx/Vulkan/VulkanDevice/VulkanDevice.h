@@ -41,12 +41,16 @@ private:
     Window *windowInstance;
     VkInstance vkInstance;
     VkCommandPool commandPool;
+    VkSampleCountFlags sampleCount;
 public:
     VulkanDevice(VkPhysicalDevice deviceToCreate, Window *windowInstance, VkInstance vkInstance, bool logDevice)
             : deviceToCreate(deviceToCreate), windowInstance(windowInstance), vkInstance(vkInstance) {
         if (!DeviceSuitability::isDeviceSuitable(deviceToCreate, windowInstance->getWindowSurface(vkInstance))) {
             throw std::runtime_error("Error, you cannot create unsupported vulkan device");
         }
+        VkPhysicalDeviceProperties physicalDeviceProperties;
+        vkGetPhysicalDeviceProperties(deviceToCreate, &physicalDeviceProperties);
+        this->sampleCount = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
         createLogicalDevice(logDevice);
         createCommandPool();
     }
@@ -116,7 +120,16 @@ public:
 
         throw std::runtime_error("failed to find suitable memory type!");
     }
+    VkSampleCountFlagBits getSampleCountBit() {
+        if (sampleCount & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+        if (sampleCount & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+        if (sampleCount & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+        if (sampleCount & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+        if (sampleCount & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+        if (sampleCount & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
 
+        return VK_SAMPLE_COUNT_1_BIT;
+    }
     void
     createImage(unsigned int width, unsigned int height, VkFormat format, VkImageTiling tiling,
                 VkImageUsageFlags usage, VkImage &image) {
@@ -132,7 +145,7 @@ public:
         imageInfo.tiling = tiling;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = usage;
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+        imageInfo.samples = getSampleCountBit();
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
