@@ -11,7 +11,7 @@ layout(push_constant) uniform WorldTransformData{
     mat4 viewMatrix;
     mat4 worldMatrix;
     vec3 cameraPosition;
-} worldTransForm;
+} worldTransformData;
 
 vec2 fixVectorPositioning(vec2 base){
     base.y*=-1;
@@ -29,8 +29,8 @@ vec4 fixVectorPositioning(vec4 base){
 }
 
 void main() {
-    readyPosition = worldTransformData.worldMatrix*vec4(position, 1.0).rgb;
-    mat3 normalMatrix = transpose(inverse(mat3(worldTransform.worldMatrix)));
+    readyPosition = (worldTransformData.worldMatrix*vec4(position, 1.0)).rgb;
+    mat3 normalMatrix = transpose(inverse(mat3(worldTransformData.worldMatrix)));
     readyNormals = normalMatrix * normals;
     gl_Position = fixVectorPositioning(worldTransformData.viewMatrix*worldTransformData.worldMatrix*vec4(position, 1.0));
 }

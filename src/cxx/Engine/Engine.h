@@ -10,7 +10,7 @@
 #include "Pipelines/AssemblyPipeline/AssemblyPipeline.h"
 #include "../Vulkan/VulkanImage/VulkanImage.h"
 #include "Pipelines/UIPipeline/UIPipeline.h"
-
+#include "Pipelines/GamePipeline/GBufferPipeline.h"
 struct EngineDevice{
     std::string name;
     VkPhysicalDevice device;
@@ -51,7 +51,7 @@ private:
     VulkanImage* uiPlaceHolder;
     VulkanImage* gamePlaceHolder;
     UIPipeline* uiPipeline;
-    long long frameCounter = 0;
+    GBufferPipeline* gBufferPipeline;
 public:
     Engine(EngineDevice& deviceToCreate, Window* window) : window(window){
         if(instance== nullptr){
@@ -61,24 +61,22 @@ public:
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
         uiPlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
         gamePlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
+        gBufferPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getWidth());
+
         assemblyPipeline = new AssemblyPipeline(device, swapChain, window);
         assemblyPipeline->getGameSampler()->setSamplerImageView(gamePlaceHolder->getView());
         assemblyPipeline->getUISampler()->setSamplerImageView(uiPlaceHolder->getView());
         assemblyPipeline->getCorrect().outCorrectAmplifier.a = 0.5f;
+
         uiPipeline = new UIPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
 
     }
 
     void update(){
-        VkImageView imageView;
-        if(frameCounter%2==0){
-            imageView = uiPipeline->update().first;
-        }
-        else{
-            imageView = uiPipeline->update().second;
-        }
+        VkImageView imageView = uiPipeline->update();
+       
         assemblyPipeline->getUISampler()->setSamplerImageView(imageView);
         assemblyPipeline->update();
-        frameCounter++;
+      
     }
 };

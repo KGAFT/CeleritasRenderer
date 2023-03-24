@@ -24,7 +24,6 @@ if(WIN32)
         set(NativeLibs assimp-vc143-mtd)
     endif()
     set(VulkanLibList shaderc_shared vulkan-1)
-   
     set(SystemNatives -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic)
 endif()
 

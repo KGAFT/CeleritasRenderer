@@ -17,8 +17,8 @@ private:
     VulkanSyncManager* syncManager;
     VulkanEndRenderPipeline* endRenderPipeline;
     VulkanShader* shader;
-    VulkanImage* vertexImage;
-    VulkanImage* colorImage;
+    VulkanImage* uiImage;
+
     float widthScale = 1;
     float heightScale = 1;
     int lastWidth = 0;
@@ -31,26 +31,20 @@ public:
         PipelineEndConfig endConfig{};
         endConfig.vertexInputs.push_back({0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
         endConfig.vertexInputs.push_back({1, 4, sizeof(float), VK_FORMAT_R32G32B32A32_SFLOAT});
-        colorImage = VulkanImage::createImage(device, startWidth, startHeight);
-        vertexImage = VulkanImage::createImage(device, startWidth, startHeight);
+        uiImage = VulkanImage::createImage(device, startWidth, startHeight);
+        uiImage = VulkanImage::createImage(device, startWidth, startHeight);
         std::vector<VkImageView> views;
-        views.push_back(colorImage->getView());
-        views.push_back(vertexImage->getView());
-        endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, startWidth*widthScale, startHeight*heightScale, views, 1, colorImage->getFormat());
-        float data[]{
-            0,0,0,      1, 0, 0, 1,
-            0, 0.5,0,   0, 1, 0, 1,
-            0.5f, 0, 0,      0, 0, 1, 1
-        };
-        testPrimitive = new VertexBuffer(7*sizeof(float), 3, device, data);
+        views.push_back(uiImage->getView());
+        endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, startWidth*widthScale, startHeight*heightScale, views, 1, uiImage->getFormat());
+        
     }
 
-    std::pair<VkImageView, VkImageView> update(){
+    VkImageView update(){
         VkCommandBuffer cmd = endRenderPipeline->beginRender();
         testPrimitive->bind(cmd);
         testPrimitive->draw(cmd);
         endRenderPipeline->endRender();
-        return std::pair(colorImage->getView(), vertexImage->getView());
+        return uiImage->getView();
     }
 
     float getWidthScale()  {
@@ -73,13 +67,12 @@ public:
         lastHeight = height;
     }
     void imageChanged(){
-        delete colorImage;
-        delete vertexImage;
-        colorImage = VulkanImage::createImage(device, lastWidth*widthScale, lastHeight*heightScale);
-        vertexImage = VulkanImage::createImage(device, lastWidth*widthScale, lastHeight*heightScale);
+        delete uiImage;
+    
+        uiImage = VulkanImage::createImage(device, lastWidth*widthScale, lastHeight*heightScale);
         std::vector<VkImageView> views;
-        views.push_back(colorImage->getView());
-        views.push_back(vertexImage->getView());
-        endRenderPipeline->resized(lastWidth*widthScale, lastHeight*heightScale, &views, 2, colorImage->getFormat());
+        views.push_back(uiImage->getView());
+   
+        endRenderPipeline->resized(lastWidth*widthScale, lastHeight*heightScale, &views, 1, uiImage->getFormat());
     }
 };

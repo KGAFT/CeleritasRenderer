@@ -67,6 +67,7 @@ private:
         }
         if (shaderc_result_get_compilation_status(result) != shaderc_compilation_status_success)
         {
+            std::cerr << shaderc_result_get_error_message(result) << std::endl;
             throw std::runtime_error("Failed to compile shader " + std::string(fileName) + "into SPIR-V:\n " +
                                      shaderc_result_get_error_message(result));
         }

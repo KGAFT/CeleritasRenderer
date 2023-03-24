@@ -62,6 +62,14 @@ public:
         metallicRoughnessEmissiveINVaO = VulkanImage::createImage(device, width, height);
         loadPipeline();
     }
+    VkCommandBuffer beginRender() {
+        endRenderPipeline->getUniformBuffers()[0]->write(&config);
+        return endRenderPipeline->beginRender();
+    }
+
+    void endRender() {
+        endRenderPipeline->endRender();
+    }
 
     VulkanImage *getVertices()  {
         return vertices;
@@ -126,13 +134,34 @@ public:
     void setScale(float scale) {
         GBufferPipeline::scale = scale;
     }
+    void newSize(float width, float height) {
+        this->width = width;
+        this->height = height;
+    }
+    void resized() {
+        vkDeviceWaitIdle(device->getDevice());
+        delete vertices;
+        delete albedo;
+        delete normal;
+        delete metallicRoughnessEmissiveINVaO;
+        vertices = VulkanImage::createImage(device, width * scale, height * scale);
+        albedo = VulkanImage::createImage(device, width * scale, height * scale);
+        normal = VulkanImage::createImage(device, width * scale, height * scale);
+        metallicRoughnessEmissiveINVaO = VulkanImage::createImage(device, width * scale, height * scale);
+        std::vector<VkImageView> imagesToRender;
+        imagesToRender.push_back(vertices->getView());
+        imagesToRender.push_back(albedo->getView());
+        imagesToRender.push_back(normal->getView());
+        imagesToRender.push_back(metallicRoughnessEmissiveINVaO->getView());
 
+        endRenderPipeline->resized(width * scale, height * scale, &imagesToRender, 4, albedo->getFormat());
+    }
 private:
     void loadPipeline(){
         PipelineEndConfig endConfig{};
         endConfig.vertexInputs.push_back({0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
         endConfig.vertexInputs.push_back({1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT});
-        endConfig.vertexInputs.push_back({0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
+        endConfig.vertexInputs.push_back({2, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
         endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstantWorldViewData)});
         endConfig.uniformBuffers.push_back({0, sizeof(GBufferConfig), VK_SHADER_STAGE_FRAGMENT_BIT});
 

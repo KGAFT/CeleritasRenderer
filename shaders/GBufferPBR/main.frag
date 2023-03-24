@@ -20,9 +20,9 @@ layout(location = 2) out vec4 normal;
 layout(location = 3) out vec4 metallicRouhgnessEmissiveINVAO;
 
 layout(std140, binding = 0) uniform GBufferConfig{
-    int combinedMetallicRoughness = 0;
-    int opacityMapEnabled = 0;
-    int emissiveEnabled = 0;
+    int combinedMetallicRoughness;
+    int opacityMapEnabled;
+    int emissiveEnabled;
 } config;
 
 
@@ -64,7 +64,7 @@ void main() {
     float roughness = 0;
     if (config.combinedMetallicRoughness==1){
         vec4 mr = texture(metallicRoughness, textureCoordinates);
-        metallc = mr.r;
+        metallic = mr.r;
         roughness = mr.g;
     }
     else {
