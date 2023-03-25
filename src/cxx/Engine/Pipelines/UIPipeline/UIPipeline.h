@@ -36,7 +36,12 @@ public:
         std::vector<VkImageView> views;
         views.push_back(uiImage->getView());
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, startWidth*widthScale, startHeight*heightScale, views, 1, uiImage->getFormat());
-        
+        float vertices[]{
+            0, 0, 0,    0.5f, 0.0f, 0.0f, 1.0f,
+            0, 0.5f, 0,    0, 0.5f, 0, 1.0f,
+            0.5f, 0, 0,     0, 0, 0.5f, 1.0f
+        };
+        testPrimitive = new VertexBuffer(7*sizeof(float), 3, device, vertices);
     }
 
     VkImageView update(){

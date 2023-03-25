@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(CeleritasEngine)
 
-set(VulkanSDKPath /home/daniil/Документы/VulkanSDK/1.3.239.0/x86_64/)
+set(VulkanSDKPath /home/daniil/Documents/vulkansdk-linux-x86_64-1.3.239.0/1.3.239.0/x86_64/)
 
 set(CMAKE_CXX_STANDARD 17)
 

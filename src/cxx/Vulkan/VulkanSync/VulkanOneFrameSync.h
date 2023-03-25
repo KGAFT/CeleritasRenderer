@@ -11,6 +11,7 @@ private:
     VulkanDevice *device;
     bool destroyed = false;
     VkFence fence;
+    bool firstFrame = true;
 public:
     VulkanOneFrameSync(VulkanDevice *device) : device(device)
     {
@@ -35,15 +36,15 @@ public:
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.signalSemaphoreCount = 1;
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = &waitSemaphore;
+        submitInfo.waitSemaphoreCount = !firstFrame;
+        submitInfo.pWaitSemaphores = firstFrame?VK_NULL_HANDLE:&waitSemaphore;
         submitInfo.pSignalSemaphores = &availableSemaphore;
         submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
         submitInfo.pWaitDstStageMask = waitStages;
         vkQueueSubmit(device->getGraphicsQueue(), 1, &submitInfo, fence);
         vkWaitForFences(device->getDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
-
+        firstFrame = false;
         std::swap(availableSemaphore, waitSemaphore);
     }
 

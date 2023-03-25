@@ -132,7 +132,7 @@ public:
     }
     void
     createImage(unsigned int width, unsigned int height, VkFormat format, VkImageTiling tiling,
-                VkImageUsageFlags usage, VkImage &image) {
+                VkImageUsageFlags usage, VkImage &image, bool isFrameBuffer) {
         VkImageCreateInfo imageInfo{};
         imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -145,7 +145,7 @@ public:
         imageInfo.tiling = tiling;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = usage;
-        imageInfo.samples = getSampleCountBit();
+        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
