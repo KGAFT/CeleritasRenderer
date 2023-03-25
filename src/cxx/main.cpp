@@ -18,7 +18,7 @@ int main() {
 
     Window::createWindow(1024, 768, "Hello world!", nullptr);
     Engine::createInstance("HelloWorld", true);
-    EngineDevice device = Engine::enumSupportedDevices(Window::getInstance())[0];
+    EngineDevice device = Engine::enumSupportedDevices(Window::getInstance())[1];
     std::cout<<device.name<<std::endl;
     Engine engine(device, Window::getInstance());
     while (!Window::getInstance()->needToClose()) {

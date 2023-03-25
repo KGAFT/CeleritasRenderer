@@ -20,7 +20,7 @@ public:
     VulkanGraphicsPipeline(VulkanDevice *device,
                            GraphicsPipelineConfigurer* configurer, VulkanShader *shader,
                            PipelineConfiguration::PipelineConfigInfo configInfo, VulkanRenderPass *renderPass)
-            : graphicsPipeline(graphicsPipeline), device(device), configurer(configurer), shader(shader),
+            : device(device), configurer(configurer), shader(shader),
               configInfo(configInfo), renderPass(renderPass) {
         create();
     }

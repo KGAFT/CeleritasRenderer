@@ -98,11 +98,11 @@ private:
 		case WINDOW_ACTION_CURSOR_MODE:
 			glfwGetCursorPos(windowHandle, &cursorX, &cursorY);
 			
-			if (abs(cursorX - width / 2) > 0) {
-				xChange = (cursorX - width / 2) / abs(cursorX - width / 2);
+			if (std::abs(cursorX - width / 2) > 0) {
+				xChange = (cursorX - width / 2) / std::abs(cursorX - width / 2);
 			}
-			if (abs(cursorY - height / 2) > 0) {
-				yChange = (cursorY - height / 2) / abs(cursorY - height / 2);
+			if (std::abs(cursorY - height / 2) > 0) {
+				yChange = (cursorY - height / 2) / std::abs(cursorY - height / 2);
 			}
 			*xChangeOut = xChange;
 			*yChangeOut = yChange;
