@@ -17,7 +17,7 @@ int main() {
     Monitor **monitors = Monitor::enumerateMonitors(&monitorCount);
 
     Window::createWindow(1024, 768, "Hello world!", nullptr);
-    Engine::createInstance("HelloWorld", true);
+    Engine::createInstance("HelloWorld", false);
     EngineDevice device = Engine::enumSupportedDevices(Window::getInstance())[0];
     Engine engine(device, Window::getInstance());
     while (!Window::getInstance()->needToClose()) {
