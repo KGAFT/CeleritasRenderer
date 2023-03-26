@@ -1,0 +1,13 @@
+package com.kgaft.SceneImporter.Data.Texture;
+
+public enum TextureType {
+    ALBEDO_TEXTURE,
+    DIFFUSE_TEXTURE,
+    METALLIC_TEXTURE,
+    METALLIC_ROUGHNESS_TEXTURE,
+    ROUGHNESS_TEXTURE,
+    NORMAL_MAP_TEXTURE,
+    EMISSIVE_TEXTURE,
+    AO_TEXTURE,
+    OPACITY_MAP_TEXTURE
+}
