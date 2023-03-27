@@ -17,4 +17,12 @@ public class VerticesDataManager {
     public List<VertexData> getVertexData() {
         return vertexData;
     }
+    public VertexData getVertexData(int vertexId){
+        for (VertexData vertexDatum : vertexData) {
+            if(vertexDatum.getId()==vertexId){
+                return vertexDatum;
+            }
+        }
+        return null;
+    }
 }

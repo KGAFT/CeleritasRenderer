@@ -1,7 +1,10 @@
 package com.kgaft.SceneImporter.GUI;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+import com.kgaft.SceneImporter.Data.Scene;
 import com.kgaft.SceneImporter.GUI.SceneOutliner.SceneOutliner;
+import com.kgaft.SceneImporter.ModelLoader.ModelLoader;
+import com.kgaft.SceneImporter.Out.VerticesDataManager.VerticesDataManager;
 
 import javax.swing.*;
 
@@ -9,6 +12,10 @@ public class WindowManager {
     public WindowManager() throws UnsupportedLookAndFeelException {
         FlatDarkLaf.setup();
         UIManager.setLookAndFeel(new FlatDarkLaf());
-        new SceneOutliner().init();
+        Scene scene = new Scene();
+        VerticesDataManager verticesDataManager = new VerticesDataManager();
+        ModelLoader loader = new ModelLoader(verticesDataManager);
+        scene.getModels().add(loader.loadModel("/home/daniil/Documents/models/UnderWater/scene.gltf"));
+        new SceneOutliner(verticesDataManager, scene).init();
     }
 }

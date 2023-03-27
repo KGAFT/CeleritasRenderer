@@ -1,5 +1,8 @@
 package com.kgaft.SceneImporter.GUI.SceneOutliner;
 
+import com.kgaft.SceneImporter.Data.Scene;
+import com.kgaft.SceneImporter.Out.VerticesDataManager.VerticesDataManager;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -9,7 +12,10 @@ public class SceneOutliner extends JFrame{
     private JScrollPane modelsScroller;
     private JPanel modelsOutliner;
 
-    public SceneOutliner() {
+    private SceneOutlinerController controller;
+
+    public SceneOutliner(VerticesDataManager dataManager, Scene scene) {
+        controller = new SceneOutlinerController(scene, dataManager);
         setSize(400, 800);
         setTitle("Scene outliner");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -19,6 +25,12 @@ public class SceneOutliner extends JFrame{
 
     }
     public void init(){
-        modelsOutliner.add(new ModelPreview("Hello model", 12, 2, 3));
+        refresh();
+    }
+    public void refresh(){
+        modelsOutliner.removeAll();
+        controller.prepareModelPreviews().forEach(preview->{
+            modelsOutliner.add(preview);
+        });
     }
 }
