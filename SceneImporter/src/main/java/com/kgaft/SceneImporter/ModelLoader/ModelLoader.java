@@ -43,6 +43,7 @@ public class ModelLoader {
             result.add(processMesh(mesh, scene));
         }
         Model model = new Model(result);
+        model.setName(scene.mName().dataString());
         return model;
     }
 
@@ -156,6 +157,7 @@ public class ModelLoader {
             Texture opacity = new Texture(workDirectory+"/"+currentPath.dataString(), TextureType.OPACITY_MAP_TEXTURE);
             result.add(opacity);
         }
+        currentPath.free();
         return result;
     }
 }

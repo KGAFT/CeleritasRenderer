@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class ModelPreview extends JButton {
-    private String title;
+    private String title = "";
     private int polygonsAmount;
     private int texturesAmount;
     private int meshesAmount;
@@ -28,13 +28,25 @@ public class ModelPreview extends JButton {
         root.setLayout(new GridLayout(-1, 1));
         initLabels();
     }
+
+    public ModelPreview() {
+        setMaximumSize(new Dimension(-1, 100));
+        setPreferredSize(new Dimension(-1, 100));
+        setMinimumSize(new Dimension(-1, 100));
+        root = new JPanel();
+        root.setMaximumSize(new Dimension(-1, 100));
+        setLayout(new GridLayout(1,1));
+        add(root);
+        root.setLayout(new GridLayout(-1, 1));
+        initLabels();
+    }
+
     public void update(){
         titleLabel.setText(title);
-
         polygonsLabel.setText("Triangles: "+polygonsAmount);
         texturesLabel.setText("Textures amount: "+texturesAmount);
         meshesAmountLabel.setText("Meshes: "+meshesAmount);
-        root.repaint();
+
     }
     private void initLabels(){
         titleLabel = new JLabel(title);

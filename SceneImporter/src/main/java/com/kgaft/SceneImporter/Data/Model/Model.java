@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Model {
     private List<Mesh> meshes = new ArrayList<>();
-
+    private String name;
     public Model(List<Mesh> meshes) {
         this.meshes = meshes;
     }
@@ -27,5 +27,13 @@ public class Model {
     }
     public void setScale(Vector3f scale){
         meshes.forEach(mesh -> mesh.getScale().add(scale));
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
