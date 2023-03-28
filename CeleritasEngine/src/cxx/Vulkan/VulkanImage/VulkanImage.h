@@ -22,6 +22,12 @@ public:
         int imageWidth, imageHeight, imageChannels;
         stbi_uc *imageData = stbi_load(pathToTexture, &imageWidth, &imageHeight, &imageChannels, STBI_rgb_alpha);
 
+        VulkanImage* image = loadBinTexture(device, reinterpret_cast<const char *>(imageData), imageWidth, imageHeight, imageChannels);
+        stbi_image_free(imageData);
+        return image;
+    }
+
+    static VulkanImage* loadBinTexture(VulkanDevice* device, const char* imageData, int imageWidth, int imageHeight, int numChannelsAmount){
         VkDeviceSize imageSize = imageWidth * imageHeight * 4;
 
         if (!imageData) {
@@ -39,7 +45,7 @@ public:
         memcpy(data, imageData, static_cast<size_t>(imageSize));
         vkUnmapMemory(device->getDevice(), stagingBufferMemory);
 
-        stbi_image_free(imageData);
+
         VkImage image;
         VkDeviceMemory imageMemory;
         device->createImage(imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -57,9 +63,6 @@ public:
 
         return new VulkanImage(image, device, imageMemory, VK_FORMAT_R8G8B8A8_SRGB);
     }
-
-private:
-
     static void createImageMemory(VulkanDevice *device, VkMemoryPropertyFlags properties,
                                   VkDeviceMemory &imageMemory, VkImage &image) {
         VkMemoryRequirements memRequirements;

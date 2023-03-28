@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <cstring>
-
+#include <cmath>
 namespace StringUtil{
     void split(std::string& source, std::vector<std::string>& out, char regex){
         std::string currentString = "";
@@ -28,7 +28,6 @@ namespace StringUtil{
         }
         return result;
     }
-
     bool parseBoolean(std::string& source){
         std::string lowerCase = toLowerCase(source);
         if(!std::strcmp(lowerCase.c_str(), "true")){

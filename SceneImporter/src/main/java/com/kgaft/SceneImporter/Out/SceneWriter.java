@@ -105,7 +105,7 @@ public class SceneWriter {
                 writer.write("\n");
                 texture.getData().rewind();
                 while (texture.getData().hasRemaining()) {
-                    writer.write("" + texture.getData().get());
+                    writer.write(texture.getData().get()+";");
                 }
                 writer.write("\n");
             } catch (IOException e) {

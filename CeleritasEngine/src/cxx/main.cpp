@@ -8,7 +8,6 @@
 int main() {
     Window::initializeContext();
     int monitorCount = 0;
-    
     Monitor **monitors = Monitor::enumerateMonitors(&monitorCount);
 
     Window::createWindow(1024, 768, "Hello world!", nullptr);

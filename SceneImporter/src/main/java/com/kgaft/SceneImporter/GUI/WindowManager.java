@@ -15,7 +15,7 @@ public class WindowManager {
         Scene scene = new Scene();
         VerticesDataManager verticesDataManager = new VerticesDataManager();
         ModelLoader loader = new ModelLoader(verticesDataManager);
-        scene.getModels().add(loader.loadModel("/home/daniil/Documents/models/UnderWater/scene.gltf"));
+        scene.getModels().add(loader.loadModel("D:/documents/projects/GitHub/C++/CeleritasEngine/UnderWater/scene.gltf"));
         new SceneOutliner(verticesDataManager, scene).init();
     }
 }

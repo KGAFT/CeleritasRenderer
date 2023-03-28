@@ -11,6 +11,7 @@
 #include "../Vulkan/VulkanImage/VulkanImage.h"
 #include "Pipelines/UIPipeline/UIPipeline.h"
 #include "Pipelines/GamePipeline/GBufferPipeline.h"
+#include "../Util/AssetLoader.h"
 struct EngineDevice{
     std::string name;
     VkPhysicalDevice device;
@@ -59,12 +60,16 @@ public:
         }
         device = new VulkanDevice(deviceToCreate.device, window, instance->getInstance(), debugBuild);
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
+        //uiPlaceHolder = AssetLoader::loadTextures(device, "C:/Users/Daniil/Desktop/model.sc");
+        AssetLoader loader;
+        loader.loadTextures("C:/Users/Daniil/Desktop/model.sc", device);
+        loader.loadVertices("C:/Users/Daniil/Desktop/model.sc", device);
         uiPlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
         gamePlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
         gBufferPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getWidth());
 
         assemblyPipeline = new AssemblyPipeline(device, swapChain, window);
-        assemblyPipeline->getGameSampler()->setSamplerImageView(gamePlaceHolder->getView());
+        assemblyPipeline->getGameSampler()->setSamplerImageView(uiPlaceHolder->getView());
         assemblyPipeline->getUISampler()->setSamplerImageView(uiPlaceHolder->getView());
         assemblyPipeline->getCorrect().outCorrectAmplifier.a = 0.5f;
 
