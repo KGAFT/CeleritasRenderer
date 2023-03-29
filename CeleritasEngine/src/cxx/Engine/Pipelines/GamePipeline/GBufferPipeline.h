@@ -13,6 +13,7 @@ struct GBufferConfig {
     alignas(4) int combinedMetallicRoughness = 0;
     alignas(4) int opacityMapEnabled = 0;
     alignas(4) int emissiveEnabled = 0;
+    alignas(4) int aoEnabled = 0;
 };
 struct PushConstantWorldViewData {
     glm::mat4 viewMatrix;

@@ -23,6 +23,7 @@ layout(std140, binding = 0) uniform GBufferConfig{
     int combinedMetallicRoughness;
     int opacityMapEnabled;
     int emissiveEnabled;
+    int aoEnabled;
 } config;
 
 
@@ -62,6 +63,7 @@ void main() {
     }
     float metallic = 0;
     float roughness = 0;
+    float ao = 1;
     if (config.combinedMetallicRoughness==1){
         vec4 mr = texture(metallicRoughness, textureCoordinates);
         metallic = mr.r;
@@ -71,8 +73,11 @@ void main() {
         metallic = texture(metallicMap, textureCoordinates).r;
         roughness  = texture(roughnessMap, textureCoordinates).r;
     }
+    if(config.aoEnabled==1){
+        ao = texture(aoMap, textureCoordinates).r;
+    }
     metallicRouhgnessEmissiveINVAO.r = metallic;
     metallicRouhgnessEmissiveINVAO.g = roughness;
     metallicRouhgnessEmissiveINVAO.b = emissive;
-    metallicRouhgnessEmissiveINVAO.a = 1.0-texture(aoMap, textureCoordinates).r;
+    metallicRouhgnessEmissiveINVAO.a = 1.0-ao;
 }

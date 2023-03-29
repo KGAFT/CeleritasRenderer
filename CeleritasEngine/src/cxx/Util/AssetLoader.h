@@ -8,6 +8,7 @@
 #include "../Vulkan/VulkanBuffers/IndexBuffer.h"
 #include "../Vulkan/VulkanImage/VulkanImage.h"
 #include "StringUtil.h"
+#include "../Engine/GraphicalObjects/Mesh.h"
 
 #define ALBEDO_TEXTURE 0
 #define METALLIC_TEXTURE 1
@@ -36,6 +37,26 @@ private:
     std::vector<Texture> textures;
     std::vector<Vertices> vertices;
 public:
+
+    Mesh* parseMesh(std::fstream& file){
+        using namespace std;
+        bool found = false;
+        std::string curLine;
+        while(getline(file, curLine)){
+            if(!strcmp(curLine.c_str(), "MESH: ")){
+                found = true;
+                break;
+            }
+        }
+        if(!found){
+            return nullptr;
+        }
+        vector<string>lineArgs;
+        getline(file, curLine);
+        StringUtil::split(curLine, lineArgs, ' ');
+        string name = lineArgs[1];
+    }
+
     void loadTextures(const char *pathToFile, VulkanDevice *device) {
         std::fstream fileStream(pathToFile);
         Texture tempRes = loadTexture(device, fileStream);
