@@ -79,15 +79,15 @@ public class SceneWriter {
                 throw new RuntimeException(e);
             }
         });
-        writer.write("\nCOLOR: ");
+        writer.write("\nCOLOR:");
         writer.write(vectorToString(mesh.getBaseMeshColor())+"\n");
-        writer.write("POSITION: ");
+        writer.write("POSITION:");
         writer.write(vectorToString(mesh.getPosition())+"\n");
-        writer.write("POSITION_OFFSET: ");
+        writer.write("POSITION_OFFSET:");
         writer.write(vectorToString(mesh.getModelPositionOffset())+"\n");
-        writer.write("ROTATION: ");
+        writer.write("ROTATION:");
         writer.write(vectorToString(mesh.getRotation())+"\n");
-        writer.write("SCALE: ");
+        writer.write("SCALE:");
         writer.write(vectorToString(mesh.getScale())+"\n");
     }
     private String vectorToString(Vector3f vector3f){

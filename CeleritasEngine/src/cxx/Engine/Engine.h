@@ -64,6 +64,11 @@ public:
         AssetLoader loader;
         loader.loadTextures("C:/Users/Daniil/Desktop/model.sc", device);
         loader.loadVertices("C:/Users/Daniil/Desktop/model.sc", device);
+        std::vector<Mesh*> meshes;
+        loader.loadMeshes("C:/Users/Daniil/Desktop/model.sc", meshes);
+        for(const auto& el : meshes){
+            std::cout<<el->getName()<<" "<<el->getVBuffer()<<" "<<el->getIBuffer()<<std::endl;
+        }
         uiPlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
         gamePlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
         gBufferPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getWidth());
