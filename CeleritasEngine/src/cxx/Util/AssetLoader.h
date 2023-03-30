@@ -156,7 +156,8 @@ private:
         StringUtil::split(curLine, lineArgs, ':');
         glm::vec3 scale = StringUtil::stringToVector3(lineArgs[1]);
 
-        return assembleMesh(name, verticesId, texturesIds, baseMeshColor, position, rotation, scale);
+        Mesh* res = assembleMesh(name, verticesId, texturesIds, baseMeshColor, position, rotation, scale);
+        return res;
     }
 
     Texture loadTexture(VulkanDevice *device, std::fstream &file)
@@ -169,19 +170,20 @@ private:
             if (!std::strcmp(curLine.c_str(), "TEXTURE: "))
             {
                 found = true;
+                break;
             }
         }
         getline(file, curLine);
-        vector<string> stringArgs;
+        vector<string> lineArgs;
         if (found)
         {
-            StringUtil::split(curLine, stringArgs, ' ');
-            if (stringArgs.size() >= 8)
+            StringUtil::split(curLine, lineArgs, ' ');
+            if (lineArgs.size() >= 8)
             {
-                int id = stoi(stringArgs[1]);
-                int width = stoi(stringArgs[3]);
-                int height = stoi(stringArgs[5]);
-                int channels = stoi(stringArgs[7]);
+                int id = stoi(lineArgs[1]);
+                int width = stoi(lineArgs[3]);
+                int height = stoi(lineArgs[5]);
+                int channels = stoi(lineArgs[7]);
                 std::vector<char> textureData;
                 getline(file, curLine);
                 string curByte;
@@ -205,8 +207,8 @@ private:
                     }
                 }
                 VulkanImage *image = VulkanImage::loadBinTexture(device, textureData.data(), width, height, channels);
-
-                return {id, stringToTextureType(stringArgs[stringArgs.size() - 1].c_str()), image};
+                Texture res {id, stringToTextureType(lineArgs[lineArgs.size() - 1].c_str()), image};
+                return res;
             }
         }
         return {-5, -5, nullptr};

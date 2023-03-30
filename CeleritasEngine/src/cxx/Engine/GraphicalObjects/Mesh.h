@@ -59,7 +59,17 @@ public:
     {
         return iBuffer;
     }
+    void draw(VkCommandBuffer commandBuffer){
+        vBuffer->bind(commandBuffer);
+        if(iBuffer!=nullptr){
+            iBuffer->bind(commandBuffer);
+            iBuffer->draw(commandBuffer);
+            return;
 
+        }
+        vBuffer->draw(commandBuffer);
+        
+    }
     Material *getMaterial()
     {
         return material;

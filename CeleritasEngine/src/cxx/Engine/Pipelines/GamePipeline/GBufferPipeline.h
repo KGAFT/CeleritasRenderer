@@ -7,7 +7,10 @@
 #include "../../../Vulkan/VulkanEndRenderPipeline.h"
 #include "../../../Vulkan/VulkanImage/VulkanImage.h"
 #include "../../../Util/ShaderLoader.h"
+#include "../../GraphicalObjects/Mesh.h"
 #include <glm/glm.hpp>
+
+
 
 struct GBufferConfig {
     alignas(4) int combinedMetallicRoughness = 0;
@@ -64,10 +67,54 @@ public:
         loadPipeline();
     }
     VkCommandBuffer beginRender() {
+        endRenderPipeline->getPushConstants()[0]->setData(&viewData);
         endRenderPipeline->getUniformBuffers()[0]->write(&config);
         return endRenderPipeline->beginRender();
     }
 
+    void updatePcs(){
+        endRenderPipeline->getPushConstants()[0]->setData(&viewData);
+        endRenderPipeline->updatePcs();
+    }
+    void updateUniforms(){
+        endRenderPipeline->getUniformBuffers()[0]->write(&config);
+        endRenderPipeline->updateUniforms();
+    }
+    void populateSamplers(Material* material){
+        config.aoEnabled = material->getAoTexture()!=nullptr;
+        config.combinedMetallicRoughness = material->getMetallicRoughnessTexture()!=nullptr;
+        config.emissiveEnabled = material->getEmissiveTexture()!=nullptr;
+        config.opacityMapEnabled = material->getOpacityMapTexture()!=nullptr;
+        if(material->getAlbedoTexture()!=nullptr){
+            albedoMapSampler->setSamplerImageView(material->getAlbedoTexture()->getView());
+        }
+        normalMapSampler->setSamplerImageView(material->getNormalMap()->getView());
+        if(material->getMetallicRoughnessTexture()!=nullptr){
+            metallicRoughnessSampler->setSamplerImageView(material->getMetallicRoughnessTexture()->getView());
+        }
+        else{
+            metallicMapSampler->setSamplerImageView(material->getMetallicTexture()->getView());
+            roughnessMapSampler->setSamplerImageView(material->getRoughnessTexture()->getView());
+        }
+        if(config.aoEnabled){
+            aoMapSampler->setSamplerImageView(material->getAoTexture()->getView());
+        }
+        else if(aoMapSampler->getImageView()==VK_NULL_HANDLE){
+            aoMapSampler->setSamplerImageView(material->getAlbedoTexture()->getView());
+        }
+        if(config.emissiveEnabled){
+            emissiveMapSampler->setSamplerImageView(material->getEmissiveTexture()->getView());
+        }
+        else if(emissiveMapSampler->getImageView()==VK_NULL_HANDLE){
+            emissiveMapSampler->setSamplerImageView(material->getAlbedoTexture()->getView());
+        }
+        if(config.opacityMapEnabled){
+            opacityMapSampler->setSamplerImageView(material->getOpacityMapTexture()->getView());
+        }
+        else if(opacityMapSampler->getImageView()==VK_NULL_HANDLE){
+            opacityMapSampler->setSamplerImageView(material->getAlbedoTexture()->getView());
+        }
+    }
     void endRender() {
         endRenderPipeline->endRender();
     }
