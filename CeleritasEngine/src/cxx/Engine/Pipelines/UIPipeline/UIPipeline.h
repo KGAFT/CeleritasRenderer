@@ -52,6 +52,11 @@ public:
         return uiImage->getView();
     }
 
+    VkImageView getOutput(){
+        return uiImage->getView();
+    
+    }
+
     float getWidthScale()  {
         return widthScale;
     }

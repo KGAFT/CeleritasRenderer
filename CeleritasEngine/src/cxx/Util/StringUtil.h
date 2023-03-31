@@ -4,7 +4,7 @@
 #include <vector>
 #include <cstring>
 #include <cmath>
-#include <glm/glm.hpp>
+#include "glm/glm.hpp"
 
 namespace StringUtil{
     void split(std::string& source, std::vector<std::string>& out, char regex){

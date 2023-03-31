@@ -9,6 +9,12 @@
 #include "Material.h"
 #include <glm/vec3.hpp>
 
+struct MeshData {
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 uv;
+};
+
 class Mesh
 {
 private:

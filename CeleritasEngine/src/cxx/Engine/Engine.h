@@ -11,8 +11,11 @@
 #include "../Vulkan/VulkanImage/VulkanImage.h"
 #include "Pipelines/UIPipeline/UIPipeline.h"
 #include "Pipelines/GamePipeline/GBufferPipeline.h"
-#include "../Util/AssetLoader.h"
+
 #include "Camera/CameraManager.h"
+
+#include "../TestKeyboardCallback.h"
+
 struct EngineDevice
 {
     std::string name;
@@ -77,32 +80,33 @@ public:
         device = new VulkanDevice(deviceToCreate.device, window, instance->getInstance(), debugBuild);
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
         // uiPlaceHolder = AssetLoader::loadTextures(device, "C:/Users/Daniil/Desktop/model.sc");
-        AssetLoader loader;
-        loader.loadTextures("C:/Users/Daniil/Desktop/model.sc", device);
-        loader.loadVertices("C:/Users/Daniil/Desktop/model.sc", device);
+       
 
-        loader.loadMeshes("C:/Users/Daniil/Desktop/model.sc", meshes);
-
+        TestKeyboardCallback* keyBoardCB = new TestKeyboardCallback(Window::getInstance());
+        Window::getInstance()->registerKeyCallback(keyBoardCB);
         uiPlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
         gamePlaceHolder = VulkanImage::loadTexture("shaders/ui.png", device);
         gBufferPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getWidth());
 
         assemblyPipeline = new AssemblyPipeline(device, swapChain, window);
-        assemblyPipeline->getGameSampler()->setSamplerImageView(uiPlaceHolder->getView());
-        assemblyPipeline->getUISampler()->setSamplerImageView(uiPlaceHolder->getView());
+     
         assemblyPipeline->getCorrect().outCorrectAmplifier.a = 0.5f;
 
         uiPipeline = new UIPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
+           assemblyPipeline->getGameSampler()->setSamplerImageView(uiPipeline->getOutput());
+        assemblyPipeline->getUISampler()->setSamplerImageView(uiPipeline->getOutput());
     }
 
     void update()
     {
         VkImageView imageView = uiPipeline->update();
         
+    
         manager.update();
         gBufferPipeline->getViewData().cameraPosition = pcData.cameraPosition;
         gBufferPipeline->getViewData().viewMatrix = pcData.cameraMatrix;
         gBufferPipeline->getViewData().worldMatrix = pcData.modelMatrix;
+        /*
         VkCommandBuffer cmd = gBufferPipeline->beginRender();
         for(const auto& el : meshes){
             glm::mat4 modelMat(1.0f);
@@ -118,7 +122,8 @@ public:
             el->draw(cmd);
         }
         gBufferPipeline->endRender();
-        assemblyPipeline->getUISampler()->setSamplerImageView(gBufferPipeline->getVertices()->getView());
+        */
+        assemblyPipeline->getUISampler()->setSamplerImageView(imageView);
         assemblyPipeline->getGameSampler()->setSamplerImageView(imageView);
         assemblyPipeline->update();
     }

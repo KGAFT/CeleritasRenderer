@@ -71,6 +71,7 @@ public:
 
     void update(){
         endRenderPipeline->getUniformBuffers()[0]->write(&correct);
+        endRenderPipeline->updateUniforms();
         VkCommandBuffer cmd = endRenderPipeline->beginRender();
         quadVBO->bind(cmd);
         quadIBO->bind(cmd);
