@@ -34,9 +34,9 @@ endif()
 
 file(COPY shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY ${BINARIES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-add_subdirectory(../modules/glfw)
-add_subdirectory(../modules/glm)
-add_subdirectory(../modules/glad)
+add_subdirectory(modules/glfw)
+add_subdirectory(modules/glm)
+add_subdirectory(modules/glad)
 file(GLOB_RECURSE CPP_FILES src/cxx/*.cpp)
 file(GLOB_RECURSE HPP_FILES src/cxx/*.h)
 
