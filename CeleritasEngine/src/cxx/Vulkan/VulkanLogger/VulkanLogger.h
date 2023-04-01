@@ -91,7 +91,7 @@ private:
     }
 
 private:
-    static inline VkDebugUtilsMessengerEXT debugMessenger = nullptr;
+    static inline VkDebugUtilsMessengerEXT debugMessenger = NULL;
 
     static inline std::vector<IVulkanLoggerCallback *> rawCallbacks = std::vector<IVulkanLoggerCallback *>();
     static inline std::vector<IVulkanLoggerCallback *> translatedCallbacks = std::vector<IVulkanLoggerCallback *>();
@@ -140,7 +140,7 @@ public:
     }
 
     static void registerCallback(IVulkanLoggerCallback *callback) {
-        if (debugMessenger != nullptr) {
+        if (debugMessenger != NULL) {
             switch (callback->getCallBackMode()) {
                 case RAW_VULKAN_DEFS:
                     rawCallbacks.push_back(callback);
@@ -156,7 +156,7 @@ public:
     }
 
     static void removeCallback(IVulkanLoggerCallback *callback) {
-        if (debugMessenger != nullptr) {
+        if (debugMessenger != NULL) {
             std::vector<IVulkanLoggerCallback *> *toRemove = nullptr;
             switch (callback->getCallBackMode()) {
                 case RAW_VULKAN_DEFS:

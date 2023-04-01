@@ -22,14 +22,14 @@ struct Texture
 class Material
 {
 private:
-    VulkanImage *albedoTexture;
-    VulkanImage *normalMap;
-    VulkanImage *metallicTexture;
-    VulkanImage *roughnessTexture;
-    VulkanImage *metallicRoughnessTexture;
-    VulkanImage *aoTexture;
-    VulkanImage *emissiveTexture;
-    VulkanImage *opacityMapTexture;
+    VulkanImage *albedoTexture = nullptr;
+    VulkanImage *normalMap = nullptr;
+    VulkanImage *metallicTexture = nullptr;
+    VulkanImage *roughnessTexture = nullptr;
+    VulkanImage *metallicRoughnessTexture = nullptr;
+    VulkanImage *aoTexture = nullptr;
+    VulkanImage *emissiveTexture = nullptr;
+    VulkanImage *opacityMapTexture = nullptr;
 
 public:
 

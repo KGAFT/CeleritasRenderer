@@ -76,8 +76,6 @@ void main() {
     if(config.aoEnabled==1){
         ao = texture(aoMap, textureCoordinates).r;
     }
-    metallicRouhgnessEmissiveINVAO.r = metallic;
-    metallicRouhgnessEmissiveINVAO.g = roughness;
-    metallicRouhgnessEmissiveINVAO.b = emissive;
-    metallicRouhgnessEmissiveINVAO.a = 1.0-ao;
+    vec4 resMREAO = vec4(metallic, roughness, emissive, 1.0-ao);
+    metallicRouhgnessEmissiveINVAO = resMREAO;
 }

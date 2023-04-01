@@ -10,3 +10,9 @@
 [submodule "CeleritasEngine/lib/glm"]
 	path = CeleritasEngine/lib/glm
 	url = https://github.com/g-truc/glm
+[submodule "modules/glfw"]
+	path = modules/glfw
+	url = https://github.com/glfw/glfw
+[submodule "modules/glm"]
+	path = modules/glm
+	url = https://github.com/g-truc/glm

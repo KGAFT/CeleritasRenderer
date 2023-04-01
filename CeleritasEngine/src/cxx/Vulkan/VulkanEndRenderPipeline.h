@@ -112,9 +112,8 @@ public:
         for (const auto &item: samplers){
             writeObjects.push_back(item);
         }
-        descriptors->writeDescriptorObjects(writeObjects.data(),
-                                            writeObjects.size(), control->getCurrentCmd());
-        vkDeviceWaitIdle(device->getDevice());
+    //    descriptors->writeDescriptorObjects(writeObjects.data(),
+                      //                      writeObjects.size(), control->getCurrentCmd());
         descriptors->bind(control->getCurrentCmd(), currentCommandBuffer, configurer->getPipelineLayout());
 
     }
