@@ -4,22 +4,22 @@
 
 #pragma once
 
-#include <glad/glad.h>
-#include "../Util/IDestroyableObject.h"
+#include "glad/glad.h"
+#include "../../Util/IDestroyableObject.h"
 
-class GLVertexBuffer : public IDestroyableObject{
+class GLCVertexBuffer : public IDestroyableObject{
 public:
-    friend class GLVertexArrayObject;
+    friend class GLCVertexArrayObject;
 
-    static GLVertexBuffer *
+    static GLCVertexBuffer *
     createVertexBufferObject(void *vertices, GLsizeiptr verticesSize, unsigned int vertexCoordsAmount, GLenum type,
                              size_t typeSize) {
         GLuint vboId;
         glGenBuffers(1, &vboId);
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
-        glBufferData(GL_ARRAY_BUFFER, verticesSize, vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, verticesSize, vertices, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        return new GLVertexBuffer(vboId, vertexCoordsAmount, type, typeSize);
+        return new GLCVertexBuffer(vboId, vertexCoordsAmount, type, typeSize);
     }
 
 private:
@@ -28,11 +28,11 @@ private:
     GLenum type;
     size_t typeSize;
     bool attached = false;
-    GLVertexBuffer(GLuint vboId, uint16_t vertexCoordAmount, GLenum type, size_t typeSize) : vboId(vboId),
-    vertexCoordAmount(
+    GLCVertexBuffer(GLuint vboId, uint16_t vertexCoordAmount, GLenum type, size_t typeSize) : vboId(vboId),
+                                                                                              vertexCoordAmount(
             vertexCoordAmount),
-    type(type),
-    typeSize(typeSize) {}
+                                                                                              type(type),
+                                                                                              typeSize(typeSize) {}
 
 public:
     void bind() const {

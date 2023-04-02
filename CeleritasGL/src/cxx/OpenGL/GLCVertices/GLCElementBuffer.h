@@ -4,20 +4,20 @@
 
 #pragma once
 
-#include <glad/glad.h>
-#include "../Util/IDestroyableObject.h"
+#include "glad/glad.h"
+#include "../../Util/IDestroyableObject.h"
 
-class GLElementBuffer : public IDestroyableObject{
+class GLCElementBuffer : public IDestroyableObject{
 public:
-    friend class VertexArrayObject;
+    friend class GLCVertexArrayObject;
 
-    static GLElementBuffer *createElementBufferObject(GLuint *indices, GLsizeiptr size) {
+    static GLCElementBuffer *createElementBufferObject(GLuint *indices, GLsizeiptr size) {
         GLuint eboId;
         glGenBuffers(1, &eboId);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboId);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, indices, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        return new GLElementBuffer(eboId, size / sizeof(GLuint));
+        return new GLCElementBuffer(eboId, size / sizeof(GLuint));
     }
 
 private:
@@ -25,7 +25,7 @@ private:
     GLuint indicesAmount;
     bool atttachedToVao = false;
 
-    GLElementBuffer(GLuint eboId, GLuint indicesAmount) : eboId(eboId), indicesAmount(indicesAmount) {}
+    GLCElementBuffer(GLuint eboId, GLuint indicesAmount) : eboId(eboId), indicesAmount(indicesAmount) {}
 
 public:
     void destroy() override {
