@@ -113,14 +113,14 @@ public:
 
     void updateSamplers()
     {
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < syncManager->getCurrentMode(); i++)
         {
             descriptors->writeDescriptorObjects(reinterpret_cast<IDescriptorObject **>(samplers.data()), samplers.size(), i);
         }
     }
 
     void updateUniforms(){
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < syncManager->getCurrentMode(); i++)
         {
             descriptors->writeDescriptorObjects(reinterpret_cast<IDescriptorObject **>(uniformBuffers.data()), uniformBuffers.size(), i);
         }

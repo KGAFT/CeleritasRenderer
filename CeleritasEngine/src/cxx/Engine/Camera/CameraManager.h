@@ -11,8 +11,8 @@
 #include "CameraResizeCallBack.h"
 
 struct PushConstantData{
-    glm::mat4 cameraMatrix;
-    glm::mat4 modelMatrix;
+    glm::mat4 viewMatrix;
+    glm::mat4 worldMatrix;
     glm::vec3 cameraPosition;
 };
 
@@ -37,8 +37,8 @@ public:
     }
     void update(){
         glm::mat4 camMat = currentCamera->getCameraMatrix(fov, 0.001f, 100.0f);
-        data->cameraMatrix = camMat;
-        data->modelMatrix = glm::mat4(1.0f);
+        data->viewMatrix = camMat;
+        data->worldMatrix = glm::mat4(1.0f);
         data->cameraPosition = currentCamera->getPosition();
     }
     void setCurrentCamera(Camera* currentCamera){
@@ -50,6 +50,10 @@ public:
 
     Camera *getCurrentCamera() {
         return currentCamera;
+    }
+
+    PushConstantData *getData() const {
+        return data;
     }
 };
 

@@ -7,7 +7,7 @@ layout(set = 0, binding = 2) uniform sampler2D GameLayer;
 
 layout(location = 0) out vec4 FragColor;
 
-layout(std140, binding = 0) uniform ColorCorrect{
+layout(push_constant) uniform ColorCorrect{
     int mode;
 } correct;
 

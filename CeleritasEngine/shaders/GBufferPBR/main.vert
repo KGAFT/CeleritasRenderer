@@ -32,5 +32,6 @@ void main() {
     readyPosition = (worldTransformData.worldMatrix*vec4(position, 1.0)).rgb;
     mat3 normalMatrix = transpose(inverse(mat3(worldTransformData.worldMatrix)));
     readyNormals = normalMatrix * normals;
+    readyTextureCoordinates = textureCoordinates;
     gl_Position = fixVectorPositioning(worldTransformData.viewMatrix*worldTransformData.worldMatrix*vec4(position, 1.0));
 }

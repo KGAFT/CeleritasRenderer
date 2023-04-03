@@ -17,9 +17,9 @@ layout(set = 0, binding = 8) uniform sampler2D opacityMap;
 layout(location = 0) out vec4 position;
 layout(location = 1) out vec4 albedo;
 layout(location = 2) out vec4 normal;
-layout(location = 3) out vec4 metallicRouhgnessEmissiveINVAO;
+layout(location = 3) out vec4 metallicRoughnessEmissiveINVAO;
 
-layout(std140, binding = 0) uniform GBufferConfig{
+layout(push_constant) uniform GBufferConfig{
     int combinedMetallicRoughness;
     int opacityMapEnabled;
     int emissiveEnabled;
@@ -76,6 +76,6 @@ void main() {
     if(config.aoEnabled==1){
         ao = texture(aoMap, textureCoordinates).r;
     }
-    vec4 resMREAO = vec4(metallic, roughness, emissive, 1.0-ao);
-    metallicRouhgnessEmissiveINVAO = resMREAO;
+    vec4 resMREAO = vec4(metallic, roughness, emissive, ao);
+    metallicRoughnessEmissiveINVAO = resMREAO;
 }

@@ -38,8 +38,7 @@ public:
         endConfig.samplers.push_back({1, VK_SHADER_STAGE_FRAGMENT_BIT});
         endConfig.samplers.push_back({2, VK_SHADER_STAGE_FRAGMENT_BIT});
 
-        endConfig.uniformBuffers.push_back({0, sizeof(UboData), VK_SHADER_STAGE_FRAGMENT_BIT});
-
+        endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(UboData)});
         endConfig.vertexInputs.push_back({0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
         endConfig.vertexInputs.push_back({1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT});
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, window->getWidth(),
@@ -48,12 +47,13 @@ public:
         data.mode = 0;
         quadVBO = new VertexBuffer(5 * sizeof(float), 4, device, quadVertices);
         quadIBO = new IndexBuffer(device, indices, 6);
+        endRenderPipeline->getPushConstants()[0]->setData(&data);
     }
 
     void prepare() {
         updateSamplers();
 
-        endRenderPipeline->updateUniforms();
+        //endRenderPipeline->updateUniforms();
     }
 
     void updateSamplers() {
@@ -63,9 +63,11 @@ public:
     }
 
     void update() {
-        endRenderPipeline->getUniformBuffers()[0]->write(&data);
+        endRenderPipeline->getPushConstants()[0]->setData(&data);
+
         VkCommandBuffer cmd = endRenderPipeline->beginRender();
         endRenderPipeline->bindImmediate();
+        endRenderPipeline->updatePcs();
         quadVBO->bind(cmd);
         quadIBO->bind(cmd);
         quadIBO->draw(cmd);
