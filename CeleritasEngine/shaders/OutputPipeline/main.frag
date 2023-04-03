@@ -8,18 +8,14 @@ layout(set = 0, binding = 2) uniform sampler2D GameLayer;
 layout(location = 0) out vec4 FragColor;
 
 layout(std140, binding = 0) uniform ColorCorrect{
-    vec4 uiCorrectAmplifier;
-    vec4 gameCorrectAmplifier;
-
-    vec4 uiCorrectAdder;
-    vec4 gameCorrectAdder;
-
-    vec4 outCorrectAmplifier;
-    vec4 outCorrectAdder;
+    int mode;
 } correct;
 
 void main() {
-    //vec4 gameColor = texture(GameLayer, uvs)*correct.gameCorrectAmplifier+correct.gameCorrectAdder;
-    //vec4 uiColor = texture(UiLayer, uvs)*correct.uiCorrectAmplifier+correct.uiCorrectAdder;
-    FragColor = texture(GameLayer, uvs)+texture(UiLayer, uvs);
+    if(correct.mode==1){
+        FragColor = texture(GameLayer, uvs);
+    }
+    else{
+        FragColor = texture(UiLayer, uvs);
+    }
 }

@@ -7,7 +7,7 @@
 #include "../../Vulkan/VulkanBuffers/IndexBuffer.h"
 #include "../../Vulkan/VulkanImage/VulkanImage.h"
 #include "Material.h"
-#include <glm/vec3.hpp>
+#include <glm/glm.hpp>
 
 struct MeshData {
     glm::vec3 position;
