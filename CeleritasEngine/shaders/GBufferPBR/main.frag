@@ -19,7 +19,7 @@ layout(location = 1) out vec4 albedo;
 layout(location = 2) out vec4 normal;
 layout(location = 3) out vec4 metallicRoughnessEmissiveINVAO;
 
-layout(push_constant) uniform GBufferConfig{
+layout(std140, binding = 0) uniform GBufferConfig{
     int combinedMetallicRoughness;
     int opacityMapEnabled;
     int emissiveEnabled;

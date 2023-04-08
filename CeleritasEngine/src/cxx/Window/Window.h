@@ -68,7 +68,8 @@ private:
 	GLFWwindow* windowHandle;
 	const char* title;
 	bool isBorderless = false;
-
+    long long counter = 0;
+    double prevTime = 0;
 	double lastX = 0;
 	double lastY = 0;
     VkSurfaceKHR surface = VK_NULL_HANDLE;
@@ -199,6 +200,18 @@ public:
 	}
 
 	void postRenderEvents() {
+        double crntTime = glfwGetTime();
+        double timeDiff = crntTime - prevTime;
+        counter++;
+
+        if (timeDiff >= 1.0 / 30.0) {
+            std::string FPS = std::to_string((int) ((1.0 / timeDiff) * counter));
+            std::string ms = std::to_string((timeDiff / counter) * 1000);
+            glfwSetWindowTitle(windowHandle, (std::string(title) + " FPS: " + FPS + " ms: " + ms).c_str());
+
+            prevTime = crntTime;
+            counter = 0;
+        }
 		glfwPollEvents();
 	}
 	int getInputMode() {

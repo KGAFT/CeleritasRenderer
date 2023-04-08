@@ -10,10 +10,10 @@
 #include "../GraphicalObjects/Material.h"
 
 struct GBufferConfig {
-    int combinedMetallicRoughness;
-    int opacityMapEnabled;
-    int emissiveEnabled;
-    int aoEnabled;
+    alignas(4) int combinedMetallicRoughness;
+    alignas(4) int opacityMapEnabled;
+    alignas(4) int emissiveEnabled;
+    alignas(4) int aoEnabled;
 };
 
 class GBufferPipeline {
@@ -38,7 +38,7 @@ public:
         endConfig.vertexInputs.push_back({2, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
 
         endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstantData)});
-        endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(GBufferConfig)});
+        endConfig.uniformBuffers.push_back({0, sizeof(GBufferConfig),VK_SHADER_STAGE_FRAGMENT_BIT});
 
         for (int i = 1; i <= 8; i++) {
             endConfig.samplers.push_back({i, VK_SHADER_STAGE_FRAGMENT_BIT});
@@ -55,6 +55,8 @@ public:
         renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
 
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, width, height, renderTargets, 4, positionsImage->getFormat());
+        endRenderPipeline->getUniformBuffers()[0]->write(&config);
+        endRenderPipeline->updateUniforms();
     }
 
     void updateSamplers(){
@@ -66,7 +68,7 @@ public:
     }
 
     VkCommandBuffer beginRender(){
-        endRenderPipeline->getPushConstants()[1]->setData(&config);
+        endRenderPipeline->getUniformBuffers()[0]->write(&config);
         VkCommandBuffer cmd = endRenderPipeline->beginRender();
         endRenderPipeline->bindImmediate();
         endRenderPipeline->updatePcs();

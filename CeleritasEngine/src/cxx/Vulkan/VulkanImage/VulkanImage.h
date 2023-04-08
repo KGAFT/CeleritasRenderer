@@ -3,9 +3,12 @@
 //
 #pragma once
 
+#include <cstring>
 #include <vulkan/vulkan.h>
 #include "../VulkanDevice/VulkanDevice.h"
 #include "../../External/stb_image.h"
+
+
 class VulkanImage {
 public:
     static VulkanImage *createImage(VulkanDevice *device, unsigned int width, unsigned int height) {
@@ -175,7 +178,6 @@ public:
     VkImage getImage() {
         return image;
     }
-
     VulkanDevice *getDevice() {
         return device;
     }

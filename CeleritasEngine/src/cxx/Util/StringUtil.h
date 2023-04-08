@@ -45,8 +45,9 @@ namespace StringUtil{
         return result;
     }
     bool parseBoolean(std::string& source){
+
         std::string lowerCase = toLowerCase(source);
-        if(!std::strcmp(lowerCase.c_str(), "true")){
+        if(lowerCase.find("true")!=std::string::npos){
             return true;
         }
         else{

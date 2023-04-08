@@ -73,12 +73,12 @@ public:
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
 
         ModelLoader loader(device);
-        meshes = loader.loadModel("C:/Users/Daniil/Desktop/vaze/Vaze.fbx");
+        meshes = loader.loadModel("models/vaze/Vaze.fbx");
 
-        material.setAlbedoTexture(VulkanImage::loadTexture("C:/Users/Daniil/Desktop/vaze/albedo.tga", device));
-        material.setMetallicTexture(VulkanImage::loadTexture("C:/Users/Daniil/Desktop/vaze/metallic.tga", device));
-        material.setRoughnessTexture(VulkanImage::loadTexture("C:/Users/Daniil/Desktop/vaze/roughness.tga", device));
-        material.setNormalMap(VulkanImage::loadTexture("C:/Users/Daniil/Desktop/vaze/normal.tga", device));
+        material.setAlbedoTexture(VulkanImage::loadTexture("models/vaze/albedo.tga", device));
+        material.setMetallicTexture(VulkanImage::loadTexture("models/vaze/metallic.tga", device));
+        material.setRoughnessTexture(VulkanImage::loadTexture("models/vaze/roughness.tga", device));
+        material.setNormalMap(VulkanImage::loadTexture("models/vaze/normal.tga", device));
         meshes[0]->setMaterial(&material);
 
         TestKeyboardCallback *keyBoardCB = new TestKeyboardCallback(Window::getInstance());
@@ -98,7 +98,9 @@ public:
     void update() {
 
         manager.update();
+        manager.getData()->worldMatrix = glm::scale(manager.getData()->worldMatrix, glm::vec3(0.25f, 0.25f, 0.25f));
         gbPipeline->setWorldViewData(manager.getData());
+
         VkCommandBuffer cmd = gbPipeline->beginRender();
         meshes[0]->draw(cmd);
         gbPipeline->endRender();
