@@ -23,18 +23,18 @@ private:
     map<string, VulkanImage*> loadedTextures;
 
 private:
-    void processNode(aiNode *node, const aiScene *scene) {
+    void processNode(aiNode *node, const aiScene *scene, bool loadTextures) {
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-            meshes.push_back(processMesh(mesh, scene));
+            meshes.push_back(processMesh(mesh, scene, loadTextures));
         }
         // then do the same for each of its children
         for (unsigned int i = 0; i < node->mNumChildren; i++) {
-            processNode(node->mChildren[i], scene);
+            processNode(node->mChildren[i], scene, loadTextures);
         }
     }
 
-    Mesh *processMesh(aiMesh *mesh, const aiScene *scene) {
+    Mesh *processMesh(aiMesh *mesh, const aiScene *scene, bool needLoadTextures) {
 
         vector<unsigned int> indices;
         vector<MeshData> data;
@@ -61,9 +61,9 @@ private:
         IndexBuffer *ibo = new IndexBuffer(device, indices.data(), indices.size());
 
         Mesh *currentMesh = new Mesh(vbo, ibo);
-
-        loadTextures(scene, mesh, currentMesh);
-
+        if(needLoadTextures){
+            loadTextures(scene, mesh, currentMesh);
+        }
 
         return currentMesh;
     }
@@ -190,7 +190,7 @@ private:
 public:
     ModelLoader(VulkanDevice *device) : device(device) {}
 
-    std::vector<Mesh *> loadModel(string path) {
+    std::vector<Mesh *> loadModel(string path, bool loadTextures) {
         Assimp::Importer import;
         const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
@@ -200,7 +200,7 @@ public:
         }
         directory = path.substr(0, path.find_last_of('/'));
 
-        processNode(scene->mRootNode, scene);
+        processNode(scene->mRootNode, scene, loadTextures);
         import.FreeScene();
         return meshes;
     }

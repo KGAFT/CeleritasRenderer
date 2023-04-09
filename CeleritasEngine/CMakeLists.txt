@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(CeleritasEngine)
 
-set(VulkanSDKPath /home/kgaft/VulkanSDK/1.3.243.0/)
+set(VulkanSDKPath C:/VulkanSDK/1.3.243.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -23,7 +23,7 @@ if(WIN32)
         file(GLOB_RECURSE BINARIES LibNativeWin/msvc/bin/*.*)
         set(NativeLibs assimp-vc143-mtd)
     endif()
-    set(VulkanLibList libshaderc_combined.a vulkan-1)
+    set(VulkanLibList shaderc_shared vulkan-1)
     set(SystemNatives -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic)
 endif()
 

@@ -61,7 +61,9 @@ public:
         endRenderPipeline->getSamplers()[1]->setSamplerImageView(gamePlaceHolder->getView());
         endRenderPipeline->updateSamplers();
     }
-
+    void resize(int width, int height){
+        endRenderPipeline->resized(width,height);
+    }
     void update() {
         endRenderPipeline->getPushConstants()[0]->setData(&data);
 

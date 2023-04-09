@@ -22,7 +22,7 @@ struct EngineDevice {
     VkPhysicalDeviceProperties properties;
 };
 
-class Engine {
+class Engine : public IWindowResizeCallback {
 private:
     static inline VulkanInstance *instance = nullptr;
     static inline bool debugBuild = false;
@@ -73,7 +73,7 @@ public:
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
 
         ModelLoader loader(device);
-        meshes = loader.loadModel("models/vaze/Vaze.fbx");
+        meshes = loader.loadModel("models/vaze/Vaze.fbx", false);
 
         material.setAlbedoTexture(VulkanImage::loadTexture("models/vaze/albedo.tga", device));
         material.setMetallicTexture(VulkanImage::loadTexture("models/vaze/metallic.tga", device));
@@ -93,6 +93,9 @@ public:
         gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbPipeline->populateSamplers(&material);
         gbPipeline->updateSamplers();
+        asmPipeline->SetGamePlaceHolder(gbPipeline->getPositionsImage());
+        asmPipeline->updateSamplers();
+        window->registerResizeCallback(this);
     }
 
     void update() {
@@ -104,9 +107,16 @@ public:
         VkCommandBuffer cmd = gbPipeline->beginRender();
         meshes[0]->draw(cmd);
         gbPipeline->endRender();
-        asmPipeline->SetGamePlaceHolder(gbPipeline->getPositionsImage());
-        asmPipeline->updateSamplers();
+
         asmPipeline->update();
         frameCounter++;
+    }
+
+    void resized(int width, int height) override {
+        vkDeviceWaitIdle(device->getDevice());
+        asmPipeline->resize(width,height);
+        gbPipeline->resize(width,height);
+        asmPipeline->SetGamePlaceHolder(gbPipeline->getNormalMapImage());
+        asmPipeline->updateSamplers();
     }
 };

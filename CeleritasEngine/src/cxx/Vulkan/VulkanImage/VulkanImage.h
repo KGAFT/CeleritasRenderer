@@ -23,6 +23,7 @@ public:
     }
     static VulkanImage* loadTexture(const char* pathToTexture, VulkanDevice* device){
         int imageWidth, imageHeight, imageChannels;
+        stbi_set_flip_vertically_on_load(false);
         stbi_uc *imageData = stbi_load(pathToTexture, &imageWidth, &imageHeight, &imageChannels, STBI_rgb_alpha);
 
         VulkanImage* image = loadBinTexture(device, reinterpret_cast<const char *>(imageData), imageWidth, imageHeight, imageChannels);

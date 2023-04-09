@@ -21,12 +21,12 @@ private:
     VulkanDevice *device;
     VulkanSyncManager *syncManager;
     VulkanShader *shader;
-    VulkanEndRenderPipeline* endRenderPipeline;
+    VulkanEndRenderPipeline *endRenderPipeline;
 
-    VulkanImage* positionsImage;
-    VulkanImage* albedoMapImage;
-    VulkanImage* normalMapImage;
-    VulkanImage* metallicRoughnessEmissiveINVAO;
+    VulkanImage *positionsImage;
+    VulkanImage *albedoMapImage;
+    VulkanImage *normalMapImage;
+    VulkanImage *metallicRoughnessEmissiveINVAO;
     GBufferConfig config{};
 public:
     GBufferPipeline(VulkanDevice *device, unsigned int width, unsigned int height) : device(device) {
@@ -38,14 +38,14 @@ public:
         endConfig.vertexInputs.push_back({2, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
 
         endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstantData)});
-        endConfig.uniformBuffers.push_back({0, sizeof(GBufferConfig),VK_SHADER_STAGE_FRAGMENT_BIT});
+        endConfig.uniformBuffers.push_back({0, sizeof(GBufferConfig), VK_SHADER_STAGE_FRAGMENT_BIT});
 
         for (int i = 1; i <= 8; i++) {
             endConfig.samplers.push_back({i, VK_SHADER_STAGE_FRAGMENT_BIT});
         }
 
         positionsImage = VulkanImage::createImage(device, width, height);
-        albedoMapImage = VulkanImage::createImage(device, width,  height);
+        albedoMapImage = VulkanImage::createImage(device, width, height);
         normalMapImage = VulkanImage::createImage(device, width, height);
         metallicRoughnessEmissiveINVAO = VulkanImage::createImage(device, width, height);
         std::vector<VkImageView> renderTargets;
@@ -54,65 +54,84 @@ public:
         renderTargets.push_back(normalMapImage->getView());
         renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
 
-        endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, width, height, renderTargets, 4, positionsImage->getFormat());
+        endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, width, height,
+                                                        renderTargets, 4, positionsImage->getFormat());
         endRenderPipeline->getUniformBuffers()[0]->write(&config);
         endRenderPipeline->updateUniforms();
     }
 
-    void updateSamplers(){
+    void updateSamplers() {
         endRenderPipeline->updateSamplers();
     }
 
-    void setWorldViewData(PushConstantData* data){
+    void setWorldViewData(PushConstantData *data) {
         endRenderPipeline->getPushConstants()[0]->setData(data);
     }
 
-    VkCommandBuffer beginRender(){
+    VkCommandBuffer beginRender() {
         endRenderPipeline->getUniformBuffers()[0]->write(&config);
         VkCommandBuffer cmd = endRenderPipeline->beginRender();
         endRenderPipeline->bindImmediate();
         endRenderPipeline->updatePcs();
         return cmd;
     }
-    void endRender(){
+
+    void endRender() {
         endRenderPipeline->endRender();
     }
-    void populateSamplers(Material* material){
-        config.aoEnabled = material->getAoTexture()!= nullptr;
-        config.combinedMetallicRoughness = material->getMetallicRoughnessTexture()!=nullptr;
-        config.emissiveEnabled = material->getEmissiveTexture()!=nullptr;
-        config.opacityMapEnabled = material->getOpacityMapTexture()!=nullptr;
+
+    void populateSamplers(Material *material) {
+        config.aoEnabled = material->getAoTexture() != nullptr;
+        config.combinedMetallicRoughness = material->getMetallicRoughnessTexture() != nullptr;
+        config.emissiveEnabled = material->getEmissiveTexture() != nullptr;
+        config.opacityMapEnabled = material->getOpacityMapTexture() != nullptr;
 
         endRenderPipeline->getSamplers()[0]->setSamplerImageView(material->getAlbedoTexture()->getView());
         endRenderPipeline->getSamplers()[1]->setSamplerImageView(material->getNormalMap()->getView());
-        if(config.combinedMetallicRoughness){
-            endRenderPipeline->getSamplers()[6]->setSamplerImageView(material->getMetallicRoughnessTexture()->getView());
+        if (config.combinedMetallicRoughness) {
+            endRenderPipeline->getSamplers()[6]->setSamplerImageView(
+                    material->getMetallicRoughnessTexture()->getView());
             endRenderPipeline->getSamplers()[2]->setSamplerImageView(material->getAlbedoTexture()->getView());
             endRenderPipeline->getSamplers()[3]->setSamplerImageView(material->getAlbedoTexture()->getView());
-        }
-        else{
+        } else {
             endRenderPipeline->getSamplers()[2]->setSamplerImageView(material->getMetallicTexture()->getView());
             endRenderPipeline->getSamplers()[3]->setSamplerImageView(material->getRoughnessTexture()->getView());
             endRenderPipeline->getSamplers()[6]->setSamplerImageView(material->getAlbedoTexture()->getView());
         }
-        if(config.aoEnabled){
+        if (config.aoEnabled) {
             endRenderPipeline->getSamplers()[4]->setSamplerImageView(material->getAoTexture()->getView());
-        }
-        else{
+        } else {
             endRenderPipeline->getSamplers()[4]->setSamplerImageView(material->getAlbedoTexture()->getView());
         }
-        if(config.emissiveEnabled){
+        if (config.emissiveEnabled) {
             endRenderPipeline->getSamplers()[5]->setSamplerImageView(material->getEmissiveTexture()->getView());
-        }
-        else{
+        } else {
             endRenderPipeline->getSamplers()[5]->setSamplerImageView(material->getAlbedoTexture()->getView());
         }
-        if(config.opacityMapEnabled){
+        if (config.opacityMapEnabled) {
             endRenderPipeline->getSamplers()[7]->setSamplerImageView(material->getOpacityMapTexture()->getView());
-        }
-        else{
+        } else {
             endRenderPipeline->getSamplers()[7]->setSamplerImageView(material->getAlbedoTexture()->getView());
         }
+    }
+
+    void resize(int width, int height) {
+        vkDeviceWaitIdle(device->getDevice());
+        delete positionsImage;
+        delete albedoMapImage;
+        delete normalMapImage;
+        delete metallicRoughnessEmissiveINVAO;
+        positionsImage = VulkanImage::createImage(device, width, height);
+        albedoMapImage = VulkanImage::createImage(device, width, height);
+        normalMapImage = VulkanImage::createImage(device, width, height);
+        metallicRoughnessEmissiveINVAO = VulkanImage::createImage(device, width, height);
+        std::vector<VkImageView> renderTargets;
+        renderTargets.push_back(positionsImage->getView());
+        renderTargets.push_back(albedoMapImage->getView());
+        renderTargets.push_back(normalMapImage->getView());
+        renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
+        endRenderPipeline->resized(width, height, &renderTargets, 4, positionsImage->getFormat());
+
     }
 
     VulkanImage *getPositionsImage() const {
