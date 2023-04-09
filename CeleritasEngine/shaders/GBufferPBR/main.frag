@@ -45,8 +45,8 @@ vec3 getNormalFromMap(vec2 uvsCoords, vec3 normals, vec3 fragmentPosition)
 
 float getEmissivePower(vec2 UvsCoords, vec4 albedoColor){
     vec4 emissive = texture(emissiveMap, UvsCoords);
-    float numerator = emissive.r+emissive.g+emissive.b+emissive.a;
-    float denominator = albedoColor.r+albedoColor.g+albedoColor.b+albedoColor.a;
+    float numerator = emissive.r+emissive.g+emissive.b;
+    float denominator = albedoColor.r+albedoColor.g+albedoColor.b;
     return numerator/denominator;
 }
 

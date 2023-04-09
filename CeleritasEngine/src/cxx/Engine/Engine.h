@@ -73,12 +73,14 @@ public:
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
 
         ModelLoader loader(device);
-        meshes = loader.loadModel("models/vaze/Vaze.fbx", false);
+        meshes = loader.loadModel("models/pokedex/pokedex.gltf", false);
 
-        material.setAlbedoTexture(VulkanImage::loadTexture("models/vaze/albedo.tga", device));
-        material.setMetallicTexture(VulkanImage::loadTexture("models/vaze/metallic.tga", device));
-        material.setRoughnessTexture(VulkanImage::loadTexture("models/vaze/roughness.tga", device));
-        material.setNormalMap(VulkanImage::loadTexture("models/vaze/normal.tga", device));
+        material.setAlbedoTexture(VulkanImage::loadTexture("models/pokedex/textures/basecolor.tga", device));
+        material.setMetallicTexture(VulkanImage::loadTexture("models/pokedex/textures/metallic.tga", device));
+        material.setRoughnessTexture(VulkanImage::loadTexture("models/pokedex/textures/roughness.tga", device));
+        material.setNormalMap(VulkanImage::loadTexture("models/pokedex/textures/normal.tga", device));
+        material.setAoTexture(VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device));
+        material.setEmissiveTexture(VulkanImage::loadTexture("models/pokedex/textures/emissive.tga", device));
         meshes[0]->setMaterial(&material);
 
         TestKeyboardCallback *keyBoardCB = new TestKeyboardCallback(Window::getInstance());
@@ -116,7 +118,7 @@ public:
         vkDeviceWaitIdle(device->getDevice());
         asmPipeline->resize(width,height);
         gbPipeline->resize(width,height);
-        asmPipeline->SetGamePlaceHolder(gbPipeline->getNormalMapImage());
+        asmPipeline->SetGamePlaceHolder(gbPipeline->getMetallicRoughnessEmissiveInvao());
         asmPipeline->updateSamplers();
     }
 };
