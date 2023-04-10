@@ -15,6 +15,7 @@
 
 #include "../TestKeyboardCallback.h"
 #include "Pipelines/GBufferPipeline.h"
+#include "Pipelines/GameAssemblyPipeline.h"
 
 struct EngineDevice {
     std::string name;
@@ -58,6 +59,8 @@ private:
     VulkanImage *gamePlaceHolder;
     AssemblyPipeline *asmPipeline;
     GBufferPipeline *gbPipeline;
+    GameAssemblyPipeline* gbaPipeline;
+
     CameraManager manager;
     std::vector<Mesh *> meshes;
     PushConstantData pcData;
@@ -79,7 +82,7 @@ public:
         material.setMetallicTexture(VulkanImage::loadTexture("models/pokedex/textures/metallic.tga", device));
         material.setRoughnessTexture(VulkanImage::loadTexture("models/pokedex/textures/roughness.tga", device));
         material.setNormalMap(VulkanImage::loadTexture("models/pokedex/textures/normal.tga", device));
-        material.setAoTexture(VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device));
+       // material.setAoTexture(VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device));
         material.setEmissiveTexture(VulkanImage::loadTexture("models/pokedex/textures/emissive.tga", device));
         meshes[0]->setMaterial(&material);
 
@@ -92,11 +95,25 @@ public:
         asmPipeline->SetUiPlaceHolder(uiPlaceHolder);
         asmPipeline->getData().mode = 1;
         asmPipeline->prepare();
+
+
         gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbPipeline->populateSamplers(&material);
         gbPipeline->updateSamplers();
-        asmPipeline->SetGamePlaceHolder(gbPipeline->getPositionsImage());
+
+        gbaPipeline = new GameAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
+        gbaPipeline->setGBufferPipeline(gbPipeline);
+        gbaPipeline->getConfig().enabledPoints = 1;
+        gbaPipeline->getConfig().pointLights[0].color = glm::vec3(1,1,1);
+        gbaPipeline->getConfig().pointLights[0].position = glm::vec3(0, 5, -5);
+        gbaPipeline->getConfig().pointLights[0].intensity = 1000;
+        gbaPipeline->getConfig().emissiveIntensity = 6;
+
+
+        asmPipeline->SetGamePlaceHolder(gbaPipeline->getOutput());
         asmPipeline->updateSamplers();
+
+
         window->registerResizeCallback(this);
     }
 
@@ -104,11 +121,14 @@ public:
 
         manager.update();
         manager.getData()->worldMatrix = glm::scale(manager.getData()->worldMatrix, glm::vec3(0.25f, 0.25f, 0.25f));
+        manager.getData()->worldMatrix = glm::translate(manager.getData()->worldMatrix, glm::vec3(-1,0,0));
         gbPipeline->setWorldViewData(manager.getData());
 
         VkCommandBuffer cmd = gbPipeline->beginRender();
         meshes[0]->draw(cmd);
         gbPipeline->endRender();
+        gbaPipeline->getVertexConfig()->cameraPosition = manager.getData()->cameraPosition;
+        gbaPipeline->update();
 
         asmPipeline->update();
         frameCounter++;
@@ -118,7 +138,7 @@ public:
         vkDeviceWaitIdle(device->getDevice());
         asmPipeline->resize(width,height);
         gbPipeline->resize(width,height);
-        asmPipeline->SetGamePlaceHolder(gbPipeline->getMetallicRoughnessEmissiveInvao());
+        asmPipeline->SetGamePlaceHolder(gbPipeline->getNormalMapImage());
         asmPipeline->updateSamplers();
     }
 };

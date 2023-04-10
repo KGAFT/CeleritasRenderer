@@ -2,20 +2,10 @@
 
 #include "../../Vulkan/VulkanEndRenderPipeline.h"
 #include "../../Util/ShaderLoader.h"
-
+#include "../PrimitiveObjects/Quad.h"
 struct UboData {
     int mode;
 };
-
-float quadVertices[]{
-        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-        1.0f, -1.0f, 0.0f, 1.0f, 0.0f};
-
-unsigned int indices[]{
-        0, 1, 2,
-        3, 2, 1};
 
 class AssemblyPipeline {
 private:
@@ -46,7 +36,7 @@ public:
                                                         swapChain->getSwapChainImageFormat());
         data.mode = 0;
         quadVBO = new VertexBuffer(5 * sizeof(float), 4, device, quadVertices);
-        quadIBO = new IndexBuffer(device, indices, 6);
+        quadIBO = new IndexBuffer(device, quadIndices, 6);
         endRenderPipeline->getPushConstants()[0]->setData(&data);
     }
 

@@ -46,6 +46,6 @@ add_subdirectory(modules/glm)
 file(GLOB_RECURSE CPP_FILES src/cxx/*.cpp)
 file(GLOB_RECURSE HPP_FILES src/cxx/*.h)
 
-add_executable(CeleritasEngine ${HPP_FILES} ${CPP_FILES})
+add_executable(CeleritasEngine ${HPP_FILES} ${CPP_FILES} src/cxx/Engine/Pipelines/GameAssemblyPipeline.h src/cxx/Engine/PrimitiveObjects/Quad.h)
 
 target_link_libraries(CeleritasEngine ${VulkanLibList} glfw glm ${NativesLibs} ${SystemNatives})

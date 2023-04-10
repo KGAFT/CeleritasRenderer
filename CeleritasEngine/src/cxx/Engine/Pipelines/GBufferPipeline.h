@@ -79,7 +79,6 @@ public:
     void endRender() {
         endRenderPipeline->endRender();
     }
-
     void populateSamplers(Material *material) {
         config.aoEnabled = material->getAoTexture() != nullptr;
         config.combinedMetallicRoughness = material->getMetallicRoughnessTexture() != nullptr;

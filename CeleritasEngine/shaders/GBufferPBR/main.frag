@@ -45,9 +45,10 @@ vec3 getNormalFromMap(vec2 uvsCoords, vec3 normals, vec3 fragmentPosition)
 
 float getEmissivePower(vec2 UvsCoords, vec4 albedoColor){
     vec4 emissive = texture(emissiveMap, UvsCoords);
-    float numerator = emissive.r+emissive.g+emissive.b;
-    float denominator = albedoColor.r+albedoColor.g+albedoColor.b;
-    return numerator/denominator;
+    if(emissive.r+emissive.g+emissive.b>=0.1f){
+        return 1;
+    }
+    return 0;
 }
 
 void main() {
@@ -56,7 +57,7 @@ void main() {
     if(config.opacityMapEnabled==1){
         albedo.a = texture(opacityMap, textureCoordinates).r;
     }
-    normal = vec4(getNormalFromMap(textureCoordinates, normals, fragmentPosition), 1.0);
+    normal = vec4(normalize(getNormalFromMap(textureCoordinates, normals, fragmentPosition)), 1.0);
     float emissive = 0;
     if (config.emissiveEnabled == 1){
         emissive = getEmissivePower(textureCoordinates, albedo);
