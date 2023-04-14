@@ -107,6 +107,7 @@ public:
         quadIBO->bind(cmd);
         quadIBO->draw(cmd);
         endRenderPipeline->endRender();
+
     }
 
     void setSkyboxImage(VulkanImage* image){
@@ -123,5 +124,14 @@ public:
 
     VertexConfig *getVertexConfig() {
         return vertexConfig;
+    }
+    void resize(int width, int height){
+        vkDeviceWaitIdle(device->getDevice());
+        delete output;
+        output = VulkanImage::createImage(device, width, height);
+        vector<VkImageView > renderTargets;
+        renderTargets.push_back(output->getView());
+        endRenderPipeline->resized(width, height, renderTargets, 1, output->getFormat());
+        int i = 1+1;
     }
 };

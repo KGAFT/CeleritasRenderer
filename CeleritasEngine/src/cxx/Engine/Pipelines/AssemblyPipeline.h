@@ -53,6 +53,7 @@ public:
     }
     void resize(int width, int height){
         endRenderPipeline->resized(width,height);
+        int i = 1+1;
     }
     void update() {
         endRenderPipeline->getPushConstants()[0]->setData(&data);

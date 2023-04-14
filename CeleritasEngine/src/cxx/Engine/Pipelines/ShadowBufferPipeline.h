@@ -3,6 +3,11 @@
 //
 #pragma once
 
-class ShadowBufferPipeline{
+#include "../../Vulkan/VulkanDevice/VulkanDevice.h"
+#include "../../Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h"
 
+class ShadowBufferPipeline{
+private:
+    VulkanDevice* device;
+    VulkanShader* shader;
 };

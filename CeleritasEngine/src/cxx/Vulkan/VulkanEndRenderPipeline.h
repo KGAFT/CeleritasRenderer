@@ -25,7 +25,7 @@ private:
     VulkanSyncManager *syncManager;
     VulkanShader *shader;
     PipelineEndConfig *endConfig;
-    std::vector<VkImageView> &imageViews;
+    std::vector<VkImageView> imageViews;
     int currentWidth;
     int currentHeight;
     bool destroyed = false;
@@ -54,10 +54,14 @@ public:
     VulkanEndRenderPipeline(VulkanDevice *device, VulkanSyncManager *syncManager, VulkanShader *shader,
                             PipelineEndConfig *endConfig, int startFrameBufferWidth, int startFrameBufferHeight,
                             std::vector<VkImageView> &imageViews, int imagePerStepAmount, VkFormat imageFormat)
-        : imagePerStepAmount(imagePerStepAmount), device(device), imageViews(imageViews), imageFormat(imageFormat),
+        : imagePerStepAmount(imagePerStepAmount), device(device), imageFormat(imageFormat),
           syncManager(syncManager), shader(shader),
           endConfig(endConfig), currentWidth(startFrameBufferWidth), currentHeight(startFrameBufferHeight)
     {
+        this->imageViews.clear();
+        for (auto item: imageViews){
+            this->imageViews.push_back(item);
+        }
         createRenderPass(startFrameBufferWidth, startFrameBufferHeight, imagePerStepAmount, imageFormat);
         createGraphicsPipeline(endConfig, startFrameBufferWidth, startFrameBufferHeight);
         createControl();
@@ -136,7 +140,7 @@ public:
         control->endRender();
     }
 
-    void resized(int width, int height, std::vector<VkImageView> *newImageViews, int imagePerStepAmount,
+    void resized(int width, int height, std::vector<VkImageView> &newImageViews, int imagePerStepAmount,
                  VkFormat imageFormat)
     {
         vkDeviceWaitIdle(device->getDevice());
@@ -151,7 +155,10 @@ public:
         }
         else
         {
-            imageViews = *newImageViews;
+            this->imageViews.clear();
+            for (auto item: newImageViews){
+                this->imageViews.push_back(item);
+            }
             this->imagePerStepAmount = imagePerStepAmount;
             this->imageFormat = imageFormat;
         }
@@ -164,7 +171,8 @@ public:
 
     void resized(int width, int height) override
     {
-        resized(width, height, nullptr, this->imagePerStepAmount, VK_FORMAT_R32G32B32_SFLOAT);
+        std::vector<VkImageView> img;
+        resized(width, height, img, this->imagePerStepAmount, VK_FORMAT_R32G32B32_SFLOAT);
     }
 
     VkImageView getCurrentImage()

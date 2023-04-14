@@ -142,7 +142,8 @@ public:
         renderTargets.push_back(normalMapImage->getView());
         renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
         renderTargets.push_back(skyBoxSampled->getView());
-        endRenderPipeline->resized(width, height, &renderTargets, 5, positionsImage->getFormat());
+        endRenderPipeline->resized(width, height, renderTargets, 5, positionsImage->getFormat());
+        int i = 1+1;
 
     }
 

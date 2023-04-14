@@ -154,7 +154,9 @@ public:
         vkDeviceWaitIdle(device->getDevice());
         asmPipeline->resize(width,height);
         gbPipeline->resize(width,height);
-        asmPipeline->SetGamePlaceHolder(gbPipeline->getNormalMapImage());
+        gbaPipeline->resize(width,height);
+        gbaPipeline->setGBufferPipeline(gbPipeline);
+        asmPipeline->SetGamePlaceHolder(gbaPipeline->getOutput());
         asmPipeline->updateSamplers();
     }
 };
