@@ -35,7 +35,7 @@ public:
         config.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(LightViewData)});
         std::vector<VkImageView> renderTargets;
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &config, squareSideLen, squareSideLen, renderTargets,0, VK_FORMAT_R32G32B32_SFLOAT);
-        endRenderPipeline->getPushConstants()[0]->setData(&config);
+        endRenderPipeline->getPushConstants()[0]->setData(&viewData);
     }
     VkCommandBuffer beginRender(){
         VkCommandBuffer  cmd = endRenderPipeline->beginRender();
