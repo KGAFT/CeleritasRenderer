@@ -68,7 +68,7 @@ public:
         endConfig.vertexInputs.push_back({1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT});
         endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(VertexConfig)});
         endConfig.uniformBuffers.push_back({0, sizeof(LightConfiguration), VK_SHADER_STAGE_FRAGMENT_BIT});
-        for (int i = 1; i <= 4; i++) {
+        for (int i = 1; i <= 5; i++) {
             endConfig.samplers.push_back({i, VK_SHADER_STAGE_FRAGMENT_BIT});
         }
         output = VulkanImage::createImage(device, width, height);
@@ -107,6 +107,10 @@ public:
         quadIBO->bind(cmd);
         quadIBO->draw(cmd);
         endRenderPipeline->endRender();
+    }
+
+    void setSkyboxImage(VulkanImage* image){
+        endRenderPipeline->getSamplers()[4]->setSamplerImageView(image->getView());
     }
 
     LightConfiguration &getConfig() {

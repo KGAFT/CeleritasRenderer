@@ -13,11 +13,13 @@ layout(set = 0, binding = 5) uniform sampler2D aoMap;
 layout(set = 0, binding = 6) uniform sampler2D emissiveMap;
 layout(set = 0, binding = 7) uniform sampler2D metallicRoughness;
 layout(set = 0, binding = 8) uniform sampler2D opacityMap;
+layout(set = 0, binding = 9) uniform sampler2D skyBox;
 
 layout(location = 0) out vec4 position;
 layout(location = 1) out vec4 albedo;
 layout(location = 2) out vec4 normal;
 layout(location = 3) out vec4 metallicRoughnessEmissiveINVAO;
+layout(location = 4) out vec4 skyBoxSampled;
 
 layout(std140, binding = 0) uniform GBufferConfig{
     int combinedMetallicRoughness;
@@ -46,7 +48,7 @@ vec3 getNormalFromMap(vec2 uvsCoords, vec3 normals, vec3 fragmentPosition)
 float getEmissivePower(vec2 UvsCoords, vec4 albedoColor){
     vec4 emissive = texture(emissiveMap, UvsCoords);
     if(emissive.r+emissive.g+emissive.b>=0.1f){
-        return 1;
+        return (emissive.r+emissive.g+emissive.b)/(albedoColor.r+albedoColor.g+albedoColor.b);
     }
     return 0;
 }
@@ -79,4 +81,6 @@ void main() {
     }
     vec4 resMREAO = vec4(metallic, roughness, emissive, ao);
     metallicRoughnessEmissiveINVAO = resMREAO;
+    skyBoxSampled = texture(skyBox, textureCoordinates);
+
 }

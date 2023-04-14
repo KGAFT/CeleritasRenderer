@@ -21,7 +21,7 @@ private:
     static inline CameraManager* cameraManagerInstance = nullptr;
 
 private:
-    float fov = 120.0f;
+    float fov = 90.0f;
     Camera* currentCamera = new Camera(glm::vec3(0, 0, 2.0f), Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
     CameraMovementCallBack* currentCameraMovementCallback = new CameraMovementCallBack(currentCamera, 0.002f);
     CameraRotationCallBack* currentCameraRotationCallBack = new CameraRotationCallBack(currentCamera, 0.5f);

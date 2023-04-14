@@ -11,7 +11,7 @@ int main() {
     Monitor **monitors = Monitor::enumerateMonitors(&monitorCount);
 
     Window::createWindow(1920, 1080, "Hello world!", nullptr);
-    Engine::createInstance("HelloWorld", true);
+    Engine::createInstance("HelloWorld", false);
     EngineDevice device = Engine::enumSupportedDevices(Window::getInstance())[0];
     std::cout<<device.name<<std::endl;
     Engine engine(device, Window::getInstance());

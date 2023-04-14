@@ -27,6 +27,7 @@ private:
     VulkanImage *albedoMapImage;
     VulkanImage *normalMapImage;
     VulkanImage *metallicRoughnessEmissiveINVAO;
+    VulkanImage* skyBoxSampled;
     GBufferConfig config{};
 public:
     GBufferPipeline(VulkanDevice *device, unsigned int width, unsigned int height) : device(device) {
@@ -40,22 +41,24 @@ public:
         endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstantData)});
         endConfig.uniformBuffers.push_back({0, sizeof(GBufferConfig), VK_SHADER_STAGE_FRAGMENT_BIT});
 
-        for (int i = 1; i <= 8; i++) {
+        for (int i = 1; i <= 9; i++) {
             endConfig.samplers.push_back({i, VK_SHADER_STAGE_FRAGMENT_BIT});
         }
 
         positionsImage = VulkanImage::createImage(device, width, height);
         albedoMapImage = VulkanImage::createImage(device, width, height);
         normalMapImage = VulkanImage::createImage(device, width, height);
+        skyBoxSampled = VulkanImage::createImage(device, width, height);
         metallicRoughnessEmissiveINVAO = VulkanImage::createImage(device, width, height);
         std::vector<VkImageView> renderTargets;
         renderTargets.push_back(positionsImage->getView());
         renderTargets.push_back(albedoMapImage->getView());
         renderTargets.push_back(normalMapImage->getView());
         renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
+        renderTargets.push_back(skyBoxSampled->getView());
 
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, width, height,
-                                                        renderTargets, 4, positionsImage->getFormat());
+                                                        renderTargets, 5, positionsImage->getFormat());
         endRenderPipeline->getUniformBuffers()[0]->write(&config);
         endRenderPipeline->updateUniforms();
     }
@@ -71,9 +74,16 @@ public:
     VkCommandBuffer beginRender() {
         endRenderPipeline->getUniformBuffers()[0]->write(&config);
         VkCommandBuffer cmd = endRenderPipeline->beginRender();
-        endRenderPipeline->bindImmediate();
+
         endRenderPipeline->updatePcs();
         return cmd;
+    }
+    void setSkyBoxImage(VulkanImage* image){
+        endRenderPipeline->getSamplers()[8]->setSamplerImageView(image->getView());
+    }
+
+    void bindImmediate(){
+        endRenderPipeline->bindImmediate();
     }
 
     void endRender() {
@@ -120,16 +130,19 @@ public:
         delete albedoMapImage;
         delete normalMapImage;
         delete metallicRoughnessEmissiveINVAO;
+        delete skyBoxSampled;
         positionsImage = VulkanImage::createImage(device, width, height);
         albedoMapImage = VulkanImage::createImage(device, width, height);
         normalMapImage = VulkanImage::createImage(device, width, height);
+        skyBoxSampled = VulkanImage::createImage(device, width, height);
         metallicRoughnessEmissiveINVAO = VulkanImage::createImage(device, width, height);
         std::vector<VkImageView> renderTargets;
         renderTargets.push_back(positionsImage->getView());
         renderTargets.push_back(albedoMapImage->getView());
         renderTargets.push_back(normalMapImage->getView());
         renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
-        endRenderPipeline->resized(width, height, &renderTargets, 4, positionsImage->getFormat());
+        renderTargets.push_back(skyBoxSampled->getView());
+        endRenderPipeline->resized(width, height, &renderTargets, 5, positionsImage->getFormat());
 
     }
 
@@ -147,5 +160,9 @@ public:
 
     VulkanImage *getMetallicRoughnessEmissiveInvao() const {
         return metallicRoughnessEmissiveINVAO;
+    }
+
+    VulkanImage *getSkyBoxSampled() {
+        return skyBoxSampled;
     }
 };

@@ -36,7 +36,7 @@ layout(set = 0, binding = 1) uniform sampler2D verticesSampler;
 layout(set = 0, binding = 2) uniform sampler2D albedoSampler;
 layout(set = 0, binding = 3) uniform sampler2D normalSampler;
 layout(set = 0, binding = 4) uniform sampler2D metallicRoughnessEmissiveAOSampler;
-
+layout(set = 0, binding = 5) uniform sampler2D skyboxColor;
 layout(location = 0) out vec4 fragColor;
 
 
@@ -70,6 +70,10 @@ float smithGeometry(vec3 processedNormals, vec3 worldViewVector, vec3 lightPosit
 vec3 fresnelSchlick(float cosTheta, vec3 startFresnelSchlick)
 {
     return startFresnelSchlick + (1.0 - startFresnelSchlick) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 startFresnelSchlick, float roughness){
+    return startFresnelSchlick + (max(vec3(1.0 - roughness), startFresnelSchlick) - startFresnelSchlick) * pow(1.0 - cosTheta, 5.0);
 }
 
 vec3 processPointLight(PointLight light, vec3 normals, vec3 worldViewVector, vec3 startFresnelSchlick, float roughness, float metallic, vec3 albedo){
@@ -111,19 +115,29 @@ vec3 postProcessColor(vec3 color){
     color = pow(color, vec3(lightUbo.gammaCorrect));
     return color;
 }
-
+vec3 getReflection(float roughness, vec2 UV){
+    const float MAX_REFLECTION_LOD = 9.0;
+    float lod = roughness * MAX_REFLECTION_LOD;
+    float lodf = floor(lod);
+    float lodc = ceil(lod);
+    vec3 a = textureLod(skyboxColor, UV, lodf).rgb;
+    vec3 b = textureLod(skyboxColor, UV, lodc).rgb;
+    return mix(a, b, lod - lodf);
+}
 void main() {
     fragmentPosition = texture(verticesSampler, uv).xyz;
     vec3 processedNormals = texture(normalSampler, uv).xyz;
     vec4 albedoSource = texture(albedoSampler, uv);
     vec3 albedo = pow(albedoSource.rgb, vec3(2.2));
     vec4 pbrData = texture(metallicRoughnessEmissiveAOSampler, uv);
+
     float metallic = pbrData.r;
     float roughness = pbrData.g;
     vec3 emissive = albedo*pbrData.b;
     float ao = pbrData.a;
     float opacity = albedoSource.a;
-
+   // vec3 reflection = getReflection(roughness, uv);
+    vec3 reflection = texture(skyboxColor, uv).rgb;;
     vec3 worldViewVector = normalize(cameraPosition - fragmentPosition);
 
 
@@ -139,8 +153,10 @@ void main() {
         Lo+=processPointLight(lightUbo.pointLights[c], processedNormals, worldViewVector, startFresnelSchlick, roughness, metallic, albedo);
     }
 
+    vec3 fresnelRoughness = fresnelSchlickRoughness(max(dot(processedNormals, worldViewVector), 0.0), startFresnelSchlick, roughness);
+    vec3 specularContribution = reflection*fresnelRoughness*0.25f;
 
-    vec3 ambient = vec3(lightUbo.ambientIntensity) * albedo * ao;
+    vec3 ambient = (vec3(lightUbo.ambientIntensity) * (albedo+specularContribution)) * ao;
 
     vec3 color = ambient + Lo;
 
