@@ -13,24 +13,28 @@ class VulkanImage {
 public:
     static VulkanImage *createImage(VulkanDevice *device, unsigned int width, unsigned int height) {
         VkImage image;
-        device->createImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT|VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                    image, true);
+        device->createImage(width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+                            VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                            image, true);
         VkDeviceMemory imageMemory;
         createImageMemory(device, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, imageMemory, image);
         transitionImageLayout(device, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        return new VulkanImage(image, device, imageMemory, VK_FORMAT_R8G8B8A8_SRGB);
+        return new VulkanImage(image, device, imageMemory, VK_FORMAT_R8G8B8A8_SRGB, width, height);
     }
-    static VulkanImage* loadTexture(const char* pathToTexture, VulkanDevice* device){
+
+    static VulkanImage *loadTexture(const char *pathToTexture, VulkanDevice *device) {
         int imageWidth, imageHeight, imageChannels;
         stbi_uc *imageData = stbi_load(pathToTexture, &imageWidth, &imageHeight, &imageChannels, STBI_rgb_alpha);
 
-        VulkanImage* image = loadBinTexture(device, reinterpret_cast<const char *>(imageData), imageWidth, imageHeight, imageChannels);
+        VulkanImage *image = loadBinTexture(device, reinterpret_cast<const char *>(imageData), imageWidth, imageHeight,
+                                            imageChannels);
         stbi_image_free(imageData);
         return image;
     }
 
-    static VulkanImage* loadBinTexture(VulkanDevice* device, const char* imageData, int imageWidth, int imageHeight, int numChannelsAmount){
+    static VulkanImage *loadBinTexture(VulkanDevice *device, const char *imageData, int imageWidth, int imageHeight,
+                                       int numChannelsAmount) {
         VkDeviceSize imageSize = imageWidth * imageHeight * 4;
 
         if (!imageData) {
@@ -51,8 +55,9 @@ public:
 
         VkImage image;
         VkDeviceMemory imageMemory;
-        device->createImage(imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                    image, false);
+        device->createImage(imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+                            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                            image, false);
 
         createImageMemory(device, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, imageMemory, image);
         transitionImageLayout(device, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
@@ -64,8 +69,9 @@ public:
         vkDestroyBuffer(device->getDevice(), stagingBuffer, nullptr);
         vkFreeMemory(device->getDevice(), stagingBufferMemory, nullptr);
 
-        return new VulkanImage(image, device, imageMemory, VK_FORMAT_R8G8B8A8_SRGB);
+        return new VulkanImage(image, device, imageMemory, VK_FORMAT_R8G8B8A8_SRGB, imageWidth, imageHeight);
     }
+
     static void createImageMemory(VulkanDevice *device, VkMemoryPropertyFlags properties,
                                   VkDeviceMemory &imageMemory, VkImage &image) {
         VkMemoryRequirements memRequirements;
@@ -84,7 +90,7 @@ public:
     }
 
     static void transitionImageLayout(VulkanDevice *device, VkImage image, VkFormat format, VkImageLayout oldLayout,
-                               VkImageLayout newLayout) {
+                                      VkImageLayout newLayout) {
         VkCommandBuffer commandBuffer = device->beginSingleTimeCommands();
 
         VkImageMemoryBarrier barrier{};
@@ -116,15 +122,13 @@ public:
 
             sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-        else if(oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL){
+        } else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
             barrier.srcAccessMask = 0;
             barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
 
             sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        }
-        else {
+        } else {
             throw std::invalid_argument("unsupported layout transition!");
         }
 
@@ -140,7 +144,8 @@ public:
         device->endSingleTimeCommands(commandBuffer);
     }
 
-    static void copyBufferToImage(VulkanDevice *device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+    static void
+    copyBufferToImage(VulkanDevice *device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
         VkCommandBuffer commandBuffer = device->beginSingleTimeCommands();
 
         VkBufferImageCopy region{};
@@ -169,15 +174,25 @@ private:
     VkImageView view;
     VkDeviceMemory imageMemory = VK_NULL_HANDLE;
     VkFormat format;
+    int width;
+    int height;
     bool destroyed = false;
 public:
-    VulkanImage(VkImage image, VulkanDevice *device, VkDeviceMemory imageMemory, VkFormat format) : format(format), imageMemory(imageMemory), image(image), device(device) {
+    VulkanImage(VkImage image, VulkanDevice *device,
+                VkDeviceMemory imageMemory, VkFormat format, int width, int height) : image(image),
+                                                                                      device(device),
+                                                                                      view(view),
+                                                                                      imageMemory(imageMemory),
+                                                                                      format(format),
+                                                                                      width(width),
+                                                                                      height(height) {
         view = device->createImageView(image, VK_FORMAT_R8G8B8A8_SRGB);
     }
 
     VkImage getImage() {
         return image;
     }
+
     VulkanDevice *getDevice() {
         return device;
     }
@@ -186,21 +201,41 @@ public:
         return view;
     }
 
-    VkFormat getFormat()  {
+    void copyToImage(VulkanImage *target) {
+        VkCommandBuffer cmd = device->beginSingleTimeCommands();
+        VkImageCopy imageCopyRegion{};
+        imageCopyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageCopyRegion.srcSubresource.layerCount = 1;
+        imageCopyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageCopyRegion.dstSubresource.layerCount = 1;
+        imageCopyRegion.extent.width = width;
+        imageCopyRegion.extent.height = height;
+        imageCopyRegion.extent.depth = 1;
+        vkCmdCopyImage(
+                cmd,
+                this->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                target->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1,
+                &imageCopyRegion);
+        device->endSingleTimeCommands(cmd);
+    }
+
+    VkFormat getFormat() {
         return format;
     }
 
-    void destroy(){
-        if(!destroyed){
-            vkDestroyImageView(device->getDevice(),view, nullptr);
-            if(imageMemory!=VK_NULL_HANDLE){
+    void destroy() {
+        if (!destroyed) {
+            vkDestroyImageView(device->getDevice(), view, nullptr);
+            if (imageMemory != VK_NULL_HANDLE) {
                 vkFreeMemory(device->getDevice(), imageMemory, nullptr);
             }
             vkDestroyImage(device->getDevice(), image, nullptr);
             destroyed = true;
         }
     }
-    ~VulkanImage(){
+
+    ~VulkanImage() {
         destroy();
     }
 };

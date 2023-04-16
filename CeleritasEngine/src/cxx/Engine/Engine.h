@@ -76,7 +76,7 @@ public:
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
 
         ModelLoader loader(device);
-        /*
+
         meshes = loader.loadModel("models/pokedex/pokedex.gltf", false);
 
         material.setAlbedoTexture(VulkanImage::loadTexture("models/pokedex/textures/basecolor.tga", device));
@@ -86,14 +86,14 @@ public:
        // material.setAoTexture(VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device));
         material.setEmissiveTexture(VulkanImage::loadTexture("models/pokedex/textures/emissive.tga", device));
         meshes[0]->setMaterial(&material);
-         */
-        meshes = loader.loadModel("models/Helmet/DamagedHelmet.gltf", true);
-        VulkanImage* albedoIm = VulkanImage::loadTexture("models/Helmet/Default_albedo.jpg", device);
-        for (const auto &item: meshes){
-            item->getMaterial()->setAoTexture(nullptr);
-            item->getMaterial()->setOpacityMapTexture(nullptr);
-            item->getMaterial()->setAlbedoTexture(albedoIm);
-        }
+
+       // meshes = loader.loadModel("models/Helmet/DamagedHelmet.gltf", true);
+        //VulkanImage* albedoIm = VulkanImage::loadTexture("models/Helmet/Default_albedo.jpg", device);
+       // for (const auto &item: meshes){
+        //    item->getMaterial()->setAoTexture(nullptr);
+        //    item->getMaterial()->setOpacityMapTexture(nullptr);
+        //    item->getMaterial()->setAlbedoTexture(albedoIm);
+        //}
         TestKeyboardCallback *keyBoardCB = new TestKeyboardCallback(Window::getInstance());
         Window::getInstance()->registerKeyCallback(keyBoardCB);
         skyPlaceHolder = VulkanImage::loadTexture("models/sky.jpg", device);
@@ -113,11 +113,11 @@ public:
         gbaPipeline->setSkyboxImage(gbPipeline->getSkyBoxSampled());
         gbaPipeline->setGBufferPipeline(gbPipeline);
         gbaPipeline->getConfig().enabledPoints = 1;
+        gbaPipeline->getConfig().enabledPoints = 1;
         gbaPipeline->getConfig().pointLights[0].color = glm::vec3(1,1,1);
         gbaPipeline->getConfig().pointLights[0].position = glm::vec3(0, 5, -5);
-        gbaPipeline->getConfig().pointLights[0].intensity = 10;
+        gbaPipeline->getConfig().pointLights[0].intensity = 1000;
         gbaPipeline->getConfig().emissiveIntensity = 6;
-        gbaPipeline->getConfig().ambientIntensity = 0.6f;
 
 
         asmPipeline->SetGamePlaceHolder(gbaPipeline->getOutput());
@@ -130,8 +130,8 @@ public:
     void update() {
 
         manager.update();
+        manager.getData()->worldMatrix = glm::scale(manager.getData()->worldMatrix, glm::vec3(0.25f, 0.25f, 0.25f));
         manager.getData()->worldMatrix = glm::translate(manager.getData()->worldMatrix, glm::vec3(-1,0,0));
-        manager.getData()->worldMatrix = glm::rotate(manager.getData()->worldMatrix, 45.0f, glm::vec3(1,0,  0));
         gbPipeline->setWorldViewData(manager.getData());
 
         VkCommandBuffer cmd = gbPipeline->beginRender();

@@ -30,8 +30,7 @@ vec4 fixVectorPositioning(vec4 base){
 
 void main() {
     readyPosition = (worldTransformData.worldMatrix*vec4(position, 1.0)).rgb;
-    mat3 normalMatrix = transpose(inverse(mat3(worldTransformData.worldMatrix)));
-    readyNormals = normalMatrix * normals;
+    readyNormals = (vec4(normals, 0.0f)*worldTransformData.worldMatrix).xyz;
     readyTextureCoordinates = textureCoordinates;
     gl_Position = fixVectorPositioning(worldTransformData.viewMatrix*worldTransformData.worldMatrix*vec4(position, 1.0));
 }
