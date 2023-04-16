@@ -16,6 +16,7 @@
 #include "../TestKeyboardCallback.h"
 #include "Pipelines/GBufferPipeline.h"
 #include "Pipelines/GameAssemblyPipeline.h"
+#include "Pipelines/ShadowBufferPipeline.h"
 
 struct EngineDevice {
     std::string name;
@@ -59,6 +60,7 @@ private:
     VulkanImage *gamePlaceHolder;
     AssemblyPipeline *asmPipeline;
     GBufferPipeline *gbPipeline;
+    ShadowBufferPipeline* shadowBuffer;
     GameAssemblyPipeline* gbaPipeline;
 
     CameraManager manager;
@@ -105,7 +107,7 @@ public:
         asmPipeline->prepare();
 
 
-        gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth()*4, Window::getInstance()->getHeight()*4);
+        gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbPipeline->setSkyBoxImage(skyPlaceHolder);
         gbPipeline->updateSamplers();
 
@@ -122,8 +124,8 @@ public:
 
         asmPipeline->SetGamePlaceHolder(gbaPipeline->getOutput());
         asmPipeline->updateSamplers();
-
-
+        shadowBuffer = new ShadowBufferPipeline(device, 4096);
+        shadowBuffer->recalculateMatrixForLightSource(glm::vec3(-2.0f, 4.0f, -1.0f), 10);
         window->registerResizeCallback(this);
     }
 
@@ -133,6 +135,10 @@ public:
         manager.getData()->worldMatrix = glm::scale(manager.getData()->worldMatrix, glm::vec3(0.25f, 0.25f, 0.25f));
         manager.getData()->worldMatrix = glm::translate(manager.getData()->worldMatrix, glm::vec3(-1,0,0));
         gbPipeline->setWorldViewData(manager.getData());
+        shadowBuffer->getViewData().worldMatrix = manager.getData()->worldMatrix;
+        VkCommandBuffer shadowCmd = shadowBuffer->beginRender();
+        meshes[0]->draw(shadowCmd);
+        shadowBuffer->endRender();
 
         VkCommandBuffer cmd = gbPipeline->beginRender();
         for (const auto &item: meshes){

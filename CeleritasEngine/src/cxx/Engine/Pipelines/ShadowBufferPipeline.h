@@ -26,6 +26,7 @@ private:
     VulkanSyncManager *syncManager;
     VulkanEndRenderPipeline* endRenderPipeline;
     LightViewData viewData{};
+    VulkanImage* output;
 public:
     ShadowBufferPipeline(VulkanDevice *device, int squareSideLen) : device(device) {
         shader = ShaderLoader::loadShaders("shaders/DirectLightShadowBuffer", device);
@@ -34,7 +35,9 @@ public:
         config.vertexInputs.push_back({0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
         config.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(LightViewData)});
         std::vector<VkImageView> renderTargets;
-        endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &config, squareSideLen, squareSideLen, renderTargets,0, VK_FORMAT_R32G32B32_SFLOAT);
+        output = VulkanImage::createImage(device, squareSideLen, squareSideLen);
+        renderTargets.push_back(output->getView());
+        endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &config, squareSideLen, squareSideLen, renderTargets,1, VK_FORMAT_R32G32B32_SFLOAT);
         endRenderPipeline->getPushConstants()[0]->setData(&viewData);
     }
     VkCommandBuffer beginRender(){
@@ -49,6 +52,14 @@ public:
         glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.01f, (float)maxLightShadowDistance);
         glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         viewData.lightSpaceMatrix = lightProjection*lightView;
+    }
+
+    LightViewData &getViewData()  {
+        return viewData;
+    }
+
+    void setViewData(const LightViewData &viewData) {
+        ShadowBufferPipeline::viewData = viewData;
     }
 
 };

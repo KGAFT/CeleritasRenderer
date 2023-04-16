@@ -28,6 +28,8 @@ private:
     VulkanSyncManager *syncManager;
     VulkanEndRenderPipeline *endRenderPipeline;
     VulkanImage *output;
+    LightTransformData lightView{};
+    ShadowAssemblerConfig shadowConfig{};
 public:
     ShadowToAOAssemblePipeline(VulkanDevice *device, int width, int height) : device(device) {
         shader = ShaderLoader::loadShaders("shaders/ShadowAssemblePipeline", device);
@@ -46,4 +48,5 @@ public:
         targetImages.push_back(output->getView());
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, width, height, targetImages, 1, output->getFormat());
     }
+
 };

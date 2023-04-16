@@ -154,9 +154,9 @@ void main() {
     }
 
     vec3 fresnelRoughness = fresnelSchlickRoughness(max(dot(processedNormals, worldViewVector), 0.0), startFresnelSchlick, roughness);
-    vec3 specularContribution = reflection*fresnelRoughness*0.25f;
+    vec3 specularContribution = reflection*fresnelRoughness*0.025f;
 
-    vec3 ambient = (vec3(lightUbo.ambientIntensity) * (albedo+specularContribution)) * ao;
+    vec3 ambient = (vec3(lightUbo.ambientIntensity) * albedo+specularContribution) * ao;
 
     vec3 color = ambient + Lo;
 
