@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../Vulkan/VulkanImage/VulkanImage.h"
+#include <Vulkan/VulkanImage/VulkanImage.h>
 
 #define ALBEDO_TEXTURE 0
 #define METALLIC_TEXTURE 1

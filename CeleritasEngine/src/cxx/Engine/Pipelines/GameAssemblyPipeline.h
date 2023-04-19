@@ -4,13 +4,18 @@
 
 #pragma once
 
-#include "../../Vulkan/VulkanEndRenderPipeline.h"
-#include "../../Util/ShaderLoader.h"
-#include "../../Vulkan/VulkanImage/VulkanImage.h"
+
 #include "GBufferPipeline.h"
-#include "../../Vulkan/VulkanBuffers/VertexBuffer.h"
-#include "../../Vulkan/VulkanBuffers/IndexBuffer.h"
 #include "../PrimitiveObjects/Quad.h"
+
+#include <Vulkan/VulkanDevice/VulkanDevice.h>
+#include <Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h>
+#include <Vulkan/VulkanSync/VulkanSyncManager.h>
+#include <Util/ShaderLoader.h>
+#include <Vulkan/VulkanImage/VulkanImage.h>
+#include <Vulkan/VulkanEndRenderPipeline.h>
+#include <Vulkan/VulkanBuffers/VertexBuffer.h>
+#include <Vulkan/VulkanBuffers/IndexBuffer.h>
 #define LIGHT_BLOCKS_AMOUNT 100
 
 

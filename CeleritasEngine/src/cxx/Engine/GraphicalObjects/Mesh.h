@@ -3,9 +3,9 @@
 //
 #pragma once
 
-#include "../../Vulkan/VulkanBuffers/VertexBuffer.h"
-#include "../../Vulkan/VulkanBuffers/IndexBuffer.h"
-#include "../../Vulkan/VulkanImage/VulkanImage.h"
+#include <Vulkan/VulkanBuffers/VertexBuffer.h>
+#include <Vulkan/VulkanBuffers/IndexBuffer.h>
+#include <Vulkan/VulkanImage/VulkanImage.h>
 #include "Material.h"
 #include <glm/glm.hpp>
 

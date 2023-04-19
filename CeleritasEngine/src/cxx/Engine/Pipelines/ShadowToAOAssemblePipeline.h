@@ -4,12 +4,12 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include "../../Vulkan/VulkanDevice/VulkanDevice.h"
-#include "../../Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h"
-#include "../../Vulkan/VulkanSync/VulkanSyncManager.h"
-#include "../../Util/ShaderLoader.h"
-#include "../../Vulkan/VulkanImage/VulkanImage.h"
-#include "../../Vulkan/VulkanEndRenderPipeline.h"
+#include <Vulkan/VulkanDevice/VulkanDevice.h>
+#include <Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h>
+#include <Vulkan/VulkanSync/VulkanSyncManager.h>
+#include <Util/ShaderLoader.h>
+#include <Vulkan/VulkanImage/VulkanImage.h>
+#include <Vulkan/VulkanEndRenderPipeline.h>
 
 struct LightTransformData {
     glm::mat4 lightSpaceMatrix;
@@ -47,6 +47,20 @@ public:
         std::vector<VkImageView> targetImages;
         targetImages.push_back(output->getView());
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, width, height, targetImages, 1, output->getFormat());
+        endRenderPipeline->getPushConstants()[0]->setData(&lightView);
+        endRenderPipeline->getUniformBuffers()[0]->write(&shadowConfig);
+    }
+    void setNormalMapTexture(VulkanImage* normalMap){
+        endRenderPipeline->getSamplers()[2]->setSamplerImageView(normalMap->getView());
+    }
+    void setPreviousAOImage(VulkanImage* previousAO){
+        endRenderPipeline->getSamplers()[1]->setSamplerImageView(previousAO->getView());
+    }
+    void setShadowMap(VulkanImage* shadowMap){
+        endRenderPipeline->getSamplers()[0]->setSamplerImageView(shadowMap->getView());
+    }
+    void updateSamplers() {
+        endRenderPipeline->updateSamplers();
     }
 
 };

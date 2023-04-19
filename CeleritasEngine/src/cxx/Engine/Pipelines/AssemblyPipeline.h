@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../Vulkan/VulkanEndRenderPipeline.h"
-#include "../../Util/ShaderLoader.h"
+#include <Vulkan/VulkanEndRenderPipeline.h>
+#include <Util/ShaderLoader.h>
 #include "../PrimitiveObjects/Quad.h"
 struct UboData {
     int mode;

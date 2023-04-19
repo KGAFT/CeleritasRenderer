@@ -3,10 +3,14 @@
 //
 #pragma once
 
-#include "../../Vulkan/VulkanEndRenderPipeline.h"
-#include "../../Util/ShaderLoader.h"
+#include <Vulkan/VulkanDevice/VulkanDevice.h>
+#include <Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h>
+#include <Vulkan/VulkanSync/VulkanSyncManager.h>
+#include <Util/ShaderLoader.h>
+#include <Vulkan/VulkanImage/VulkanImage.h>
+#include <Vulkan/VulkanEndRenderPipeline.h>
 #include "../Camera/CameraManager.h"
-#include "../../Vulkan/VulkanImage/VulkanImage.h"
+
 #include "../GraphicalObjects/Material.h"
 
 struct GBufferConfig {

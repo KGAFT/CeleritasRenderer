@@ -1,14 +1,13 @@
 #pragma once
 
 
-#include <vulkan/vulkan.h>
+#include <Vulkan/VulkanInstance.h>
 #include <GLFW/glfw3.h>
 #include "Monitor.h"
 #include "IKeyActionCallback.h"
 #include "IMouseMovementCallback.h"
 #include "IWindowResizeCallback.h"
-
-
+#include <Vulkan/VulkanInstance.h>
 #define WINDOW_ACTION_CURSOR_MODE 0
 #define WINDOW_NORMAL_CURSOR_MODE 1
 

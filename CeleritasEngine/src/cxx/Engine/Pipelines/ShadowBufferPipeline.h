@@ -3,12 +3,12 @@
 //
 #pragma once
 
-#include "../../Vulkan/VulkanDevice/VulkanDevice.h"
-#include "../../Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h"
-#include "../../Vulkan/VulkanSync/VulkanSyncManager.h"
-#include "../../Util/ShaderLoader.h"
-#include "../../Vulkan/VulkanImage/VulkanImage.h"
-#include "../../Vulkan/VulkanEndRenderPipeline.h"
+#include <Vulkan/VulkanDevice/VulkanDevice.h>
+#include <Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h>
+#include <Vulkan/VulkanSync/VulkanSyncManager.h>
+#include <Util/ShaderLoader.h>
+#include <Vulkan/VulkanImage/VulkanImage.h>
+#include <Vulkan/VulkanEndRenderPipeline.h>
 #include "glm/ext/matrix_clip_space.hpp"
 
 #include <glm/ext/matrix_transform.hpp>
