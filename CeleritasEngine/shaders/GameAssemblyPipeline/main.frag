@@ -35,8 +35,9 @@ vec3 fragmentPosition;
 layout(set = 0, binding = 1) uniform sampler2D verticesSampler;
 layout(set = 0, binding = 2) uniform sampler2D albedoSampler;
 layout(set = 0, binding = 3) uniform sampler2D normalSampler;
-layout(set = 0, binding = 4) uniform sampler2D metallicRoughnessEmissiveAOSampler;
+layout(set = 0, binding = 4) uniform sampler2D metallicRoughnessEmissiveSampler;
 layout(set = 0, binding = 5) uniform sampler2D skyboxColor;
+layout(set = 0, binding = 6) uniform sampler2D aoMap;
 layout(location = 0) out vec4 fragColor;
 
 
@@ -129,12 +130,12 @@ void main() {
     vec3 processedNormals = texture(normalSampler, uv).xyz;
     vec4 albedoSource = texture(albedoSampler, uv);
     vec3 albedo = pow(albedoSource.rgb, vec3(2.2));
-    vec4 pbrData = texture(metallicRoughnessEmissiveAOSampler, uv);
+    vec4 pbrData = texture(metallicRoughnessEmissiveSampler, uv);
 
     float metallic = pbrData.r;
     float roughness = pbrData.g;
     vec3 emissive = albedo*pbrData.b;
-    float ao = pbrData.a;
+    float ao = texture(aoMap, uv).r;
     float opacity = albedoSource.a;
    // vec3 reflection = getReflection(roughness, uv);
     vec3 reflection = texture(skyboxColor, uv).rgb;;

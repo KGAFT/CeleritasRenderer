@@ -7,6 +7,7 @@ layout(location = 2) in vec3 normals;
 layout(push_constant) uniform WorldTransformData{
     mat4 lightSpaceMatrix;
     mat4 worldMatrix;
+    mat4 viewMatrix;
     vec3 cameraPosition;
 } worldTransformData;
 
@@ -31,21 +32,6 @@ vec4 fixVectorPositioning(vec4 base){
     return base;
 }
 
-vec3 getNormalFromMap(vec2 uvsCoords, vec3 normals, vec3 fragmentPosition)
-{
-    vec4 baseNormal = texture(normalMap, uvsCoords);
-    vec3 tangentNormal = baseNormal.xyz * 2.0 - 1.0;
-
-    vec3 Q1  = dFdx(fragmentPosition);
-    vec3 Q2  = dFdy(fragmentPosition);
-    vec2 st1 = dFdx(uvsCoords);
-    vec2 st2 = dFdy(uvsCoords);
-    vec3 N   = normalize(normals);
-    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 B  = -normalize(cross(N, T));
-    mat3 TBN = mat3(T, B, N);
-    return normalize(TBN * tangentNormal);
-}
 
 void main() {
     fragmentPosition = vec3(worldTransformData.worldMatrix * vec4(position, 1.0));

@@ -18,9 +18,9 @@ layout(set = 0, binding = 9) uniform sampler2D skyBox;
 layout(location = 0) out vec4 position;
 layout(location = 1) out vec4 albedo;
 layout(location = 2) out vec4 normal;
-layout(location = 3) out vec4 metallicRoughnessEmissiveINVAO;
+layout(location = 3) out vec4 metallicRoughnessEmissive;
 layout(location = 4) out vec4 skyBoxSampled;
-
+layout(location = 5) out vec4 readyAo;
 layout(std140, binding = 0) uniform GBufferConfig{
     int combinedMetallicRoughness;
     int opacityMapEnabled;
@@ -80,7 +80,7 @@ void main() {
         ao = texture(aoMap, textureCoordinates).r;
     }
     vec4 resMREAO = vec4(metallic, roughness, emissive, ao);
-    metallicRoughnessEmissiveINVAO = resMREAO;
+    metallicRoughnessEmissive = resMREAO;
     skyBoxSampled = texture(skyBox, textureCoordinates);
-
+    readyAo = vec4(ao);
 }

@@ -58,6 +58,10 @@ public:
         return viewData;
     }
 
+    VulkanImage *getOutput()  {
+        return output;
+    }
+
     void setViewData(const LightViewData &viewData) {
         ShadowBufferPipeline::viewData = viewData;
     }

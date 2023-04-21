@@ -17,6 +17,7 @@
 #include "Pipelines/GBufferPipeline.h"
 #include "Pipelines/GameAssemblyPipeline.h"
 #include "Pipelines/ShadowBufferPipeline.h"
+#include "Pipelines/ShadowToAOAssemblePipeline.h"
 
 struct EngineDevice {
     std::string name;
@@ -70,7 +71,7 @@ private:
     GBufferPipeline *gbPipeline;
     ShadowBufferPipeline* shadowBuffer;
     GameAssemblyPipeline* gbaPipeline;
-
+    ShadowToAOAssemblePipeline* stbaoPipeline;
     CameraManager manager;
     std::vector<Mesh *> meshes;
     PushConstantData pcData;
@@ -88,12 +89,12 @@ public:
         ModelLoader loader(device);
 
         meshes = loader.loadModel("models/pokedex/pokedex.gltf", false);
-
+        VulkanImage* pokedexAo = VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device);
         material.setAlbedoTexture(VulkanImage::loadTexture("models/pokedex/textures/basecolor.tga", device));
         material.setMetallicTexture(VulkanImage::loadTexture("models/pokedex/textures/metallic.tga", device));
         material.setRoughnessTexture(VulkanImage::loadTexture("models/pokedex/textures/roughness.tga", device));
         material.setNormalMap(VulkanImage::loadTexture("models/pokedex/textures/normal.tga", device));
-       // material.setAoTexture(VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device));
+        material.setAoTexture(VulkanImage::createImage(device, 4096, 4096));
         material.setEmissiveTexture(VulkanImage::loadTexture("models/pokedex/textures/emissive.tga", device));
         meshes[0]->setMaterial(&material);
 
@@ -120,7 +121,7 @@ public:
         gbPipeline->updateSamplers();
 
         gbaPipeline = new GameAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
-        gbaPipeline->setSkyboxImage(gbPipeline->getSkyBoxSampled());
+        stbaoPipeline = new ShadowToAOAssemblePipeline(device, 4096, 4096);
         gbaPipeline->setGBufferPipeline(gbPipeline);
         gbaPipeline->getConfig().enabledPoints = 1;
         gbaPipeline->getConfig().enabledPoints = 1;
@@ -134,6 +135,12 @@ public:
         asmPipeline->updateSamplers();
         shadowBuffer = new ShadowBufferPipeline(device, 4096);
         shadowBuffer->recalculateMatrixForLightSource(glm::vec3(-2.0f, 4.0f, -1.0f), 10);
+        stbaoPipeline->setNormalMapTexture(meshes[0]->getMaterial()->getNormalMap());
+        stbaoPipeline->setShadowMap(shadowBuffer->getOutput());
+        stbaoPipeline->setPreviousAOImage(pokedexAo);
+        stbaoPipeline->updateSamplers();
+
+
         window->registerResizeCallback(this);
     }
 
@@ -147,8 +154,19 @@ public:
         VkCommandBuffer shadowCmd = shadowBuffer->beginRender();
         meshes[0]->draw(shadowCmd);
         shadowBuffer->endRender();
+        stbaoPipeline->getLightView().worldMatrix = manager.getData()->worldMatrix;
+        stbaoPipeline->getLightView().lightSpaceMatrix = shadowBuffer->getViewData().lightSpaceMatrix;
+        stbaoPipeline->getLightView().cameraPosition = manager.getData()->cameraPosition;
+        stbaoPipeline->getShadowConfig().lightPosition = glm::vec3(-2.0f, 4.0f, -1.0f);
+        stbaoPipeline->getLightView().viewMatrix = manager.getData()->viewMatrix;
+        VkCommandBuffer stbCmd = stbaoPipeline->beginRender();
+        meshes[0]->draw(stbCmd);
+        stbaoPipeline->endRender();
+
 
         VkCommandBuffer cmd = gbPipeline->beginRender();
+        meshes[0]->getMaterial()->getAoTexture()->clearImage(0,0,0,0, cmd);
+        stbaoPipeline->getOutput()->copyToImage(meshes[0]->getMaterial()->getAoTexture(), cmd);
         for (const auto &item: meshes){
             gbPipeline->populateSamplers(item->getMaterial());
             gbPipeline->updateSamplers();

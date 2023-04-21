@@ -32,6 +32,7 @@ private:
     VulkanImage *normalMapImage;
     VulkanImage *metallicRoughnessEmissiveINVAO;
     VulkanImage* skyBoxSampled;
+    VulkanImage* ao;
     GBufferConfig config{};
 public:
     GBufferPipeline(VulkanDevice *device, unsigned int width, unsigned int height) : device(device) {
@@ -54,15 +55,16 @@ public:
         normalMapImage = VulkanImage::createImage(device, width, height);
         skyBoxSampled = VulkanImage::createImage(device, width, height);
         metallicRoughnessEmissiveINVAO = VulkanImage::createImage(device, width, height);
+        ao = VulkanImage::createImage(device, width, height);
         std::vector<VkImageView> renderTargets;
         renderTargets.push_back(positionsImage->getView());
         renderTargets.push_back(albedoMapImage->getView());
         renderTargets.push_back(normalMapImage->getView());
         renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
         renderTargets.push_back(skyBoxSampled->getView());
-
+        renderTargets.push_back(ao->getView());
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, width, height,
-                                                        renderTargets, 5, positionsImage->getFormat());
+                                                        renderTargets, 6, positionsImage->getFormat());
         endRenderPipeline->getUniformBuffers()[0]->write(&config);
         endRenderPipeline->updateUniforms();
     }
@@ -84,6 +86,10 @@ public:
     }
     void setSkyBoxImage(VulkanImage* image){
         endRenderPipeline->getSamplers()[8]->setSamplerImageView(image->getView());
+    }
+
+    VulkanImage *getAo()  {
+        return ao;
     }
 
     void bindImmediate(){
@@ -135,18 +141,21 @@ public:
         delete normalMapImage;
         delete metallicRoughnessEmissiveINVAO;
         delete skyBoxSampled;
+        delete ao;
         positionsImage = VulkanImage::createImage(device, width, height);
         albedoMapImage = VulkanImage::createImage(device, width, height);
         normalMapImage = VulkanImage::createImage(device, width, height);
         skyBoxSampled = VulkanImage::createImage(device, width, height);
         metallicRoughnessEmissiveINVAO = VulkanImage::createImage(device, width, height);
+        ao = VulkanImage::createImage(device, width, height);
         std::vector<VkImageView> renderTargets;
         renderTargets.push_back(positionsImage->getView());
         renderTargets.push_back(albedoMapImage->getView());
         renderTargets.push_back(normalMapImage->getView());
         renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
         renderTargets.push_back(skyBoxSampled->getView());
-        endRenderPipeline->resized(width, height, renderTargets, 5, positionsImage->getFormat());
+        renderTargets.push_back(ao->getView());
+        endRenderPipeline->resized(width, height, renderTargets, 6, positionsImage->getFormat());
         int i = 1+1;
 
     }

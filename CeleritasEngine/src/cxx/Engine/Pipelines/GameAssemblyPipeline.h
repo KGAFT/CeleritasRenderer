@@ -73,7 +73,7 @@ public:
         endConfig.vertexInputs.push_back({1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT});
         endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(VertexConfig)});
         endConfig.uniformBuffers.push_back({0, sizeof(LightConfiguration), VK_SHADER_STAGE_FRAGMENT_BIT});
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= 6; i++) {
             endConfig.samplers.push_back({i, VK_SHADER_STAGE_FRAGMENT_BIT});
         }
         output = VulkanImage::createImage(device, width, height);
@@ -98,6 +98,8 @@ public:
         endRenderPipeline->getSamplers()[2]->setSamplerImageView(gBufferPipeline->getNormalMapImage()->getView());
         endRenderPipeline->getSamplers()[3]->setSamplerImageView(
                 gBufferPipeline->getMetallicRoughnessEmissiveInvao()->getView());
+        endRenderPipeline->getSamplers()[4]->setSamplerImageView(gBufferPipeline->getSkyBoxSampled()->getView());
+        endRenderPipeline->getSamplers()[5]->setSamplerImageView(gBufferPipeline->getAo()->getView());
         endRenderPipeline->updateSamplers();
 
     }
@@ -116,7 +118,7 @@ public:
     }
 
     void setSkyboxImage(VulkanImage* image){
-        endRenderPipeline->getSamplers()[4]->setSamplerImageView(image->getView());
+
     }
 
     LightConfiguration &getConfig() {

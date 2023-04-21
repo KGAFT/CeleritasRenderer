@@ -4,9 +4,6 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <Vulkan/VulkanDevice/VulkanDevice.h>
-#include <Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h>
-#include <Vulkan/VulkanSync/VulkanSyncManager.h>
 #include <Util/ShaderLoader.h>
 #include <Vulkan/VulkanImage/VulkanImage.h>
 #include <Vulkan/VulkanEndRenderPipeline.h>
@@ -14,6 +11,7 @@
 struct LightTransformData {
     glm::mat4 lightSpaceMatrix;
     glm::mat4 worldMatrix;
+    glm::mat4 viewMatrix;
     glm::vec3 cameraPosition;
 };
 
@@ -50,6 +48,17 @@ public:
         endRenderPipeline->getPushConstants()[0]->setData(&lightView);
         endRenderPipeline->getUniformBuffers()[0]->write(&shadowConfig);
     }
+
+    VkCommandBuffer beginRender(){
+        VkCommandBuffer  cmd = endRenderPipeline->beginRender();
+        endRenderPipeline->updatePcs();
+        endRenderPipeline->getUniformBuffers()[0]->write(&shadowConfig);
+        return cmd;
+    }
+    void endRender(){
+        endRenderPipeline->endRender();
+    }
+
     void setNormalMapTexture(VulkanImage* normalMap){
         endRenderPipeline->getSamplers()[2]->setSamplerImageView(normalMap->getView());
     }
@@ -63,4 +72,15 @@ public:
         endRenderPipeline->updateSamplers();
     }
 
+     LightTransformData &getLightView()  {
+        return lightView;
+    }
+
+    VulkanImage *getOutput()  {
+        return output;
+    }
+
+    ShadowAssemblerConfig &getShadowConfig()  {
+        return shadowConfig;
+    }
 };

@@ -16,6 +16,7 @@
 [submodule "modules/glm"]
 	path = modules/glm
 	url = https://github.com/g-truc/glm
-[submodule "CeleritasEngine/lib/VulkanContext"]
-	path = CeleritasEngine/lib/VulkanContext
+
+[submodule "CeleritasEngine/lib/VulkanTools"]
+	path = CeleritasEngine/lib/VulkanTools
 	url = https://github.com/KGAFT/VulkanContext
