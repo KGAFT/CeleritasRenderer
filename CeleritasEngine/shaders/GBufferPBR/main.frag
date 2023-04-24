@@ -82,5 +82,5 @@ void main() {
     vec4 resMREAO = vec4(metallic, roughness, emissive, ao);
     metallicRoughnessEmissive = resMREAO;
     skyBoxSampled = texture(skyBox, textureCoordinates);
-    readyAo = vec4(ao);
+    readyAo = vec4(ao, ao, ao, 1);
 }

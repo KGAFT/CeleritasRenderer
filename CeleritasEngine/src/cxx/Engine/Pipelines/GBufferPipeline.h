@@ -116,5 +116,27 @@ public:
         }
         RenderPipeline::updateSamplers();
     }
+    VulkanImage *getPositionsImage() {
+        return RenderPipeline::getOutputImages()[0];
+    }
+
+    VulkanImage *getAlbedoMapImage() {
+        return RenderPipeline::getOutputImages()[1];
+    }
+
+    VulkanImage *getNormalMapImage() {
+        return RenderPipeline::getOutputImages()[2];
+    }
+
+    VulkanImage *getMetallicRoughnessEmissiveInvao()  {
+        return RenderPipeline::getOutputImages()[3];
+    }
+
+    VulkanImage *getSkyBoxSampled() {
+        return RenderPipeline::getOutputImages()[4];
+    }
+    VulkanImage* getAoImage(){
+        return RenderPipeline::getOutputImages()[5];
+    }
 
 };

@@ -15,6 +15,7 @@
 #include "Camera/CameraManager.h"
 
 #include "../TestKeyboardCallback.h"
+#include "Pipelines/GameAssemblyPipeline.h"
 
 struct EngineDevice {
     std::string name;
@@ -66,6 +67,7 @@ private:
     VulkanImage *gamePlaceHolder;
     AssemblyPipeline* asmPipeline;
     GBufferPipeline* gbPipeline;
+    GameAssemblyPipeline* gbaPipeline{};
     CameraManager* manager;
     std::vector<Mesh *> meshes;
     Material material;
@@ -86,7 +88,7 @@ public:
         material.setMetallicTexture(VulkanImage::loadTexture("models/pokedex/textures/metallic.tga", device));
         material.setRoughnessTexture(VulkanImage::loadTexture("models/pokedex/textures/roughness.tga", device));
         material.setNormalMap(VulkanImage::loadTexture("models/pokedex/textures/normal.tga", device));
-        material.setAoTexture(pokedexAo);
+        material.setAoTexture(nullptr);
         material.setEmissiveTexture(VulkanImage::loadTexture("models/pokedex/textures/emissive.tga", device));
         meshes[0]->setMaterial(&material);
 
@@ -99,17 +101,24 @@ public:
         //}
         TestKeyboardCallback *keyBoardCB = new TestKeyboardCallback(Window::getInstance());
         Window::getInstance()->registerKeyCallback(keyBoardCB);
-        skyPlaceHolder = VulkanImage::loadTexture("models/negx.jpg", device);
+        skyPlaceHolder = VulkanImage::loadTexture("models/bluecloud_ft.jpg", device);
         gamePlaceHolder = VulkanImage::loadTexture("shaders/game.png", device);
         asmPipeline = new AssemblyPipeline(device, swapChain, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
 
         manager = new CameraManager(&gbPipeline->getPcData());
-        asmPipeline->setGamePlaceHolder(gbPipeline->getOutputImages()[0]);
+        gbaPipeline = new GameAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
+        gbaPipeline->setGBufferPipeline(gbPipeline);
+        asmPipeline->setGamePlaceHolder(gbaPipeline->getOutputImages()[0]);
         asmPipeline->setUiPlaceHolder(skyPlaceHolder);
         asmPipeline->getData().mode = 1;
         asmPipeline->updateSamplers();
-       
+        gbaPipeline->getLightConfig().enabledPoints = 1;
+        gbaPipeline->getLightConfig().enabledPoints = 1;
+        gbaPipeline->getLightConfig().pointLights[0].color = glm::vec3(1,1,1);
+        gbaPipeline->getLightConfig().pointLights[0].position = glm::vec3(0, 5, -5);
+        gbaPipeline->getLightConfig().pointLights[0].intensity = 1000;
+        gbaPipeline->getLightConfig().emissiveIntensity = 6;
 
         window->registerResizeCallback(this);
     }
@@ -117,10 +126,12 @@ public:
     void update() {
 
         manager->update();
+        gbaPipeline->getVertexConfig().cameraPosition = gbPipeline->getPcData().cameraPosition;
         gbPipeline->beginRender();
         gbPipeline->setSkyBox(skyPlaceHolder);
         gbPipeline->processMesh(meshes[0]);
         gbPipeline->endRender();
+        gbaPipeline->update();
         asmPipeline->update();
 
     }
@@ -128,11 +139,11 @@ public:
     void resized(int width, int height) override {
         vkDeviceWaitIdle(device->getDevice());
         gbPipeline->resize(width,height);
+        gbaPipeline->resize(width, height);
+        gbaPipeline->setGBufferPipeline(gbPipeline);
         asmPipeline->resize(width,height);
-        asmPipeline->setGamePlaceHolder(gbPipeline->getOutputImages()[frameCounter]);
+        asmPipeline->setGamePlaceHolder(gbaPipeline->getOutputImages()[0]);
         frameCounter++;
-        if(frameCounter>5){
-            frameCounter = 0;
-        }
+
     }
 };
