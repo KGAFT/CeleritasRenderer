@@ -11,13 +11,10 @@
 #include <Vulkan/VulkanImage/VulkanImage.h>
 #include "../Util/ModelLoader.h"
 #include "Pipelines/AssemblyPipeline.h"
+#include "Pipelines/GBufferPipeline.h"
 #include "Camera/CameraManager.h"
 
 #include "../TestKeyboardCallback.h"
-#include "Pipelines/GBufferPipeline.h"
-#include "Pipelines/GameAssemblyPipeline.h"
-#include "Pipelines/ShadowBufferPipeline.h"
-#include "Pipelines/ShadowToAOAssemblePipeline.h"
 
 struct EngineDevice {
     std::string name;
@@ -67,19 +64,14 @@ private:
     VulkanSwapChain *swapChain;
     VulkanImage *skyPlaceHolder;
     VulkanImage *gamePlaceHolder;
-    AssemblyPipeline *asmPipeline;
-    GBufferPipeline *gbPipeline;
-    ShadowBufferPipeline* shadowBuffer;
-    GameAssemblyPipeline* gbaPipeline;
-    ShadowToAOAssemblePipeline* stbaoPipeline;
-    CameraManager manager;
+    AssemblyPipeline* asmPipeline;
+    GBufferPipeline* gbPipeline;
+    CameraManager* manager;
     std::vector<Mesh *> meshes;
-    PushConstantData pcData;
     Material material;
     long long frameCounter = 0;
 public:
-    Engine(EngineDevice &deviceToCreate, Window *window) : window(window), manager(&pcData) {
-        pcData.worldMatrix = glm::mat4(1.0f);
+    Engine(EngineDevice &deviceToCreate, Window *window) : window(window){
         if (instance == nullptr) {
             throw std::runtime_error("Error: you need to create instance firstly");
         }
@@ -94,7 +86,7 @@ public:
         material.setMetallicTexture(VulkanImage::loadTexture("models/pokedex/textures/metallic.tga", device));
         material.setRoughnessTexture(VulkanImage::loadTexture("models/pokedex/textures/roughness.tga", device));
         material.setNormalMap(VulkanImage::loadTexture("models/pokedex/textures/normal.tga", device));
-        material.setAoTexture(VulkanImage::createImage(device, 4096, 4096));
+        material.setAoTexture(pokedexAo);
         material.setEmissiveTexture(VulkanImage::loadTexture("models/pokedex/textures/emissive.tga", device));
         meshes[0]->setMaterial(&material);
 
@@ -107,88 +99,40 @@ public:
         //}
         TestKeyboardCallback *keyBoardCB = new TestKeyboardCallback(Window::getInstance());
         Window::getInstance()->registerKeyCallback(keyBoardCB);
-        skyPlaceHolder = VulkanImage::loadTexture("models/sky.jpg", device);
+        skyPlaceHolder = VulkanImage::loadTexture("models/negx.jpg", device);
         gamePlaceHolder = VulkanImage::loadTexture("shaders/game.png", device);
-        asmPipeline = new AssemblyPipeline(device, swapChain, Window::getInstance());
-        asmPipeline->SetGamePlaceHolder(gamePlaceHolder);
-        asmPipeline->SetUiPlaceHolder(skyPlaceHolder);
-        asmPipeline->getData().mode = 1;
-        asmPipeline->prepare();
-
-
+        asmPipeline = new AssemblyPipeline(device, swapChain, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
-        gbPipeline->setSkyBoxImage(skyPlaceHolder);
-        gbPipeline->updateSamplers();
 
-        gbaPipeline = new GameAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
-        stbaoPipeline = new ShadowToAOAssemblePipeline(device, 4096, 4096);
-        gbaPipeline->setGBufferPipeline(gbPipeline);
-        gbaPipeline->getConfig().enabledPoints = 1;
-        gbaPipeline->getConfig().enabledPoints = 1;
-        gbaPipeline->getConfig().pointLights[0].color = glm::vec3(1,1,1);
-        gbaPipeline->getConfig().pointLights[0].position = glm::vec3(0, 5, -5);
-        gbaPipeline->getConfig().pointLights[0].intensity = 1000;
-        gbaPipeline->getConfig().emissiveIntensity = 6;
-
-
-        asmPipeline->SetGamePlaceHolder(gbaPipeline->getOutput());
+        manager = new CameraManager(&gbPipeline->getPcData());
+        asmPipeline->setGamePlaceHolder(gbPipeline->getOutputImages()[0]);
+        asmPipeline->setUiPlaceHolder(skyPlaceHolder);
+        asmPipeline->getData().mode = 1;
         asmPipeline->updateSamplers();
-        shadowBuffer = new ShadowBufferPipeline(device, 4096);
-        shadowBuffer->recalculateMatrixForLightSource(glm::vec3(-2.0f, 4.0f, -1.0f), 10);
-        stbaoPipeline->setNormalMapTexture(meshes[0]->getMaterial()->getNormalMap());
-        stbaoPipeline->setShadowMap(shadowBuffer->getOutput());
-        stbaoPipeline->setPreviousAOImage(pokedexAo);
-        stbaoPipeline->updateSamplers();
-
+       
 
         window->registerResizeCallback(this);
     }
 
     void update() {
 
-        manager.update();
-        manager.getData()->worldMatrix = glm::scale(manager.getData()->worldMatrix, glm::vec3(0.25f, 0.25f, 0.25f));
-        manager.getData()->worldMatrix = glm::translate(manager.getData()->worldMatrix, glm::vec3(-1,0,0));
-        gbPipeline->setWorldViewData(manager.getData());
-        shadowBuffer->getViewData().worldMatrix = manager.getData()->worldMatrix;
-        VkCommandBuffer shadowCmd = shadowBuffer->beginRender();
-        meshes[0]->draw(shadowCmd);
-        shadowBuffer->endRender();
-        stbaoPipeline->getLightView().worldMatrix = manager.getData()->worldMatrix;
-        stbaoPipeline->getLightView().lightSpaceMatrix = shadowBuffer->getViewData().lightSpaceMatrix;
-        stbaoPipeline->getLightView().cameraPosition = manager.getData()->cameraPosition;
-        stbaoPipeline->getShadowConfig().lightPosition = glm::vec3(-2.0f, 4.0f, -1.0f);
-        stbaoPipeline->getLightView().viewMatrix = manager.getData()->viewMatrix;
-        VkCommandBuffer stbCmd = stbaoPipeline->beginRender();
-        meshes[0]->draw(stbCmd);
-        stbaoPipeline->endRender();
-
-
-        VkCommandBuffer cmd = gbPipeline->beginRender();
-        meshes[0]->getMaterial()->getAoTexture()->clearImage(0,0,0,0, cmd);
-        stbaoPipeline->getOutput()->copyToImage(meshes[0]->getMaterial()->getAoTexture(), cmd);
-        for (const auto &item: meshes){
-            gbPipeline->populateSamplers(item->getMaterial());
-            gbPipeline->updateSamplers();
-            gbPipeline->bindImmediate();
-            item->draw(cmd);
-
-        }
+        manager->update();
+        gbPipeline->beginRender();
+        gbPipeline->setSkyBox(skyPlaceHolder);
+        gbPipeline->processMesh(meshes[0]);
         gbPipeline->endRender();
-        gbaPipeline->getVertexConfig()->cameraPosition = manager.getData()->cameraPosition;
-        gbaPipeline->update();
-
         asmPipeline->update();
-        frameCounter++;
+
     }
 
     void resized(int width, int height) override {
         vkDeviceWaitIdle(device->getDevice());
-        asmPipeline->resize(width,height);
         gbPipeline->resize(width,height);
-        gbaPipeline->resize(width,height);
-        gbaPipeline->setGBufferPipeline(gbPipeline);
-        asmPipeline->SetGamePlaceHolder(gbaPipeline->getOutput());
-        asmPipeline->updateSamplers();
+        asmPipeline->resize(width,height);
+        asmPipeline->setGamePlaceHolder(gbPipeline->getOutputImages()[frameCounter]);
+        frameCounter++;
+        if(frameCounter>5){
+            frameCounter = 0;
+        }
     }
 };

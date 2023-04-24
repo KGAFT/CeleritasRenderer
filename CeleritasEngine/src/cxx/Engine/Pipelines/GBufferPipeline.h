@@ -1,17 +1,15 @@
 //
-// Created by Daniil on 03.04.2023.
+// Created by Daniil on 24.04.2023.
 //
 #pragma once
 
-#include <Vulkan/VulkanDevice/VulkanDevice.h>
-#include <Vulkan/VulkanGraphicsPipeline/VulkanShader/VulkanShader.h>
-#include <Vulkan/VulkanSync/VulkanSyncManager.h>
-#include <Util/ShaderLoader.h>
-#include <Vulkan/VulkanImage/VulkanImage.h>
-#include <Vulkan/VulkanEndRenderPipeline.h>
+#include "../RenderPipeline.h"
+#include "../PrimitiveObjects/Quad.h"
+#include <Vulkan/VulkanBuffers/VertexBuffer.h>
+#include <Vulkan/VulkanBuffers/IndexBuffer.h>
 #include "../Camera/CameraManager.h"
-
 #include "../GraphicalObjects/Material.h"
+#include "../GraphicalObjects/mesh.h"
 
 struct GBufferConfig {
     alignas(4) int combinedMetallicRoughness;
@@ -20,24 +18,14 @@ struct GBufferConfig {
     alignas(4) int aoEnabled;
 };
 
-class GBufferPipeline {
+class GBufferPipeline : public RenderPipeline{
 private:
-    VulkanDevice *device;
-    VulkanSyncManager *syncManager;
-    VulkanShader *shader;
-    VulkanEndRenderPipeline *endRenderPipeline;
-
-    VulkanImage *positionsImage;
-    VulkanImage *albedoMapImage;
-    VulkanImage *normalMapImage;
-    VulkanImage *metallicRoughnessEmissiveINVAO;
-    VulkanImage* skyBoxSampled;
-    VulkanImage* ao;
+    VulkanDevice* device;
     GBufferConfig config{};
+    PushConstantData pcData{};
+    VkCommandBuffer  currentCmd;
 public:
-    GBufferPipeline(VulkanDevice *device, unsigned int width, unsigned int height) : device(device) {
-        syncManager = new VulkanSyncManager(device, nullptr);
-        shader = ShaderLoader::loadShaders("shaders/GBufferPBR", device);
+    GBufferPipeline(VulkanDevice* device, int width, int height) : RenderPipeline(device, nullptr), device(device){
         PipelineEndConfig endConfig{};
         endConfig.vertexInputs.push_back({0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT});
         endConfig.vertexInputs.push_back({1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT});
@@ -50,133 +38,83 @@ public:
             endConfig.samplers.push_back({i, VK_SHADER_STAGE_FRAGMENT_BIT});
         }
 
-        positionsImage = VulkanImage::createImage(device, width, height);
-        albedoMapImage = VulkanImage::createImage(device, width, height);
-        normalMapImage = VulkanImage::createImage(device, width, height);
-        skyBoxSampled = VulkanImage::createImage(device, width, height);
-        metallicRoughnessEmissiveINVAO = VulkanImage::createImage(device, width, height);
-        ao = VulkanImage::createImage(device, width, height);
-        std::vector<VkImageView> renderTargets;
-        renderTargets.push_back(positionsImage->getView());
-        renderTargets.push_back(albedoMapImage->getView());
-        renderTargets.push_back(normalMapImage->getView());
-        renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
-        renderTargets.push_back(skyBoxSampled->getView());
-        renderTargets.push_back(ao->getView());
-        endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader, &endConfig, width, height,
-                                                        renderTargets, 6, positionsImage->getFormat());
-        endRenderPipeline->getUniformBuffers()[0]->write(&config);
-        endRenderPipeline->updateUniforms();
+        OutputConfig oc{};
+        oc.imagePerStepAmount = 6;
+        oc.amount = 6;
+        oc.width = width;
+        oc.height = height;
+        RenderPipeline::initialize("shaders/GBufferPBR", endConfig,oc);
+        RenderPipeline::getPushConstants()[0]->setData(&pcData);
+        RenderPipeline::getUniforms()[0]->write(&config);
+        RenderPipeline::updateUniforms();
     }
 
-    void updateSamplers() {
-        endRenderPipeline->updateSamplers();
+    void beginRender(){
+        currentCmd = RenderPipeline::beginRender(false, false);
+    }
+    void processMesh(Mesh* mesh){
+        populateSamplers(mesh->getMaterial());
+        RenderPipeline::getUniforms()[0]->write(&config);
+        pcData.worldMatrix = glm::mat4(1.0f);
+        pcData.worldMatrix = glm::translate(pcData.worldMatrix, mesh->getPosition());
+        pcData.worldMatrix = glm::rotate(pcData.worldMatrix, mesh->getRotation().x, glm::vec3(1,0,0));
+        pcData.worldMatrix = glm::rotate(pcData.worldMatrix, mesh->getRotation().y, glm::vec3(0,1,0));
+        pcData.worldMatrix = glm::rotate(pcData.worldMatrix, mesh->getRotation().z, glm::vec3(0,0,1));
+        pcData.worldMatrix = glm::scale(pcData.worldMatrix, mesh->getScale());
+        RenderPipeline::updatePushConstants();
+        mesh->draw(currentCmd);
     }
 
-    void setWorldViewData(PushConstantData *data) {
-        endRenderPipeline->getPushConstants()[0]->setData(data);
+    void setSkyBox(VulkanImage* skyBox){
+        RenderPipeline::getSamplers()[8]->setSamplerImageView(skyBox->getView());
     }
 
-    VkCommandBuffer beginRender() {
-        endRenderPipeline->getUniformBuffers()[0]->write(&config);
-        VkCommandBuffer cmd = endRenderPipeline->beginRender();
-
-        endRenderPipeline->updatePcs();
-        return cmd;
-    }
-    void setSkyBoxImage(VulkanImage* image){
-        endRenderPipeline->getSamplers()[8]->setSamplerImageView(image->getView());
+    void endRender(){
+        RenderPipeline::endRender();
     }
 
-    VulkanImage *getAo()  {
-        return ao;
+     GBufferConfig &getConfig()  {
+        return config;
     }
 
-    void bindImmediate(){
-        endRenderPipeline->bindImmediate();
+     PushConstantData &getPcData()  {
+        return pcData;
     }
 
-    void endRender() {
-        endRenderPipeline->endRender();
-    }
     void populateSamplers(Material *material) {
         config.aoEnabled = material->getAoTexture() != nullptr;
         config.combinedMetallicRoughness = material->getMetallicRoughnessTexture() != nullptr;
         config.emissiveEnabled = material->getEmissiveTexture() != nullptr;
         config.opacityMapEnabled = material->getOpacityMapTexture() != nullptr;
 
-        endRenderPipeline->getSamplers()[0]->setSamplerImageView(material->getAlbedoTexture()->getView());
-        endRenderPipeline->getSamplers()[1]->setSamplerImageView(material->getNormalMap()->getView());
+        RenderPipeline::getSamplers()[0]->setSamplerImageView(material->getAlbedoTexture()->getView());
+        RenderPipeline::getSamplers()[1]->setSamplerImageView(material->getNormalMap()->getView());
         if (config.combinedMetallicRoughness) {
-            endRenderPipeline->getSamplers()[6]->setSamplerImageView(
+            RenderPipeline::getSamplers()[6]->setSamplerImageView(
                     material->getMetallicRoughnessTexture()->getView());
-            endRenderPipeline->getSamplers()[2]->setSamplerImageView(material->getAlbedoTexture()->getView());
-            endRenderPipeline->getSamplers()[3]->setSamplerImageView(material->getAlbedoTexture()->getView());
+            RenderPipeline::getSamplers()[2]->setSamplerImageView(material->getAlbedoTexture()->getView());
+            RenderPipeline::getSamplers()[3]->setSamplerImageView(material->getAlbedoTexture()->getView());
         } else {
-            endRenderPipeline->getSamplers()[2]->setSamplerImageView(material->getMetallicTexture()->getView());
-            endRenderPipeline->getSamplers()[3]->setSamplerImageView(material->getRoughnessTexture()->getView());
-            endRenderPipeline->getSamplers()[6]->setSamplerImageView(material->getAlbedoTexture()->getView());
+            RenderPipeline::getSamplers()[2]->setSamplerImageView(material->getMetallicTexture()->getView());
+            RenderPipeline::getSamplers()[3]->setSamplerImageView(material->getRoughnessTexture()->getView());
+            RenderPipeline::getSamplers()[6]->setSamplerImageView(material->getAlbedoTexture()->getView());
         }
         if (config.aoEnabled) {
-            endRenderPipeline->getSamplers()[4]->setSamplerImageView(material->getAoTexture()->getView());
+            RenderPipeline::getSamplers()[4]->setSamplerImageView(material->getAoTexture()->getView());
         } else {
-            endRenderPipeline->getSamplers()[4]->setSamplerImageView(material->getAlbedoTexture()->getView());
+            RenderPipeline::getSamplers()[4]->setSamplerImageView(material->getAlbedoTexture()->getView());
         }
         if (config.emissiveEnabled) {
-            endRenderPipeline->getSamplers()[5]->setSamplerImageView(material->getEmissiveTexture()->getView());
+            RenderPipeline::getSamplers()[5]->setSamplerImageView(material->getEmissiveTexture()->getView());
         } else {
-            endRenderPipeline->getSamplers()[5]->setSamplerImageView(material->getAlbedoTexture()->getView());
+            RenderPipeline::getSamplers()[5]->setSamplerImageView(material->getAlbedoTexture()->getView());
         }
         if (config.opacityMapEnabled) {
-            endRenderPipeline->getSamplers()[7]->setSamplerImageView(material->getOpacityMapTexture()->getView());
+            RenderPipeline::getSamplers()[7]->setSamplerImageView(material->getOpacityMapTexture()->getView());
         } else {
-            endRenderPipeline->getSamplers()[7]->setSamplerImageView(material->getAlbedoTexture()->getView());
+            RenderPipeline::getSamplers()[7]->setSamplerImageView(material->getAlbedoTexture()->getView());
         }
+        RenderPipeline::updateSamplers();
     }
 
-    void resize(int width, int height) {
-        vkDeviceWaitIdle(device->getDevice());
-        delete positionsImage;
-        delete albedoMapImage;
-        delete normalMapImage;
-        delete metallicRoughnessEmissiveINVAO;
-        delete skyBoxSampled;
-        delete ao;
-        positionsImage = VulkanImage::createImage(device, width, height);
-        albedoMapImage = VulkanImage::createImage(device, width, height);
-        normalMapImage = VulkanImage::createImage(device, width, height);
-        skyBoxSampled = VulkanImage::createImage(device, width, height);
-        metallicRoughnessEmissiveINVAO = VulkanImage::createImage(device, width, height);
-        ao = VulkanImage::createImage(device, width, height);
-        std::vector<VkImageView> renderTargets;
-        renderTargets.push_back(positionsImage->getView());
-        renderTargets.push_back(albedoMapImage->getView());
-        renderTargets.push_back(normalMapImage->getView());
-        renderTargets.push_back(metallicRoughnessEmissiveINVAO->getView());
-        renderTargets.push_back(skyBoxSampled->getView());
-        renderTargets.push_back(ao->getView());
-        endRenderPipeline->resized(width, height, renderTargets, 6, positionsImage->getFormat());
-        int i = 1+1;
-
-    }
-
-    VulkanImage *getPositionsImage() const {
-        return positionsImage;
-    }
-
-    VulkanImage *getAlbedoMapImage() const {
-        return albedoMapImage;
-    }
-
-    VulkanImage *getNormalMapImage() const {
-        return normalMapImage;
-    }
-
-    VulkanImage *getMetallicRoughnessEmissiveInvao() const {
-        return metallicRoughnessEmissiveINVAO;
-    }
-
-    VulkanImage *getSkyBoxSampled() {
-        return skyBoxSampled;
-    }
 };
