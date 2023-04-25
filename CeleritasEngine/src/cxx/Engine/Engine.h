@@ -108,11 +108,11 @@ public:
         gamePlaceHolder = VulkanImage::loadTexture("shaders/game.png", device);
         asmPipeline = new AssemblyPipeline(device, swapChain, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
-        sbPipeline = new ShadowBufferPipeline(device, 1024, 1024);
+        sbPipeline = new ShadowBufferPipeline(device, 4096, 4096);
         manager = new CameraManager(&gbPipeline->getPcData());
         gbaPipeline = new GameAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbaPipeline->setGBufferPipeline(gbPipeline);
-        asmPipeline->setGamePlaceHolder(gbaPipeline->getDepthOutput()[0]);
+        asmPipeline->setGamePlaceHolder(sbPipeline->getDepthOutput()[0]);
         asmPipeline->setUiPlaceHolder(skyPlaceHolder);
         asmPipeline->getData().mode = 1;
         asmPipeline->updateSamplers();
@@ -122,8 +122,8 @@ public:
         gbaPipeline->getLightConfig().pointLights[0].position = glm::vec3(0, 5, -5);
         gbaPipeline->getLightConfig().pointLights[0].intensity = 1000;
         gbaPipeline->getLightConfig().emissiveIntensity = 6;
-        sbPipeline->recalculateMatrixForLightSource(glm::vec3(-2.0f, 4.0f, -1.0f), 10);
-        meshes[0]->setPosition(glm::vec3(-1,0,0));
+        sbPipeline->recalculateMatrixForLightSource(glm::vec3(-2.0f, 4.0f, -1.0f), 100);
+        meshes[0]->setPosition(glm::vec3(0.0f, 1.5f, 0.0));
         window->registerResizeCallback(this);
     }
 

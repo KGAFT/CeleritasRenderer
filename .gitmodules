@@ -1,0 +1,9 @@
+[submodule "modules/glfw"]
+	path = modules/glfw
+	url = https://github.com/glfw/glfw
+[submodule "modules/glm"]
+	path = modules/glm
+	url = https://github.com/g-truc/glm
+[submodule "CeleritasEngine/lib/VulkanTools"]
+	path = CeleritasEngine/lib/VulkanTools
+	url = https://github.com/KGAFT/VulkanContext
