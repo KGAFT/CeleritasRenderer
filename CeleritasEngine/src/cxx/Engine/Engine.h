@@ -12,6 +12,7 @@
 #include "../Util/ModelLoader.h"
 #include "Pipelines/AssemblyPipeline.h"
 #include "Pipelines/GBufferPipeline.h"
+#include "Pipelines/ShadowBufferPipeline.h"
 #include "Camera/CameraManager.h"
 
 #include "../TestKeyboardCallback.h"
@@ -67,7 +68,9 @@ private:
     VulkanImage *gamePlaceHolder;
     AssemblyPipeline* asmPipeline;
     GBufferPipeline* gbPipeline;
-    GameAssemblyPipeline* gbaPipeline{};
+    ShadowBufferPipeline* sbPipeline;
+    GameAssemblyPipeline* gbaPipeline;
+
     CameraManager* manager;
     std::vector<Mesh *> meshes;
     Material material;
@@ -105,11 +108,11 @@ public:
         gamePlaceHolder = VulkanImage::loadTexture("shaders/game.png", device);
         asmPipeline = new AssemblyPipeline(device, swapChain, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
-
+        sbPipeline = new ShadowBufferPipeline(device, 1024, 1024);
         manager = new CameraManager(&gbPipeline->getPcData());
         gbaPipeline = new GameAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbaPipeline->setGBufferPipeline(gbPipeline);
-        asmPipeline->setGamePlaceHolder(gbaPipeline->getOutputImages()[0]);
+        asmPipeline->setGamePlaceHolder(gbaPipeline->getDepthOutput()[0]);
         asmPipeline->setUiPlaceHolder(skyPlaceHolder);
         asmPipeline->getData().mode = 1;
         asmPipeline->updateSamplers();
@@ -119,7 +122,8 @@ public:
         gbaPipeline->getLightConfig().pointLights[0].position = glm::vec3(0, 5, -5);
         gbaPipeline->getLightConfig().pointLights[0].intensity = 1000;
         gbaPipeline->getLightConfig().emissiveIntensity = 6;
-
+        sbPipeline->recalculateMatrixForLightSource(glm::vec3(-2.0f, 4.0f, -1.0f), 10);
+        meshes[0]->setPosition(glm::vec3(-1,0,0));
         window->registerResizeCallback(this);
     }
 
@@ -132,6 +136,10 @@ public:
         gbPipeline->processMesh(meshes[0]);
         gbPipeline->endRender();
         gbaPipeline->update();
+        sbPipeline->beginRender();
+        sbPipeline->processMesh(meshes[0]);
+        sbPipeline->endRender();
+        asmPipeline->getData().mode = 1;
         asmPipeline->update();
 
     }

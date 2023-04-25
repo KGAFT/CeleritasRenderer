@@ -23,5 +23,5 @@ vec4 fixVectorPositioning(vec4 base){
 }
 
 void main() {
-    gl_Position = fixVectorPositioning(viewData.lightSpaceMatrix*viewData.worldMatrix*vec4(position, 1.0));
+    gl_Position = viewData.lightSpaceMatrix*viewData.worldMatrix*vec4(position, 1.0);
 }

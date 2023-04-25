@@ -39,8 +39,13 @@ public:
     void setGamePlaceHolder(VulkanImage* placeHolder){
         RenderPipeline::getSamplers()[1]->setSamplerImageView(placeHolder->getView());
         samplersUpdate = true;
-
     }
+
+    void setGamePlaceHolder(VkImageView viewData){
+        RenderPipeline::getSamplers()[1]->setSamplerImageView(viewData);
+        samplersUpdate = true;
+    }
+
     void setUiPlaceHolder(VulkanImage* placeHolder){
         RenderPipeline::getSamplers()[0]->setSamplerImageView(placeHolder->getView());
         samplersUpdate = true;

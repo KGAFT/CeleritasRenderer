@@ -9,7 +9,7 @@
 #include <Vulkan/VulkanBuffers/IndexBuffer.h>
 #include "../Camera/CameraManager.h"
 #include "../GraphicalObjects/Material.h"
-#include "../GraphicalObjects/mesh.h"
+#include "../GraphicalObjects/Mesh.h"
 
 struct GBufferConfig {
     alignas(4) int combinedMetallicRoughness;

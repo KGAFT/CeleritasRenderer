@@ -17,7 +17,7 @@ public:
 		*amount = keys.size();
 		return keys.data();
 	}
-	void keyPressed(int key) {
+	void keyPressed(int key) override {
 		switch (key) {
 		case GLFW_KEY_F1:
 			window->setWindowMode(!window->getInputMode());

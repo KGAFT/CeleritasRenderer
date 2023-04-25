@@ -12,7 +12,7 @@
 #include <Vulkan/VulkanBuffers/IndexBuffer.h>
 #include "../Camera/CameraManager.h"
 #include "../GraphicalObjects/Material.h"
-#include "../GraphicalObjects/mesh.h"
+#include "../GraphicalObjects/Mesh.h"
 #include "GBufferPipeline.h"
 
 struct PointLight {
