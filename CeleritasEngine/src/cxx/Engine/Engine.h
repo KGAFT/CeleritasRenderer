@@ -84,7 +84,7 @@ private:
     std::vector<Mesh *> meshes;
     Material material;
     long long frameCounter = 0;
-
+    VulkanImage* pokedexAo;
 public:
     Engine(EngineDevice &deviceToCreate, Window *window) : window(window)
     {
@@ -98,7 +98,7 @@ public:
         ModelLoader loader(device);
 
         meshes = loader.loadModel("models/pokedex/pokedex.gltf", false);
-        VulkanImage *pokedexAo = VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device);
+        pokedexAo = VulkanImage::createImage(device, 4096,4096);
         material.setAlbedoTexture(VulkanImage::loadTexture("models/pokedex/textures/basecolor.tga", device));
         material.setMetallicTexture(VulkanImage::loadTexture("models/pokedex/textures/metallic.tga", device));
         material.setRoughnessTexture(VulkanImage::loadTexture("models/pokedex/textures/roughness.tga", device));
@@ -120,7 +120,7 @@ public:
         gamePlaceHolder = VulkanImage::loadTexture("shaders/game.png", device);
         asmPipeline = new AssemblyPipeline(device, swapChain, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
-        sbPipeline = new ShadowBufferPipeline(device, 1024, 1024);
+        sbPipeline = new ShadowBufferPipeline(device, 4096, 4096);
         manager = new CameraManager(&gbPipeline->getPcData());
         gbaPipeline = new GameAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbaPipeline->setGBufferPipeline(gbPipeline);
@@ -136,7 +136,7 @@ public:
         gbaPipeline->getLightConfig().emissiveIntensity = 6;
         sbPipeline->recalculateMatrixForLightSource(glm::vec3(-2.0f, 4.0f, -1.0f), 100);
         saPipeline = new ShadowAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
-        saPipeline->setShadowMap(sbPipeline->getDepthOutput()[0]);
+        saPipeline->setShadowMap(pokedexAo->getView());
         meshes[0]->setPosition(glm::vec3(0.0f, 1.5f, 0.0));
         window->registerResizeCallback(this);
     }
@@ -150,8 +150,10 @@ public:
         gbPipeline->setSkyBox(skyPlaceHolder);
         gbPipeline->processMesh(meshes[0]);
         gbPipeline->endRender();
-        sbPipeline->beginRender();
+        VkCommandBuffer cmd = sbPipeline->beginRender();
         sbPipeline->processMesh(meshes[0]);
+        pokedexAo->clearImage(0,0,0,0);
+        pokedexAo->copyFromImage(sbPipeline->getDepthImages()[0], cmd);
         sbPipeline->endRender();
 
         saPipeline->getConfig().lightPosition = glm::vec3(-2.0f, 4.0f, -1.0f);
@@ -159,10 +161,8 @@ public:
         saPipeline->getWorldTransfomData().viewMatrix = gbPipeline->getPcData().viewMatrix;
         saPipeline->getWorldTransfomData().lightSpaceMatrix = sbPipeline->getViewData().lightSpaceMatrix;
 
-        VkCommandBuffer cmd = saPipeline->beginRender();
+        saPipeline->beginRender();
         saPipeline->processMesh(meshes[0]);
-        gbPipeline->getAoImage()->clearImage(0,0,0,0, cmd);
-        gbPipeline->getAoImage()->co
         saPipeline->endRender();
         gbaPipeline->update();
 
@@ -176,6 +176,9 @@ public:
         gbPipeline->resize(width, height);
         gbaPipeline->resize(width, height);
         gbaPipeline->setGBufferPipeline(gbPipeline);
+        saPipeline->resize(width, height);
+        gbaPipeline->setAo(saPipeline->getOutputImages()[0]);
+        saPipeline->setShadowMap(sbPipeline->getDepthOutput()[0]);
         asmPipeline->resize(width, height);
         asmPipeline->setGamePlaceHolder(gbaPipeline->getOutputImages()[0]);
         frameCounter++;

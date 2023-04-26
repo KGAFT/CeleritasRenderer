@@ -38,8 +38,9 @@ public:
         viewData.lightSpaceMatrix = lightProjection*lightView;
     }
 
-    void beginRender(){
+    VkCommandBuffer beginRender(){
         currentCmd = RenderPipeline::beginRender(false, false);
+        return currentCmd;
     }
 
     void processMesh(Mesh* mesh){

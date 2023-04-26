@@ -95,8 +95,13 @@ public:
         }
     }
     std::vector<VkImageView>& getDepthOutput(){
+        return endRenderPipeline->getDepthImageViews();
+    }
+
+    std::vector<VkImage>& getDepthImages(){
         return endRenderPipeline->getDepthImages();
     }
+
     std::vector<VulkanImage *> &getOutputImages()  {
         return outputImages;
     }
