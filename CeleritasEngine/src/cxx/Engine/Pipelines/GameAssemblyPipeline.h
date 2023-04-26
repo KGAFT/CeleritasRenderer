@@ -96,7 +96,11 @@ public:
         RenderPipeline::getSamplers()[4]->setSamplerImageView(gBufferPipeline->getSkyBoxSampled()->getView());
         RenderPipeline::getSamplers()[5]->setSamplerImageView(gBufferPipeline->getAoImage()->getView());
         RenderPipeline::updateSamplers();
+    }
 
+    void setAo(VulkanImage* ao){
+        RenderPipeline::getSamplers()[5]->setSamplerImageView(ao->getView());
+        RenderPipeline::updateSamplers();
     }
 
      LightConfiguration &getLightConfig()  {
