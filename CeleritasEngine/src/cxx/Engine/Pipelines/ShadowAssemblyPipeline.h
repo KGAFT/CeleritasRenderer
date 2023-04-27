@@ -11,6 +11,8 @@
 struct ShadowAssemblerConfig
 {
     alignas(16) glm::vec3 lightPosition;
+    alignas(4) int normalMapEnabled;
+    alignas(4) int previousAoEnabled;
 };
 
 struct WorldTransformData
@@ -54,23 +56,17 @@ public:
         currentCmd = RenderPipeline::beginRender(false, false);
         return currentCmd;
     }
-    void processMesh(Mesh* mesh){
-        wtData.worldMatrix = glm::mat4(1.0f);
-        wtData.worldMatrix = glm::translate(wtData.worldMatrix, mesh->getPosition());
-        wtData.worldMatrix = glm::rotate(wtData.worldMatrix, mesh->getRotation().x, glm::vec3(1,0,0));
-        wtData.worldMatrix = glm::rotate(wtData.worldMatrix, mesh->getRotation().y, glm::vec3(0,1,0));
-        wtData.worldMatrix = glm::rotate(wtData.worldMatrix, mesh->getRotation().z, glm::vec3(0,0,1));
-        wtData.worldMatrix = glm::scale(wtData.worldMatrix, mesh->getScale());
+    void processMesh(Mesh* mesh, bool calculateWorldMatrix){
+        if(calculateWorldMatrix){
+            wtData.worldMatrix = glm::mat4(1.0f);
+            wtData.worldMatrix = glm::translate(wtData.worldMatrix, mesh->getPosition());
+            wtData.worldMatrix = glm::rotate(wtData.worldMatrix, mesh->getRotation().x, glm::vec3(1,0,0));
+            wtData.worldMatrix = glm::rotate(wtData.worldMatrix, mesh->getRotation().y, glm::vec3(0,1,0));
+            wtData.worldMatrix = glm::rotate(wtData.worldMatrix, mesh->getRotation().z, glm::vec3(0,0,1));
+            wtData.worldMatrix = glm::scale(wtData.worldMatrix, mesh->getScale());
+        }
         RenderPipeline::getUniforms()[0]->write(&config);
         RenderPipeline::updatePushConstants();
-        if(mesh->getMaterial()->getAoTexture()!=nullptr){
-            setPreviousAo(mesh->getMaterial()->getAoTexture());
-        }
-        else{
-            RenderPipeline::getSamplers()[1]->setSamplerImageView(VK_NULL_HANDLE);
-        }
-        setNormalMap(mesh->getMaterial()->getNormalMap());
-        updateSamplers();
         mesh->draw(currentCmd);
     }
 
@@ -79,13 +75,19 @@ public:
     }
 
     void setPreviousAo(VulkanImage* ao){
-        RenderPipeline::getSamplers()[1]->setSamplerImageView(ao->getView());
+        if(ao!=nullptr){
+            RenderPipeline::getSamplers()[1]->setSamplerImageView(ao->getView());
+        }
+
     }
     void setShadowMap(VkImageView shadowMap){
         RenderPipeline::getSamplers()[0]->setSamplerImageView(shadowMap);
     }
     void setNormalMap(VulkanImage* normalMap){
-        RenderPipeline::getSamplers()[2]->setSamplerImageView(normalMap->getView());
+        if(normalMap!=nullptr){
+            RenderPipeline::getSamplers()[2]->setSamplerImageView(normalMap->getView());
+        }
+
     }
     void updateSamplers(){
         RenderPipeline::updateSamplers();

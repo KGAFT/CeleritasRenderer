@@ -7,6 +7,8 @@ layout(location = 3) in vec3 cameraPosition;
 layout(location = 4) in vec2 uv;
 layout(std140, binding = 0) uniform ShadowAssemblerConfig{
     vec3 lightPosition;
+    int normalMapEnabled;
+    int previousAOEnabled;
 } config;
 
 layout(set = 0, binding = 1) uniform sampler2D shadowMap;
@@ -59,9 +61,18 @@ vec3 getNormalFromMap(vec2 uvsCoords, vec3 normals, vec3 fragmentPosition)
 }
 
 void main() {
-    float previousShadow = texture(previousAO, uv).r;
-    vec4 cNormal = vec4(normalize(getNormalFromMap(uv, normal, fragmentPosition)), 1.0);
-    previousShadow+=(1.0f-calculateShadow(fragmentPositionLightSpace, cNormal.rgb));
+    float previousShadow = 1;
+    vec3 cNormal = normalize(normal);
+    if(config.previousAOEnabled==1){
+        previousShadow = texture(previousAO, uv).r;
+    }
+    if(config.normalMapEnabled==1){
+        cNormal = normalize(getNormalFromMap(uv, normal, fragmentPosition));
+    }
 
+    previousShadow-=(calculateShadow(fragmentPositionLightSpace, cNormal));
+    if(previousShadow<0){
+        previousShadow = 0;
+    }
     result = vec4(previousShadow, previousShadow, previousShadow, 1.0);
 }
