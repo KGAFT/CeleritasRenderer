@@ -80,6 +80,7 @@ private:
     ShadowManager* shadowManager;
     CameraManager *manager;
     std::vector<Mesh *> meshes;
+    std::vector<Mesh*> helmetMeshes;
     Material material;
     long long frameCounter = 0;
 public:
@@ -103,14 +104,17 @@ public:
         //material.setAoTexture(VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device));
 
         meshes[0]->setMaterial(&material);
-
-        // meshes = loader.loadModel("models/Helmet/DamagedHelmet.gltf", true);
-        // VulkanImage* albedoIm = VulkanImage::loadTexture("models/Helmet/Default_albedo.jpg", device);
-        // for (const auto &item: meshes){
-        //    item->getMaterial()->setAoTexture(nullptr);
-        //    item->getMaterial()->setOpacityMapTexture(nullptr);
-        //    item->getMaterial()->setAlbedoTexture(albedoIm);
-        //}
+        loader.clear();
+         helmetMeshes = loader.loadModel("models/Helmet/DamagedHelmet.gltf", true);
+         VulkanImage* albedoIm = VulkanImage::loadTexture("models/Helmet/Default_albedo.jpg", device);
+         for (const auto &item: helmetMeshes){
+            item->getMaterial()->setAoTexture(nullptr);
+            item->getMaterial()->setOpacityMapTexture(nullptr);
+            item->getMaterial()->setAlbedoTexture(albedoIm);
+            item->setPosition(glm::vec3(0, 0, 5));
+            item->setScale(glm::vec3(5,5,5));
+        }
+         helmetMeshes.push_back(meshes[0]);
         TestKeyboardCallback *keyBoardCB = new TestKeyboardCallback(Window::getInstance());
         Window::getInstance()->registerKeyCallback(keyBoardCB);
         skyPlaceHolder = VulkanImage::loadTexture("models/bluecloud_ft.jpg", device);
@@ -124,7 +128,7 @@ public:
         gbaPipeline = new GameAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
         gbaPipeline->setGBufferPipeline(gbPipeline);
         gbaPipeline->setAo(shadowManager->getOutput());
-        shadowManager->setupLightView(glm::vec3(0.0f,8.0f,0.9f), 75);
+        shadowManager->setupLightView(glm::vec3(0,8.0f,5.0f), 200);
         asmPipeline->setGamePlaceHolder(gbaPipeline->getOutputImages()[0]);
         asmPipeline->setUiPlaceHolder(skyPlaceHolder);
         asmPipeline->getData().mode = 1;
@@ -147,10 +151,18 @@ public:
         gbaPipeline->getVertexConfig().cameraPosition = gbPipeline->getPcData().cameraPosition;
         gbPipeline->beginRender();
         gbPipeline->setSkyBox(skyPlaceHolder);
-        gbPipeline->processMesh(meshes[0]);
+      //  gbPipeline->processMesh(meshes[0]);
+        for (const auto &item: helmetMeshes){
+            gbPipeline->processMesh(item);
+        }
         gbPipeline->endRender();
-        shadowManager->processMesh(meshes[0], gbPipeline->getPcData().viewMatrix, gbPipeline->getPcData().cameraPosition);
-
+        shadowManager->beginShadowPass();
+       // shadowManager->processMesh(meshes[0]);
+        for (const auto &item: helmetMeshes){
+            shadowManager->processMesh(item);
+        }
+        shadowManager->endShadowPass(manager->getData()->viewMatrix, manager->getData()->cameraPosition);
+        gbaPipeline->setAo(shadowManager->getOutput());
         gbaPipeline->update();
 
         asmPipeline->getData().mode = 1;

@@ -7,6 +7,8 @@ private:
         ShadowAssemblyPipeline* shadowAssemblyPipeline;
         VulkanDevice* device;
         VulkanImage* depthBuffer;
+        VkCommandBuffer shadowCmd;
+        std::vector<Mesh*> meshesBuffer;
 public:
     ShadowManager(VulkanDevice* device, int bufferQuadLen, int windowWidth, int windowHeight) : device(device){
         shadowBufferPipeline = new ShadowBufferPipeline(device, bufferQuadLen, bufferQuadLen);
@@ -19,27 +21,41 @@ public:
         shadowBufferPipeline->recalculateMatrixForLightSource(lightPosition, maxLightDistance);
         shadowAssemblyPipeline->getConfig().lightPosition = lightPosition;
     }
-    void processMesh(Mesh* mesh, glm::mat4 viewMatrix, glm::vec3 cameraPosition){
-        VkCommandBuffer cmd = shadowBufferPipeline->beginRender();
-        shadowBufferPipeline->processMesh(mesh);
-        depthBuffer->clearImage(0,0,0,0,cmd);
-        depthBuffer->copyFromImage(shadowBufferPipeline->getDepthImages()[0], cmd);
-        shadowBufferPipeline->endRender();
-        shadowAssemblyPipeline->getConfig().normalMapEnabled = mesh->getMaterial()->getNormalMap()!=nullptr;
-        shadowAssemblyPipeline->getConfig().previousAoEnabled = mesh->getMaterial()->getAoTexture()!=nullptr;
-        shadowAssemblyPipeline->getWorldTransfomData().lightSpaceMatrix = shadowBufferPipeline->getViewData().lightSpaceMatrix;
-        shadowAssemblyPipeline->getWorldTransfomData().viewMatrix = viewMatrix;
-        shadowAssemblyPipeline->getWorldTransfomData().cameraPosition = cameraPosition;
-        shadowAssemblyPipeline->getWorldTransfomData().worldMatrix = shadowBufferPipeline->getViewData().worldMatrix;
-        if(shadowAssemblyPipeline->getConfig().normalMapEnabled or shadowAssemblyPipeline->getConfig().previousAoEnabled){
-            shadowAssemblyPipeline->setNormalMap(mesh->getMaterial()->getNormalMap());
-            shadowAssemblyPipeline->setPreviousAo(mesh->getMaterial()->getAoTexture());
-            shadowAssemblyPipeline->updateSamplers();
-        }
-        shadowAssemblyPipeline->beginRender();
-        shadowAssemblyPipeline->processMesh(mesh, false);
-        shadowAssemblyPipeline->endRender();
+
+    void beginShadowPass(){
+        shadowCmd = shadowBufferPipeline->beginRender();
     }
+
+    void processMesh(Mesh* mesh){
+        shadowBufferPipeline->processMesh(mesh);
+        meshesBuffer.push_back(mesh);
+    }
+
+    void endShadowPass(glm::mat4 viewMatrix, glm::vec3 cameraPosition){
+        depthBuffer->clearImage(0,0,0,0,shadowCmd);
+        depthBuffer->copyFromImage(shadowBufferPipeline->getDepthImages()[0], shadowCmd);
+        shadowBufferPipeline->endRender();
+        shadowAssemblyPipeline->beginRender();
+        for (const auto &item: meshesBuffer){
+            shadowAssemblyPipeline->getConfig().normalMapEnabled = item->getMaterial()->getNormalMap()!=nullptr;
+            shadowAssemblyPipeline->getConfig().previousAoEnabled = item->getMaterial()->getAoTexture()!=nullptr;
+            shadowAssemblyPipeline->getWorldTransfomData().lightSpaceMatrix = shadowBufferPipeline->getViewData().lightSpaceMatrix;
+            shadowAssemblyPipeline->getWorldTransfomData().viewMatrix = viewMatrix;
+            shadowAssemblyPipeline->getWorldTransfomData().cameraPosition = cameraPosition;
+            shadowAssemblyPipeline->getWorldTransfomData().worldMatrix = shadowBufferPipeline->getViewData().worldMatrix;
+            if(shadowAssemblyPipeline->getConfig().normalMapEnabled or shadowAssemblyPipeline->getConfig().previousAoEnabled){
+                shadowAssemblyPipeline->setNormalMap(item->getMaterial()->getNormalMap());
+                shadowAssemblyPipeline->setPreviousAo(item->getMaterial()->getAoTexture());
+                shadowAssemblyPipeline->updateSamplers();
+            }
+
+            shadowAssemblyPipeline->processMesh(item, false);
+
+        }
+        shadowAssemblyPipeline->endRender();
+        meshesBuffer.clear();
+    }
+
     VulkanImage* getOutput(){
         return shadowAssemblyPipeline->getOutputImages()[0];
     }

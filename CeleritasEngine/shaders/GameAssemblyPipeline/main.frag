@@ -141,7 +141,6 @@ void main() {
     vec3 reflection = texture(skyboxColor, uv).rgb;;
     vec3 worldViewVector = normalize(cameraPosition - fragmentPosition);
 
-
     vec3 startFresnelSchlick = vec3(0.04);
     startFresnelSchlick = mix(startFresnelSchlick, albedo, metallic);
 
@@ -157,7 +156,7 @@ void main() {
     vec3 fresnelRoughness = fresnelSchlickRoughness(max(dot(processedNormals, worldViewVector), 0.0), startFresnelSchlick, roughness);
     vec3 specularContribution = reflection*fresnelRoughness*0.025f;
 
-    vec3 ambient = (vec3(lightUbo.ambientIntensity) * albedo+specularContribution) * ao;
+    vec3 ambient = (vec3(lightUbo.ambientIntensity) * albedo * ao +specularContribution);
 
     vec3 color = ambient + Lo;
 
