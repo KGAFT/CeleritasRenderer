@@ -151,13 +151,12 @@ public:
         gbaPipeline->getVertexConfig().cameraPosition = gbPipeline->getPcData().cameraPosition;
         gbPipeline->beginRender();
         gbPipeline->setSkyBox(skyPlaceHolder);
-      //  gbPipeline->processMesh(meshes[0]);
+        Mesh::sortMeshesByDistance(helmetMeshes, gbaPipeline->getVertexConfig().cameraPosition);
         for (const auto &item: helmetMeshes){
             gbPipeline->processMesh(item);
         }
         gbPipeline->endRender();
         shadowManager->beginShadowPass();
-       // shadowManager->processMesh(meshes[0]);
         for (const auto &item: helmetMeshes){
             shadowManager->processMesh(item);
         }

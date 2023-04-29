@@ -18,6 +18,19 @@ struct MeshData {
 
 class Mesh
 {
+public:
+static void sortMeshesByDistance(std::vector<Mesh*>& target, glm::vec3 cameraPosition){
+    int changes = 1;
+    while(changes>0){
+        changes = 0;
+        for(unsigned int i = 0; i<target.size()-1; i++){
+            if(glm::length(cameraPosition-target[i]->position)<glm::length(cameraPosition- target[i+1]->position)){
+                std::swap(target[i], target[i+1]);
+                changes++;
+            }
+        }
+    }
+}
 private:
     VertexBuffer *vBuffer;
     IndexBuffer *iBuffer;

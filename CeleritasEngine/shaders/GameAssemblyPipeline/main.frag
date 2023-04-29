@@ -163,5 +163,5 @@ void main() {
     color+=(emissive*pow(1, lightUbo.emissiveShininess)*lightUbo.emissiveIntensity);
     color = postProcessColor(color);
 
-    fragColor = vec4(color, 1.0);
+    fragColor = vec4(color, 1);
 }
