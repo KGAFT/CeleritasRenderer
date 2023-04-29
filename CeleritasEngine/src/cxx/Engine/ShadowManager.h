@@ -42,14 +42,13 @@ public:
             shadowAssemblyPipeline->getWorldTransfomData().lightSpaceMatrix = shadowBufferPipeline->getViewData().lightSpaceMatrix;
             shadowAssemblyPipeline->getWorldTransfomData().viewMatrix = viewMatrix;
             shadowAssemblyPipeline->getWorldTransfomData().cameraPosition = cameraPosition;
-            shadowAssemblyPipeline->getWorldTransfomData().worldMatrix = shadowBufferPipeline->getViewData().worldMatrix;
             if(shadowAssemblyPipeline->getConfig().normalMapEnabled or shadowAssemblyPipeline->getConfig().previousAoEnabled){
                 shadowAssemblyPipeline->setNormalMap(item->getMaterial()->getNormalMap());
                 shadowAssemblyPipeline->setPreviousAo(item->getMaterial()->getAoTexture());
                 shadowAssemblyPipeline->updateSamplers();
             }
 
-            shadowAssemblyPipeline->processMesh(item, false);
+            shadowAssemblyPipeline->processMesh(item, true);
 
         }
         shadowAssemblyPipeline->endRender();
