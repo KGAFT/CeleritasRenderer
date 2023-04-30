@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Vulkan/VulkanImage/VulkanImage.h>
-
+#include <Vulkan/VulkanDescriptors/VulkanDescritptorSet.h>
 #define ALBEDO_TEXTURE 0
 #define METALLIC_TEXTURE 1
 #define METALLIC_ROUGHNESS_TEXTURE 2
@@ -30,7 +30,7 @@ private:
     VulkanImage *aoTexture = nullptr;
     VulkanImage *emissiveTexture = nullptr;
     VulkanImage *opacityMapTexture = nullptr;
-
+    bool updated = false;
 public:
 
     void populateTextures(std::vector<Texture>& materials){
@@ -70,80 +70,96 @@ public:
     void setAlbedoTexture(VulkanImage *albedoTexture)
     {
         this->albedoTexture = albedoTexture;
+        updated = true;
     }
 
     void setNormalMap(VulkanImage *normalMap)
     {
         this->normalMap = normalMap;
+        updated = true;
     }
 
     void setMetallicTexture(VulkanImage *metallicTexture)
     {
         this->metallicTexture = metallicTexture;
+        updated = true;
     }
 
     void setRoughnessTexture(VulkanImage *roughnessTexture)
     {
         this->roughnessTexture = roughnessTexture;
+        updated = true;
     }
 
     void setMetallicRoughnessTexture(VulkanImage *metallicRoughnessTexture)
     {
         this->metallicRoughnessTexture = metallicRoughnessTexture;
+        updated = true;
     }
 
     void setAoTexture(VulkanImage *aoTexture)
     {
         this->aoTexture = aoTexture;
+        updated = true;
     }
 
     void setEmissiveTexture(VulkanImage *emissiveTexture)
     {
         this->emissiveTexture = emissiveTexture;
+        updated = true;
     }
 
     void setOpacityMapTexture(VulkanImage *opacityMapTexture)
     {
         this->opacityMapTexture = opacityMapTexture;
+        updated = true;
     }
 
     VulkanImage *getAlbedoTexture()
     {
         return albedoTexture;
+        updated = true;
     }
 
     VulkanImage *getNormalMap()
     {
         return normalMap;
+        updated = true;
     }
 
     VulkanImage *getMetallicTexture()
     {
         return metallicTexture;
+        updated = true;
     }
 
     VulkanImage *getRoughnessTexture()
     {
         return roughnessTexture;
+        updated = true;
     }
 
     VulkanImage *getMetallicRoughnessTexture()
     {
         return metallicRoughnessTexture;
+        updated = true;
     }
 
     VulkanImage *getAoTexture()
     {
         return aoTexture;
+        updated = true;
     }
 
     VulkanImage *getEmissiveTexture()
     {
         return emissiveTexture;
+        updated = true;
     }
 
     VulkanImage *getOpacityMapTexture()
     {
         return opacityMapTexture;
+        updated = true;
     }
 };

@@ -22,6 +22,7 @@ private:
     VulkanShader *shader;
     VulkanDevice *device;
     VulkanSwapChain *swapChain;
+    VkCommandBuffer currentCmd;
     std::vector<VulkanImage *> outputImages;
     bool isRender = false;
 public:
@@ -52,31 +53,30 @@ public:
             this->imagePerStepAmount = outputConfig.imagePerStepAmount;
         }
     }
-
-    VkCommandBuffer beginRender(bool isSamplersUpdate, bool isNewUniformBuffers){
-        isRender = true;
-        if (isSamplersUpdate)
-        {
-            endRenderPipeline->updateSamplers();
-        }
-        if (isNewUniformBuffers)
-        {
-            endRenderPipeline->updateUniforms();
-        }
+    VulkanDescriptorSet* acquireDescriptorSet(){
+        return endRenderPipeline->acquireDescriptorSet();
+    }
+    VkCommandBuffer beginRender(){
         VkCommandBuffer cmd = endRenderPipeline->beginRender();
         if (endRenderPipeline->getPushConstants().size() > 0)
         {
-            endRenderPipeline->updatePcs();
+            endRenderPipeline->updatePushConstants();
         }
-        if (endRenderPipeline->getUniformBuffers().size() > 0 or endRenderPipeline->getSamplers().size() > 0)
-        {
-            endRenderPipeline->bindImmediate();
-        }
+        currentCmd = cmd;
         return cmd;
     }
+
+    std::vector<VulkanPushConstant*>& getPushConstants(){
+        return endRenderPipeline->getPushConstants();
+    }
+
     void endRender(){
         endRenderPipeline->endRender();
         isRender = false;
+    }
+
+    void updatePushConstants(){
+        endRenderPipeline->updatePushConstants();
     }
 
     void resize(int width, int height){
@@ -94,6 +94,11 @@ public:
             endRenderPipeline->resized(width,height);
         }
     }
+
+    void bindImmediate(VulkanDescriptorSet* descriptorSet){
+        endRenderPipeline->bindImmediate(descriptorSet);
+    }
+
     std::vector<VkImageView>& getDepthOutput(){
         return endRenderPipeline->getDepthImageViews();
     }
@@ -106,31 +111,4 @@ public:
         return outputImages;
     }
 
-    std::vector<VulkanSampler *> &getSamplers() {
-        return endRenderPipeline->getSamplers();
-    }
-
-    std::vector<VulkanUniformBuffer *> &getUniforms() {
-        return endRenderPipeline->getUniformBuffers();
-    }
-
-    std::vector<VulkanPushConstant *> &getPushConstants() {
-        return endRenderPipeline->getPushConstants();
-    }
-
-    void updatePushConstants() {
-        endRenderPipeline->updatePcs();
-    }
-    void updateSamplers(){
-        endRenderPipeline->updateSamplers();
-        if(isRender){
-            endRenderPipeline->bindImmediate();
-        }
-    }
-    void updateUniforms(){
-        endRenderPipeline->updateUniforms();
-        if(isRender){
-            endRenderPipeline->bindImmediate();
-        }
-    }
 };

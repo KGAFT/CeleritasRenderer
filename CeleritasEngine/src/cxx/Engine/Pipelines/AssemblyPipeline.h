@@ -1,25 +1,30 @@
+//
+// Created by Daniil on 30.04.2023.
+//
 #pragma once
-
 #include "../RenderPipeline.h"
-#include "../PrimitiveObjects/Quad.h"
 #include <Vulkan/VulkanBuffers/VertexBuffer.h>
 #include <Vulkan/VulkanBuffers/IndexBuffer.h>
+#include "../PrimitiveObjects/Quad.h"
 
 struct UboData {
     int mode;
 };
 
-class AssemblyPipeline : public RenderPipeline {
+
+class AssemblyPipeline : public RenderPipeline{
 private:
     VulkanDevice* device;
     VulkanSwapChain* swapChain;
     VertexBuffer *quadVBO;
     IndexBuffer *quadIBO;
     UboData data{};
-    bool samplersUpdate = false;
+    VulkanDescriptorSet* descriptorSet;
+    PipelineEndConfig endConfig{};
 public:
-    AssemblyPipeline(VulkanDevice* device, VulkanSwapChain* swapChain, int width, int height) : RenderPipeline(device, swapChain), device(device), swapChain(swapChain){
-        PipelineEndConfig endConfig{};
+    AssemblyPipeline(VulkanDevice *device, VulkanSwapChain *swapChain, int width, int height) : RenderPipeline(device, swapChain), device(device),
+                                                    swapChain(swapChain) {
+
         endConfig.samplers.push_back({1, VK_SHADER_STAGE_FRAGMENT_BIT});
         endConfig.samplers.push_back({2, VK_SHADER_STAGE_FRAGMENT_BIT});
 
@@ -32,29 +37,32 @@ public:
         oc.height = height;
         oc.imagePerStepAmount = 1;
         RenderPipeline::initialize("shaders/OutputPipeline", endConfig, oc);
-        quadVBO = new VertexBuffer(5 * sizeof(float), 4, device, quadVertices);
-        quadIBO = new IndexBuffer(device, quadIndices, 6);
+        quadVBO = new VertexBuffer(5 * sizeof(float), 4, device, QuadVertices);
+        quadIBO = new IndexBuffer(device, QuadIndices, 6);
         RenderPipeline::getPushConstants()[0]->setData(&data);
+        descriptorSet = RenderPipeline::acquireDescriptorSet();
+        descriptorSet->attachToObject(this);
     }
     void setGamePlaceHolder(VulkanImage* placeHolder){
-        RenderPipeline::getSamplers()[1]->setSamplerImageView(placeHolder->getView());
-        samplersUpdate = true;
-    }
+        descriptorSet->getSamplers()[1]->setSamplerImageView(placeHolder->getView());
 
-    void setGamePlaceHolder(VkImageView viewData){
-        RenderPipeline::getSamplers()[1]->setSamplerImageView(viewData);
-        samplersUpdate = true;
     }
 
     void setUiPlaceHolder(VulkanImage* placeHolder){
-        RenderPipeline::getSamplers()[0]->setSamplerImageView(placeHolder->getView());
-        samplersUpdate = true;
+        descriptorSet->getSamplers()[0]->setSamplerImageView(placeHolder->getView());
     }
+
+    void confirmPlaceHolders(){
+        for(int i = 0; i<3; i++){
+            descriptorSet->updateDescriptorSet(i);
+        }
+
+    }
+
     void update(){
         RenderPipeline::getPushConstants()[0]->setData(&data);
-        VkCommandBuffer cmd = RenderPipeline::beginRender(samplersUpdate, false);
-
-        samplersUpdate = false;
+        VkCommandBuffer cmd = RenderPipeline::beginRender();
+        bindImmediate(descriptorSet);
         quadVBO->bind(cmd);
         quadIBO->bind(cmd);
         quadIBO->draw(cmd);

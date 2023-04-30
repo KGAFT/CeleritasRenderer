@@ -11,58 +11,50 @@
 #include <Vulkan/VulkanImage/VulkanImage.h>
 #include "../Util/ModelLoader.h"
 #include "Pipelines/AssemblyPipeline.h"
-#include "Pipelines/GBufferPipeline.h"
 
 #include "Camera/CameraManager.h"
-#include "ShadowManager.h"
 #include "../TestKeyboardCallback.h"
-#include "Pipelines/GameAssemblyPipeline.h"
+#include "Pipelines/GBufferPipeline.h"
 
-struct EngineDevice
-{
+
+struct EngineDevice {
     std::string name;
     VkPhysicalDevice device;
     VkPhysicalDeviceProperties properties;
 };
 
-class Engine : public IWindowResizeCallback
-{
+class Engine : public IWindowResizeCallback {
 private:
     static inline VulkanInstance *instance = nullptr;
     static inline bool debugBuild = false;
 
 public:
-    static void createInstance(const char *appName, bool debugBuild)
-    {
+    static void createInstance(const char *appName, bool debugBuild) {
         instance = new VulkanInstance;
         Engine::debugBuild = debugBuild;
         uint32_t extCount;
         const char **exts = glfwGetRequiredInstanceExtensions(&extCount);
         std::vector<const char *> extensions;
-        for (int i = 0; i < extCount; ++i)
-        {
+        for (int i = 0; i < extCount; ++i) {
             extensions.push_back(exts[i]);
         }
 
-        if (!instance->createInstance(appName, debugBuild, extensions))
-        {
+        if (!instance->createInstance(appName, debugBuild, extensions)) {
             throw std::runtime_error("Failed to init Vulkan API");
         }
-        if (debugBuild)
-        {
+        if (debugBuild) {
             VulkanLogger::registerCallback(new DefaultVulkanLoggerCallback);
         }
     }
 
-    static std::vector<EngineDevice> enumSupportedDevices(Window *window)
-    {
-        if (instance == nullptr)
-        {
+    static std::vector<EngineDevice> enumSupportedDevices(Window *window) {
+        if (instance == nullptr) {
             throw std::runtime_error("Error: you need to create instance firstly");
         }
         std::vector<EngineDevice> result;
-        for (const auto &item : VulkanDevice::enumerateSupportedDevices(instance->getInstance(), window->getWindowSurface(instance->getInstance())))
-        {
+        for (const auto &item: VulkanDevice::enumerateSupportedDevices(instance->getInstance(),
+                                                                       window->getWindowSurface(
+                                                                               instance->getInstance()))) {
             result.push_back({item.second.deviceName, item.first, item.second});
         }
         return result;
@@ -75,24 +67,24 @@ private:
     VulkanImage *skyPlaceHolder;
     VulkanImage *gamePlaceHolder;
     AssemblyPipeline *asmPipeline;
-    GBufferPipeline *gbPipeline;
-    GameAssemblyPipeline *gbaPipeline;
-    ShadowManager* shadowManager;
+    GBufferPipeline *gBufferPipeline;
+
     CameraManager *manager;
     std::vector<Mesh *> meshes;
-    std::vector<Mesh*> helmetMeshes;
+    std::vector<Mesh *> helmetMeshes;
     Material material;
     long long frameCounter = 0;
 public:
-    Engine(EngineDevice &deviceToCreate, Window *window) : window(window)
-    {
-        if (instance == nullptr)
-        {
+    Engine(EngineDevice &deviceToCreate, Window *window) : window(window) {
+        if (instance == nullptr) {
             throw std::runtime_error("Error: you need to create instance firstly");
         }
-        device = new VulkanDevice(deviceToCreate.device, window->getWindowSurface(instance->getInstance()), instance->getInstance(), debugBuild);
+        device = new VulkanDevice(deviceToCreate.device, window->getWindowSurface(instance->getInstance()),
+                                  instance->getInstance(), debugBuild);
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
-
+        gBufferPipeline = new GBufferPipeline(device, window->getWidth(), window->getHeight());
+        skyPlaceHolder = VulkanImage::loadTexture("models/bluecloud_ft.jpg", device);
+        gBufferPipeline->setSkyBox(skyPlaceHolder);
         ModelLoader loader(device);
 
         meshes = loader.loadModel("models/pokedex/pokedex.gltf", false);
@@ -105,79 +97,53 @@ public:
 
         meshes[0]->setMaterial(&material);
         loader.clear();
-         helmetMeshes = loader.loadModel("models/Helmet/DamagedHelmet.gltf", true);
-         VulkanImage* albedoIm = VulkanImage::loadTexture("models/Helmet/Default_albedo.jpg", device);
-         for (const auto &item: helmetMeshes){
+        helmetMeshes = loader.loadModel("models/Helmet/DamagedHelmet.gltf", true);
+        VulkanImage *albedoIm = VulkanImage::loadTexture("models/Helmet/Default_albedo.jpg", device);
+        for (const auto &item: helmetMeshes) {
             item->getMaterial()->setAoTexture(nullptr);
             item->getMaterial()->setOpacityMapTexture(nullptr);
             item->getMaterial()->setAlbedoTexture(albedoIm);
             item->setPosition(glm::vec3(0, 0, 5));
-            item->setScale(glm::vec3(5,5,5));
+            item->setScale(glm::vec3(5, 5, 5));
+            meshes.push_back(item);
         }
-         helmetMeshes.push_back(meshes[0]);
+        for (const auto &item: meshes){
+            gBufferPipeline->registerMaterial(item->getMaterial());
+        }
+        manager = new CameraManager(&gBufferPipeline->getCameraData());
         TestKeyboardCallback *keyBoardCB = new TestKeyboardCallback(Window::getInstance());
         Window::getInstance()->registerKeyCallback(keyBoardCB);
-        skyPlaceHolder = VulkanImage::loadTexture("models/bluecloud_ft.jpg", device);
+
         gamePlaceHolder = VulkanImage::loadTexture("shaders/game.png", device);
-        asmPipeline = new AssemblyPipeline(device, swapChain, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
+        asmPipeline = new AssemblyPipeline(device, swapChain, Window::getInstance()->getWidth(),
+                                           Window::getInstance()->getHeight());
 
-        shadowManager = new ShadowManager(device, 4096, Window::getInstance()->getWidth(), Window::getInstance()->getWidth());
 
-        gbPipeline = new GBufferPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
-        manager = new CameraManager(&gbPipeline->getPcData());
-        gbaPipeline = new GameAssemblyPipeline(device, Window::getInstance()->getWidth(), Window::getInstance()->getHeight());
-        gbaPipeline->setGBufferPipeline(gbPipeline);
-        gbaPipeline->setAo(shadowManager->getOutput());
-        shadowManager->setupLightView(glm::vec3(0,8.0f,5.0f), 200);
-        asmPipeline->setGamePlaceHolder(gbaPipeline->getOutputImages()[0]);
+        asmPipeline->setGamePlaceHolder(gBufferPipeline->getOutputImages()[0]);
         asmPipeline->setUiPlaceHolder(skyPlaceHolder);
         asmPipeline->getData().mode = 1;
-        asmPipeline->updateSamplers();
-        gbaPipeline->getLightConfig().enabledPoints = 1;
-        gbaPipeline->getLightConfig().enabledPoints = 1;
-        gbaPipeline->getLightConfig().pointLights[0].color = glm::vec3(1, 1, 1);
-        gbaPipeline->getLightConfig().pointLights[0].position = glm::vec3(0, 5, -5);
-        gbaPipeline->getLightConfig().pointLights[0].intensity = 1000;
-        gbaPipeline->getLightConfig().emissiveIntensity = 6;
-
+        asmPipeline->confirmPlaceHolders();
         meshes[0]->setPosition(glm::vec3(0.0f, 1.5f, 0.0));
+
         window->registerResizeCallback(this);
     }
 
-    void update()
-    {
-
+    void update() {
         manager->update();
-        gbaPipeline->getVertexConfig().cameraPosition = gbPipeline->getPcData().cameraPosition;
-        gbPipeline->beginRender();
-        gbPipeline->setSkyBox(skyPlaceHolder);
-        Mesh::sortMeshesByDistance(helmetMeshes, gbaPipeline->getVertexConfig().cameraPosition);
-        for (const auto &item: helmetMeshes){
-            gbPipeline->processMesh(item);
+        gBufferPipeline->beginRender();
+        for (const auto &item: meshes){
+            gBufferPipeline->processMesh(item);
         }
-        gbPipeline->endRender();
-        shadowManager->beginShadowPass();
-        for (const auto &item: helmetMeshes){
-            shadowManager->processMesh(item);
-        }
-        shadowManager->endShadowPass(manager->getData()->viewMatrix, manager->getData()->cameraPosition);
-        gbaPipeline->setAo(shadowManager->getOutput());
-        gbaPipeline->update();
-
+        gBufferPipeline->endRender();
         asmPipeline->getData().mode = 1;
         asmPipeline->update();
     }
 
-    void resized(int width, int height) override
-    {
+    void resized(int width, int height) override {
         vkDeviceWaitIdle(device->getDevice());
-        gbPipeline->resize(width, height);
-        gbaPipeline->resize(width, height);
-        gbaPipeline->setGBufferPipeline(gbPipeline);
-        shadowManager->resizeOutput(width, height);
-        gbaPipeline->setAo(shadowManager->getOutput());
         asmPipeline->resize(width, height);
-        asmPipeline->setGamePlaceHolder(gbaPipeline->getOutputImages()[0]);
+        asmPipeline->setGamePlaceHolder(gamePlaceHolder);
+        asmPipeline->confirmPlaceHolders();
         frameCounter++;
     }
 };

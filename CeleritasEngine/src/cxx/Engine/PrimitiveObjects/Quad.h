@@ -2,12 +2,12 @@
 // Created by Daniil on 10.04.2023.
 //
 #pragma once
-float quadVertices[]{
+float QuadVertices[]{
         -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
         -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
         1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
         1.0f, -1.0f, 0.0f, 1.0f, 0.0f};
 
-unsigned int quadIndices[]{
+unsigned int QuadIndices[]{
         0, 1, 2,
         3, 2, 1};
