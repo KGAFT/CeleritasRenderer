@@ -60,12 +60,7 @@ public:
         } else {
             throw std::runtime_error("Error: you doesn't registered this material");
         }
-        cameraData.worldMatrix = glm::mat4(1.0f);
-        cameraData.worldMatrix = glm::translate(cameraData.worldMatrix, mesh->getPosition());
-        cameraData.worldMatrix = glm::rotate(cameraData.worldMatrix, mesh->getRotation().x, glm::vec3(1, 0, 0));
-        cameraData.worldMatrix = glm::rotate(cameraData.worldMatrix, mesh->getRotation().y, glm::vec3(0, 1, 0));
-        cameraData.worldMatrix = glm::rotate(cameraData.worldMatrix, mesh->getRotation().z, glm::vec3(0, 0, 1));
-        cameraData.worldMatrix = glm::scale(cameraData.worldMatrix, mesh->getScale());
+        cameraData.worldMatrix = mesh->getWorldMatrix();
         RenderPipeline::updatePushConstants();
         mesh->draw(currentCmd);
     }
@@ -130,6 +125,32 @@ public:
         materialDescriptors.insert(std::pair(material, descriptorSet));
     }
 
+
+    VulkanImage *getPositionsImage() {
+        return RenderPipeline::getOutputImages()[0];
+    }
+
+    VulkanImage *getAlbedoMapImage() {
+        return RenderPipeline::getOutputImages()[1];
+    }
+
+    VulkanImage *getNormalMapImage() {
+        return RenderPipeline::getOutputImages()[2];
+    }
+
+    VulkanImage *getMetallicRoughnessEmissiveInvao()  {
+        return RenderPipeline::getOutputImages()[3];
+    }
+
+    VulkanImage *getSkyBoxSampled() {
+        return RenderPipeline::getOutputImages()[4];
+    }
+    VulkanImage* getAoImage(){
+        return RenderPipeline::getOutputImages()[5];
+    }
+
+
+private:
     void prepareConfigForMaterial(Material *material) {
         config.aoEnabled = material->getAoTexture() != nullptr;
         config.combinedMetallicRoughness = material->getMetallicRoughnessTexture() != nullptr;

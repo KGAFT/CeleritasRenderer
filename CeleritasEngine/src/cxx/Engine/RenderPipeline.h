@@ -38,7 +38,7 @@ public:
             outputImages.push_back(VulkanImage::createImage(device, outputConfig.width, outputConfig.height));
             renderTargets.push_back(outputImages[outputImages.size() - 1]->getView());
         }
-        if (renderTargets.size() == 0 and swapChain == nullptr) {
+        if (renderTargets.size() == 0 && swapChain == nullptr) {
             throw std::runtime_error("Error: you need to specify output images if you haven't swapChain");
         }
         if (swapChain != nullptr) {

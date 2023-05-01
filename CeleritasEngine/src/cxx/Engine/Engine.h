@@ -11,10 +11,11 @@
 #include <Vulkan/VulkanImage/VulkanImage.h>
 #include "../Util/ModelLoader.h"
 #include "Pipelines/AssemblyPipeline.h"
-
+#include "ShadowManager.h"
 #include "Camera/CameraManager.h"
 #include "../TestKeyboardCallback.h"
 #include "Pipelines/GBufferPipeline.h"
+#include "Pipelines/GameAssebmlyPipeline.h"
 
 
 struct EngineDevice {
@@ -68,8 +69,10 @@ private:
     VulkanImage *gamePlaceHolder;
     AssemblyPipeline *asmPipeline;
     GBufferPipeline *gBufferPipeline;
-
+    GameAssemblyPipeline* gameAssemblyPipeline;
     CameraManager *manager;
+
+    ShadowManager* shadowManager;
     std::vector<Mesh *> meshes;
     std::vector<Mesh *> helmetMeshes;
     Material material;
@@ -83,6 +86,8 @@ public:
                                   instance->getInstance(), debugBuild);
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
         gBufferPipeline = new GBufferPipeline(device, window->getWidth(), window->getHeight());
+        gameAssemblyPipeline = new GameAssemblyPipeline(device, window->getWidth(), window->getHeight());
+        shadowManager = new ShadowManager(device, 4096, window->getWidth(), window->getHeight());
         skyPlaceHolder = VulkanImage::loadTexture("models/bluecloud_ft.jpg", device);
         gBufferPipeline->setSkyBox(skyPlaceHolder);
         ModelLoader loader(device);
@@ -93,7 +98,7 @@ public:
         material.setRoughnessTexture(VulkanImage::loadTexture("models/pokedex/textures/roughness.tga", device));
         material.setNormalMap(VulkanImage::loadTexture("models/pokedex/textures/normal.tga", device));
         material.setEmissiveTexture(VulkanImage::loadTexture("models/pokedex/textures/emissive.tga", device));
-        //material.setAoTexture(VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device));
+        material.setAoTexture(VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device));
 
         meshes[0]->setMaterial(&material);
         loader.clear();
@@ -109,6 +114,7 @@ public:
         }
         for (const auto &item: meshes){
             gBufferPipeline->registerMaterial(item->getMaterial());
+            shadowManager->registerMesh(item);
         }
         manager = new CameraManager(&gBufferPipeline->getCameraData());
         TestKeyboardCallback *keyBoardCB = new TestKeyboardCallback(Window::getInstance());
@@ -119,12 +125,19 @@ public:
                                            Window::getInstance()->getHeight());
 
 
-        asmPipeline->setGamePlaceHolder(gBufferPipeline->getOutputImages()[0]);
+        asmPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
         asmPipeline->setUiPlaceHolder(skyPlaceHolder);
         asmPipeline->getData().mode = 1;
         asmPipeline->confirmPlaceHolders();
         meshes[0]->setPosition(glm::vec3(0.0f, 1.5f, 0.0));
-
+        gameAssemblyPipeline->getLightConfig().enabledDirects = 1;
+        gameAssemblyPipeline->getLightConfig().directLights[0].color = glm::vec3(1, 1, 1);
+        gameAssemblyPipeline->getLightConfig().directLights[0].direction = glm::vec3(0, 5, -5);
+        gameAssemblyPipeline->getLightConfig().directLights[0].intensity = 5;
+        gameAssemblyPipeline->getLightConfig().emissiveShininess = 2;
+        gameAssemblyPipeline->setGBufferPipeline(gBufferPipeline);
+        gameAssemblyPipeline->setAo(shadowManager->getOutput());
+        shadowManager->setupLightView(glm::vec3(0,8.0f,5.0f), 200);
         window->registerResizeCallback(this);
     }
 
@@ -132,17 +145,30 @@ public:
         manager->update();
         gBufferPipeline->beginRender();
         for (const auto &item: meshes){
+            item->updateWorldMatrix();
             gBufferPipeline->processMesh(item);
         }
         gBufferPipeline->endRender();
+        shadowManager->beginShadowPass();
+        for (const auto &item: meshes){
+            shadowManager->processMesh(item);
+        }
+        shadowManager->endShadowPass(manager->getData()->viewMatrix, manager->getData()->cameraPosition);
+        gameAssemblyPipeline->update();
+
         asmPipeline->getData().mode = 1;
         asmPipeline->update();
     }
 
     void resized(int width, int height) override {
         vkDeviceWaitIdle(device->getDevice());
+        gBufferPipeline->resize(width,height);
+        gameAssemblyPipeline->resize(width,height);
+        shadowManager->resizeOutput(width, height);
+        gameAssemblyPipeline->setGBufferPipeline(gBufferPipeline);
+        gameAssemblyPipeline->setAo(shadowManager->getOutput());
         asmPipeline->resize(width, height);
-        asmPipeline->setGamePlaceHolder(gamePlaceHolder);
+        asmPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
         asmPipeline->confirmPlaceHolders();
         frameCounter++;
     }

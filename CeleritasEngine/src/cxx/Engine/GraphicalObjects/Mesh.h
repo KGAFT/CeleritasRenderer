@@ -8,6 +8,7 @@
 #include <Vulkan/VulkanImage/VulkanImage.h>
 #include "Material.h"
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 struct MeshData {
     glm::vec3 position;
@@ -40,6 +41,7 @@ private:
     glm::vec3 position = glm::vec3(0);
     glm::vec3 rotation = glm::vec3(0);
     glm::vec3 scale = glm::vec3(1);
+    glm::mat4 worldMatrix;
 
 public:
     Mesh(VertexBuffer *vBuffer, IndexBuffer *iBuffer) : vBuffer(vBuffer), iBuffer(iBuffer) {}
@@ -73,6 +75,19 @@ public:
     VertexBuffer *getVBuffer()
     {
         return vBuffer;
+    }
+
+    void updateWorldMatrix(){
+       worldMatrix = glm::mat4(1.0f);
+       worldMatrix = glm::translate(worldMatrix, position);
+       worldMatrix = glm::rotate(worldMatrix, rotation.x, glm::vec3(1, 0, 0));
+       worldMatrix = glm::rotate(worldMatrix, rotation.y, glm::vec3(0, 1, 0));
+       worldMatrix = glm::rotate(worldMatrix, rotation.z, glm::vec3(0, 0, 1));
+       worldMatrix = glm::scale(worldMatrix, scale);
+    }
+
+    glm::mat4 getWorldMatrix() {
+        return worldMatrix;
     }
 
     IndexBuffer *getIBuffer()
