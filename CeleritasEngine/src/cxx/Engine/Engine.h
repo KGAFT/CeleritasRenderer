@@ -87,7 +87,7 @@ public:
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
         gBufferPipeline = new GBufferPipeline(device, window->getWidth(), window->getHeight());
         gameAssemblyPipeline = new GameAssemblyPipeline(device, window->getWidth(), window->getHeight());
-        shadowManager = new ShadowManager(device, 4096, window->getWidth(), window->getHeight());
+        shadowManager = new ShadowManager(device, 1024, window->getWidth(), window->getHeight());
         skyPlaceHolder = VulkanImage::loadTexture("models/bluecloud_ft.jpg", device);
         gBufferPipeline->setSkyBox(skyPlaceHolder);
         ModelLoader loader(device);
