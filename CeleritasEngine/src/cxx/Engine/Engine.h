@@ -98,7 +98,7 @@ public:
         cubeMapInfo.pathToLeftFace = "models/SkyBox/cloudy/bluecloud_lf.jpg";
         cubeMapInfo.pathToRightFace = "models/SkyBox/cloudy/bluecloud_ft.jpg";
         skyBox = VulkanCubemapImage::createCubemap(device, cubeMapInfo);
-
+        gameAssemblyPipeline->setSkyBox(skyBox);
         ModelLoader loader(device);
 
         meshes = loader.loadModel("models/pokedex/pokedex.gltf", false);

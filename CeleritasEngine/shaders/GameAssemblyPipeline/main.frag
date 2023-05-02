@@ -38,6 +38,7 @@ layout(set = 0, binding = 3) uniform sampler2D normalSampler;
 layout(set = 0, binding = 4) uniform sampler2D metallicRoughnessEmissiveSampler;
 layout(set = 0, binding = 5) uniform sampler2D skyboxColor;
 layout(set = 0, binding = 6) uniform sampler2D aoMap;
+layout (set = 0, binding = 7) uniform samplerCube prefilteredMap;
 layout(location = 0) out vec4 fragColor;
 
 
