@@ -16,7 +16,7 @@
 #include "../TestKeyboardCallback.h"
 #include "Pipelines/GBufferPipeline.h"
 #include "Pipelines/GameAssebmlyPipeline.h"
-
+#include <Vulkan/VulkanImage/VulkanCubemapImage.h>
 
 struct EngineDevice {
     std::string name;
@@ -71,7 +71,7 @@ private:
     GBufferPipeline *gBufferPipeline;
     GameAssemblyPipeline* gameAssemblyPipeline;
     CameraManager *manager;
-
+    VulkanCubemapImage* skyBox;
     ShadowManager* shadowManager;
     std::vector<Mesh *> meshes;
     std::vector<Mesh *> helmetMeshes;
@@ -90,6 +90,15 @@ public:
         shadowManager = new ShadowManager(device, 1024, window->getWidth(), window->getHeight());
         skyPlaceHolder = VulkanImage::loadTexture("models/bluecloud_ft.jpg", device);
         gBufferPipeline->setSkyBox(skyPlaceHolder);
+        CubemapTextureInfo cubeMapInfo{};
+        cubeMapInfo.pathToFrontFace = "models/SkyBox/cloudy/bluecloud_ft.jpg";
+        cubeMapInfo.pathToBackFace = "models/SkyBox/cloudy/bluecloud_bk.jpg";
+        cubeMapInfo.pathToUpFace = "models/SkyBox/cloudy/bluecloud_up.jpg";
+        cubeMapInfo.pathToDownFace = "models/SkyBox/cloudy/bluecloud_lf.jpg";
+        cubeMapInfo.pathToLeftFace = "models/SkyBox/cloudy/bluecloud_lf.jpg";
+        cubeMapInfo.pathToRightFace = "models/SkyBox/cloudy/bluecloud_ft.jpg";
+        skyBox = VulkanCubemapImage::createCubemap(device, cubeMapInfo);
+
         ModelLoader loader(device);
 
         meshes = loader.loadModel("models/pokedex/pokedex.gltf", false);
