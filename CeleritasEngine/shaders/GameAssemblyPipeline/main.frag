@@ -139,9 +139,9 @@ void main() {
     float ao = texture(aoMap, uv).r;
     float opacity = albedoSource.a;
    // vec3 reflection = getReflection(roughness, uv);
-    vec3 reflection = texture(skyboxColor, uv).rgb;;
+    
     vec3 worldViewVector = normalize(cameraPosition - fragmentPosition);
-
+    vec3 reflection = texture(prefilteredMap, reflect(worldViewVector, processedNormals)).rgb;;
     vec3 startFresnelSchlick = vec3(0.04);
     startFresnelSchlick = mix(startFresnelSchlick, albedo, metallic);
 
@@ -164,5 +164,5 @@ void main() {
     color+=(emissive*pow(1, lightUbo.emissiveShininess)*lightUbo.emissiveIntensity);
     color = postProcessColor(color);
 
-    fragColor = vec4(color, 1);
+    fragColor = vec4(reflection, 1);
 }
