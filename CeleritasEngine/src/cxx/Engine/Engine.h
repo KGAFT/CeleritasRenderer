@@ -48,17 +48,16 @@ public:
         }
     }
 
-    static std::vector<EngineDevice> enumSupportedDevices(Window *window) {
+    static void enumSupportedDevices(Window *window, std::vector<EngineDevice>& result) {
         if (instance == nullptr) {
             throw std::runtime_error("Error: you need to create instance firstly");
         }
-        std::vector<EngineDevice> result;
         for (const auto &item: VulkanDevice::enumerateSupportedDevices(instance->getInstance(),
                                                                        window->getWindowSurface(
                                                                                instance->getInstance()))) {
             result.push_back({item.second.deviceName, item.first, item.second});
         }
-        return result;
+      
     }
 
 private:

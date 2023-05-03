@@ -12,9 +12,18 @@ int main() {
 
     Window::createWindow(800, 600, "Hello world!", nullptr);
     Engine::createInstance("HelloWorld", false);
-    EngineDevice device = Engine::enumSupportedDevices(Window::getInstance())[0];
-    std::cout<<device.name<<std::endl;
-    Engine engine(device, Window::getInstance());
+    std::vector<EngineDevice> devices;
+    Engine::enumSupportedDevices(Window::getInstance(), devices);
+    int count = 0;
+    std::cout<<"Choose device: "<<std::endl;
+    std::cout<<"ID:\tDeviceName:"<<std::endl;
+    for(int i = 0; i<devices.size(); i++){
+        std::cout<<i<<"\t"<<devices[i].name<<std::endl;
+    }
+    std::cout<<"Enter device id: ";
+    cin>>count;
+
+    Engine engine(devices[count], Window::getInstance());
     while (!Window::getInstance()->needToClose()) {
         Window::getInstance()->preRenderEvents();
 
