@@ -42,7 +42,7 @@ float calculateShadowFirstMethod(vec4 fragPosLightSpace, vec3 processedNormal)
     if (projCoords.z > 1.0)
     shadow = 0.0;
 
-    return shadow;
+    return shadow*3;
 }
 
 vec3 getNormalFromMap(vec2 uvsCoords, vec3 normals, vec3 fragmentPosition)

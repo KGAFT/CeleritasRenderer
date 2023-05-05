@@ -61,7 +61,7 @@ public:
         endConfig.vertexInputs.push_back({1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT});
         endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(VertexConfig)});
         endConfig.uniformBuffers.push_back({0, sizeof(LightConfiguration), VK_SHADER_STAGE_FRAGMENT_BIT});
-        for (int i = 1; i <= 7; i++) {
+        for (int i = 1; i <= 6; i++) {
             endConfig.samplers.push_back({i, VK_SHADER_STAGE_FRAGMENT_BIT});
         }
         OutputConfig oc{};
@@ -92,7 +92,7 @@ public:
         }
     }
     void setSkyBox(VulkanCubemapImage* skyBox){
-        gBufferDescriptorSet->getSamplers()[6]->setSamplerImageView(skyBox->getImageView());
+        gBufferDescriptorSet->getSamplers()[5]->setSamplerImageView(skyBox->getImageView());
 
     }
     void setGBufferPipeline(GBufferPipeline* gBufferPipeline){
@@ -102,12 +102,11 @@ public:
         gBufferDescriptorSet->getSamplers()[2]->setSamplerImageView(gBufferPipeline->getNormalMapImage()->getView());
         gBufferDescriptorSet->getSamplers()[3]->setSamplerImageView(
                 gBufferPipeline->getMetallicRoughnessEmissiveInvao()->getView());
-        gBufferDescriptorSet->getSamplers()[4]->setSamplerImageView(gBufferPipeline->getSkyBoxSampled()->getView());
-        gBufferDescriptorSet->getSamplers()[5]->setSamplerImageView(gBufferPipeline->getAoImage()->getView());
+        gBufferDescriptorSet->getSamplers()[4]->setSamplerImageView(gBufferPipeline->getAoImage()->getView());
         gBufferDescriptorSet->updateDescriptorSet(0);
     }
     void setAo(VulkanImage* ao){
-        gBufferDescriptorSet->getSamplers()[5]->setSamplerImageView(ao->getView());
+        gBufferDescriptorSet->getSamplers()[4]->setSamplerImageView(ao->getView());
         gBufferDescriptorSet->updateDescriptorSet(0);
     }
 

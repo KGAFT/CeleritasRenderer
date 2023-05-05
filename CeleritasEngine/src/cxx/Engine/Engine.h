@@ -64,7 +64,7 @@ private:
     VulkanDevice *device;
     Window *window;
     VulkanSwapChain *swapChain;
-    VulkanImage *skyPlaceHolder;
+
     VulkanImage *gamePlaceHolder;
     AssemblyPipeline *asmPipeline;
     GBufferPipeline *gBufferPipeline;
@@ -86,16 +86,16 @@ public:
         swapChain = new VulkanSwapChain(device, window->getWidth(), window->getHeight());
         gBufferPipeline = new GBufferPipeline(device, window->getWidth(), window->getHeight());
         gameAssemblyPipeline = new GameAssemblyPipeline(device, window->getWidth(), window->getHeight());
-        shadowManager = new ShadowManager(device, 1024, window->getWidth(), window->getHeight());
-        skyPlaceHolder = VulkanImage::loadTexture("models/bluecloud_ft.jpg", device);
-        gBufferPipeline->setSkyBox(skyPlaceHolder);
+        shadowManager = new ShadowManager(device, 4096, window->getWidth(), window->getHeight());
+
+    
         CubemapTextureInfo cubeMapInfo{};
-        cubeMapInfo.pathToFrontFace = "models/UnderWater/textures/Body_baseColor.png";
-        cubeMapInfo.pathToBackFace = "models/UnderWater/textures/Body_metallicRoughness.png";
-        cubeMapInfo.pathToUpFace = "models/UnderWater/textures/Body_normal.png";
-        cubeMapInfo.pathToDownFace = "models/UnderWater/textures/Body_normal.png";
-        cubeMapInfo.pathToLeftFace = "models/UnderWater/textures/Body_metallicRoughness.png";
-        cubeMapInfo.pathToRightFace = "models/UnderWater/textures/Body_baseColor.png";
+        cubeMapInfo.pathToFrontFace = "models/SkyBox/cloudy/bluecloud_ft.jpg";
+        cubeMapInfo.pathToBackFace = "models/SkyBox/cloudy/bluecloud_bk.jpg";
+        cubeMapInfo.pathToUpFace = "models/SkyBox/cloudy/bluecloud_up.jpg";
+        cubeMapInfo.pathToDownFace = "models/SkyBox/cloudy/bluecloud_lf.jpg";
+        cubeMapInfo.pathToLeftFace = "models/SkyBox/cloudy/bluecloud_lf.jpg";
+        cubeMapInfo.pathToRightFace = "models/SkyBox/cloudy/bluecloud_ft.jpg";
         skyBox = VulkanCubemapImage::createCubemap(device, cubeMapInfo);
         gameAssemblyPipeline->setSkyBox(skyBox);
         ModelLoader loader(device);
@@ -106,7 +106,7 @@ public:
         material.setRoughnessTexture(VulkanImage::loadTexture("models/pokedex/textures/roughness.tga", device));
         material.setNormalMap(VulkanImage::loadTexture("models/pokedex/textures/normal.tga", device));
         material.setEmissiveTexture(VulkanImage::loadTexture("models/pokedex/textures/emissive.tga", device));
-        material.setAoTexture(VulkanImage::loadTexture("models/pokedex/textures/ao.tga", device));
+        
 
         meshes[0]->setMaterial(&material);
         loader.clear();
@@ -116,7 +116,7 @@ public:
             item->getMaterial()->setAoTexture(nullptr);
             item->getMaterial()->setOpacityMapTexture(nullptr);
             item->getMaterial()->setAlbedoTexture(albedoIm);
-            item->setPosition(glm::vec3(0, 0, 5));
+            item->setPosition(glm::vec3(0, 0, 10));
             item->setScale(glm::vec3(5, 5, 5));
             meshes.push_back(item);
         }
@@ -134,7 +134,7 @@ public:
 
 
         asmPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
-        asmPipeline->setUiPlaceHolder(skyPlaceHolder);
+        asmPipeline->setUiPlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
         asmPipeline->getData().mode = 1;
         asmPipeline->confirmPlaceHolders();
         meshes[0]->setPosition(glm::vec3(0.0f, 1.5f, 0.0));
@@ -145,7 +145,7 @@ public:
         gameAssemblyPipeline->getLightConfig().emissiveShininess = 2;
         gameAssemblyPipeline->setGBufferPipeline(gBufferPipeline);
         gameAssemblyPipeline->setAo(shadowManager->getOutput());
-        shadowManager->setupLightView(glm::vec3(0,8.0f,5.0f), 200);
+        shadowManager->setupLightView(glm::vec3(-5,-8.0f,5.0f), 200);
         window->registerResizeCallback(this);
     }
 
@@ -177,6 +177,7 @@ public:
         gameAssemblyPipeline->setAo(shadowManager->getOutput());
         asmPipeline->resize(width, height);
         asmPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
+        asmPipeline->setUiPlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
         asmPipeline->confirmPlaceHolders();
         frameCounter++;
     }

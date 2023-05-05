@@ -36,9 +36,8 @@ layout(set = 0, binding = 1) uniform sampler2D verticesSampler;
 layout(set = 0, binding = 2) uniform sampler2D albedoSampler;
 layout(set = 0, binding = 3) uniform sampler2D normalSampler;
 layout(set = 0, binding = 4) uniform sampler2D metallicRoughnessEmissiveSampler;
-layout(set = 0, binding = 5) uniform sampler2D skyboxColor;
-layout(set = 0, binding = 6) uniform sampler2D aoMap;
-layout (set = 0, binding = 7) uniform samplerCube prefilteredMap;
+layout(set = 0, binding = 5) uniform sampler2D aoMap;
+layout (set = 0, binding = 6) uniform samplerCube prefilteredMap;
 layout(location = 0) out vec4 fragColor;
 
 
@@ -112,19 +111,20 @@ vec3 processDirectionaLight(DirectLight light, vec3 normals, vec3 worldViewVecto
     return (finalFresnelSchlick * albedo / PI + specular) * radiance * NdotL;
 }
 
+
 vec3 postProcessColor(vec3 color){
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(lightUbo.gammaCorrect));
     return color;
 }
-vec3 getReflection(float roughness, vec2 UV){
+vec3 getReflection(float roughness, vec3 reflectanceVec){
     const float MAX_REFLECTION_LOD = 9.0;
     float lod = roughness * MAX_REFLECTION_LOD;
-    float lodf = floor(lod);
-    float lodc = ceil(lod);
-    vec3 a = textureLod(skyboxColor, UV, lodf).rgb;
-    vec3 b = textureLod(skyboxColor, UV, lodc).rgb;
-    return mix(a, b, lod - lodf);
+	float lodf = floor(lod);
+	float lodc = ceil(lod);
+	vec3 a = textureLod(prefilteredMap, reflectanceVec, lodf).rgb;
+	vec3 b = textureLod(prefilteredMap, reflectanceVec, lodc).rgb;
+	return mix(a, b, lod - lodf);
 }
 void main() {
     fragmentPosition = texture(verticesSampler, uv).xyz;
@@ -141,7 +141,7 @@ void main() {
    // vec3 reflection = getReflection(roughness, uv);
     
     vec3 worldViewVector = normalize(cameraPosition - fragmentPosition);
-    vec3 reflection = texture(prefilteredMap, reflect(worldViewVector, processedNormals)).rgb;;
+    vec3 reflection = getReflection(roughness, reflect(worldViewVector, processedNormals));
     vec3 startFresnelSchlick = vec3(0.04);
     startFresnelSchlick = mix(startFresnelSchlick, albedo, metallic);
 
@@ -164,5 +164,5 @@ void main() {
     color+=(emissive*pow(1, lightUbo.emissiveShininess)*lightUbo.emissiveIntensity);
     color = postProcessColor(color);
 
-    fragColor = vec4(reflection, 1);
+    fragColor = vec4(color, 1);
 }

@@ -23,7 +23,6 @@ private:
     PushConstantData cameraData{};
     VkCommandBuffer currentCmd;
     std::map<Material *, VulkanDescriptorSet *> materialDescriptors;
-    VulkanImage *skyBox = nullptr;
     PipelineEndConfig endConfig{};
 public:
     GBufferPipeline(VulkanDevice *device, int width, int height) : RenderPipeline(device, nullptr), device(device) {
@@ -35,7 +34,7 @@ public:
         endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstantData)});
         endConfig.uniformBuffers.push_back({0, sizeof(GBufferConfig), VK_SHADER_STAGE_FRAGMENT_BIT});
         endConfig.alphaBlend = true;
-        for (int i = 1; i <= 9; i++) {
+        for (int i = 1; i <= 8; i++) {
             endConfig.samplers.push_back({i, VK_SHADER_STAGE_FRAGMENT_BIT});
         }
 
@@ -78,15 +77,6 @@ public:
     }
 
 
-    void setSkyBox(VulkanImage *skyBox) {
-        this->skyBox = skyBox;
-        for (const auto &item: materialDescriptors) {
-            item.second->getSamplers()[8]->setSamplerImageView(skyBox->getView());
-            item.second->updateDescriptorSet(0);
-        }
-
-    }
-
     void registerMaterial(Material *material) {
         VulkanDescriptorSet *descriptorSet = acquireDescriptorSet();
         descriptorSet->attachToObject(material);
@@ -118,7 +108,7 @@ public:
             descriptorSet->getSamplers()[7]->setSamplerImageView(material->getAlbedoTexture()->getView());
         }
 
-        descriptorSet->getSamplers()[8]->setSamplerImageView(skyBox->getView());
+
 
         descriptorSet->getUniformBuffers()[0]->write(&config);
         descriptorSet->updateDescriptorSet(0);
@@ -142,11 +132,8 @@ public:
         return RenderPipeline::getOutputImages()[3];
     }
 
-    VulkanImage *getSkyBoxSampled() {
-        return RenderPipeline::getOutputImages()[4];
-    }
     VulkanImage* getAoImage(){
-        return RenderPipeline::getOutputImages()[5];
+        return RenderPipeline::getOutputImages()[4];
     }
 
 
