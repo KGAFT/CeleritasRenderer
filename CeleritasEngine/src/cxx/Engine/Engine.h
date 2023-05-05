@@ -90,12 +90,12 @@ public:
         skyPlaceHolder = VulkanImage::loadTexture("models/bluecloud_ft.jpg", device);
         gBufferPipeline->setSkyBox(skyPlaceHolder);
         CubemapTextureInfo cubeMapInfo{};
-        cubeMapInfo.pathToFrontFace = "models/SkyBox/cloudy/bluecloud_ft.jpg";
-        cubeMapInfo.pathToBackFace = "models/SkyBox/cloudy/bluecloud_bk.jpg";
-        cubeMapInfo.pathToUpFace = "models/SkyBox/cloudy/bluecloud_up.jpg";
-        cubeMapInfo.pathToDownFace = "models/SkyBox/cloudy/bluecloud_lf.jpg";
-        cubeMapInfo.pathToLeftFace = "models/SkyBox/cloudy/bluecloud_lf.jpg";
-        cubeMapInfo.pathToRightFace = "models/SkyBox/cloudy/bluecloud_ft.jpg";
+        cubeMapInfo.pathToFrontFace = "models/UnderWater/textures/Body_baseColor.png";
+        cubeMapInfo.pathToBackFace = "models/UnderWater/textures/Body_metallicRoughness.png";
+        cubeMapInfo.pathToUpFace = "models/UnderWater/textures/Body_normal.png";
+        cubeMapInfo.pathToDownFace = "models/UnderWater/textures/Body_normal.png";
+        cubeMapInfo.pathToLeftFace = "models/UnderWater/textures/Body_metallicRoughness.png";
+        cubeMapInfo.pathToRightFace = "models/UnderWater/textures/Body_baseColor.png";
         skyBox = VulkanCubemapImage::createCubemap(device, cubeMapInfo);
         gameAssemblyPipeline->setSkyBox(skyBox);
         ModelLoader loader(device);

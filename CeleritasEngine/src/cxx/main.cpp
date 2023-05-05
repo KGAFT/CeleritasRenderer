@@ -11,17 +11,18 @@ int main() {
     Monitor **monitors = Monitor::enumerateMonitors(&monitorCount);
 
     Window::createWindow(800, 600, "Hello world!", nullptr);
-    Engine::createInstance("HelloWorld", false);
+    Engine::createInstance("HelloWorld", true);
     std::vector<EngineDevice> devices;
     Engine::enumSupportedDevices(Window::getInstance(), devices);
-    int count = 0;
+    int count = 1;
     std::cout<<"Choose device: "<<std::endl;
     std::cout<<"ID:\tDeviceName:"<<std::endl;
     for(int i = 0; i<devices.size(); i++){
         std::cout<<i<<"\t"<<devices[i].name<<std::endl;
+        
     }
     std::cout<<"Enter device id: ";
-    cin>>count;
+    //cin>>count;
 
     Engine engine(devices[count], Window::getInstance());
     while (!Window::getInstance()->needToClose()) {
