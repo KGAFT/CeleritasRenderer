@@ -3,7 +3,7 @@ project(CeleritasEngine)
 
 
 #Set path to your's vulkan sdk here
-set(VulkanSDKPath /home/kgaft/VulkanSDK/1.3.243.0/x86_64/)
+set(VulkanSDKPath C:/VulkanSDK/1.3.246.1/)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -43,7 +43,7 @@ file(COPY ${BINARIES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_subdirectory(modules/glfw)
 add_subdirectory(modules/glm)
 
-add_subdirectory(lib/VulkanTools)
+add_subdirectory(lib/VulkanContext)
 
 file(GLOB_RECURSE CPP_FILES src/cxx/*.cpp)
 file(GLOB_RECURSE HPP_FILES src/cxx/*.h)
