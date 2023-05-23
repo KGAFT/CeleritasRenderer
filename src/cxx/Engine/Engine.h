@@ -18,6 +18,10 @@
 #include "Pipelines/GameAssebmlyPipeline.h"
 #include <Vulkan/VulkanImage/VulkanCubemapImage.h>
 #include <Vulkan/ImGUIVulkan/ImGUIVulkan.h>
+
+#include "UI/UIManager.h"
+#include "UI/PBRSetupWindow.h"
+
 struct EngineDevice {
     std::string name;
     VkPhysicalDevice device;
@@ -72,6 +76,7 @@ private:
     GameAssemblyPipeline* gameAssemblyPipeline;
     CameraManager *manager;
     VulkanCubemapImage* skyBox;
+    UIManager* uiManager;
     ShadowManager* shadowManager;
     std::vector<Mesh *> meshes;
     std::vector<Mesh *> helmetMeshes;
@@ -133,7 +138,6 @@ public:
         asmPipeline = new AssemblyPipeline(device, swapChain, Window::getInstance()->getWidth(),
                                            Window::getInstance()->getHeight());
 
-
         asmPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
         asmPipeline->setUiPlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
         asmPipeline->getData().mode = 1;
@@ -143,7 +147,8 @@ public:
         gameAssemblyPipeline->getLightConfig().directLights[0].color = glm::vec3(1, 1, 1);
         gameAssemblyPipeline->getLightConfig().directLights[0].direction = glm::vec3(0, 5, -5);
         gameAssemblyPipeline->getLightConfig().directLights[0].intensity = 5;
-        gameAssemblyPipeline->getLightConfig().emissiveShininess = 2;
+        uiManager = new UIManager();
+        uiManager->registerWindow(new PBRSetupWindow(gameAssemblyPipeline->getLightConfig()));
         gameAssemblyPipeline->setGBufferPipeline(gBufferPipeline);
         gameAssemblyPipeline->setAo(shadowManager->getOutput());
         shadowManager->setupLightView(glm::vec3(-5,-8.0f,5.0f), 200);
@@ -165,16 +170,10 @@ public:
         }
         shadowManager->endShadowPass(manager->getData()->viewMatrix, manager->getData()->cameraPosition);
         gameAssemblyPipeline->update();
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-
-        ImGui::NewFrame();
-
-        ImGui::ShowDemoWindow();
-        ImGui::Render();
+        uiManager->draw();
         asmPipeline->getData().mode = 1;
         asmPipeline->update();
-        ImGui::EndFrame();
+        uiManager->endDraw();
     }
 
     void resized(int width, int height) override {
