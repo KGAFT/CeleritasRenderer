@@ -70,9 +70,17 @@ public:
         return endRenderPipeline->getPushConstants();
     }
 
+    VulkanEndRenderPipeline *getEndRenderPipeline()  {
+        return endRenderPipeline;
+    }
+
     void endRender(){
         endRenderPipeline->endRender();
         isRender = false;
+    }
+
+    void initUi(GLFWwindow* window){
+        endRenderPipeline->initIMGUI(window);
     }
 
     void updatePushConstants(){

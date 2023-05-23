@@ -1,7 +1,12 @@
-cmake_minimum_required(VERSION 3.26)
-project(CeleritasGL)
+cmake_minimum_required(VERSION 3.24)
+project(CeleritasEngine)
+
+
+#Set path to your's vulkan sdk here
+set(VulkanSDKPath /home/kgaft/VulkanSDK/1.3.243.0/x86_64)
 
 set(CMAKE_CXX_STANDARD 17)
+
 if(WIN32)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         include_directories(LibNativeWin/gcc/include)
@@ -18,7 +23,7 @@ if(WIN32)
     endif()
     if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         file(GLOB_RECURSE BINARIES LibNativeWin/msvc/bin/*.*)
-        set(NativeLibs assimp-vc143-mtd)
+        set(NativeLibs assimp-vc143-mtd.lib)
     endif()
     set(SystemNatives -static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic)
 endif()
@@ -33,13 +38,15 @@ if(UNIX)
 endif()
 
 file(COPY shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+file(COPY models DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY ${BINARIES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-add_subdirectory(modules/glfw)
+
 add_subdirectory(modules/glm)
-add_subdirectory(modules/glad)
+add_subdirectory(modules/VulkanContext)
+
 file(GLOB_RECURSE CPP_FILES src/cxx/*.cpp)
 file(GLOB_RECURSE HPP_FILES src/cxx/*.h)
 
 add_executable(CeleritasEngine ${HPP_FILES} ${CPP_FILES})
 
-target_link_libraries(CeleritasEngine glfw glm glad ${NativesLibs} ${SystemNatives})
+target_link_libraries(CeleritasEngine VulkanContext glfw glm ${NativesLibs} ${SystemNatives})

@@ -139,7 +139,11 @@ private:
 		this->keyActionCallbacks = newKeyCallbacks;
 	}
 
-	void checkMovementCallbacks() {
+
+
+private:
+
+    void checkMovementCallbacks() {
 		double x, y = 0;
 		preCalculateMouse(&x, &y);
 		bool requiredRefresh = false;
@@ -197,6 +201,10 @@ public:
 		checkKeyBoardCallbacks();
 		checkMovementCallbacks();
 	}
+
+    GLFWwindow *getWindowHandle()  {
+        return windowHandle;
+    }
 
 	void postRenderEvents() {
         double crntTime = glfwGetTime();

@@ -1,9 +1,7 @@
-[submodule "modules/glfw"]
-	path = modules/glfw
-	url = https://github.com/glfw/glfw
 [submodule "modules/glm"]
 	path = modules/glm
 	url = https://github.com/g-truc/glm
-[submodule "CeleritasEngine/lib/VulkanContext"]
-	path = CeleritasEngine/lib/VulkanContext
+
+[submodule "modules/VulkanContext"]
+	path = modules/VulkanContext
 	url = https://github.com/KGAFT/VulkanContext

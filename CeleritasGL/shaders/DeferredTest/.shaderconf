@@ -1,2 +1,0 @@
-VERTEX_SHADER deferred.vert TRUE
-FRAGMENT_SHADER deferred.frag TRUE

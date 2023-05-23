@@ -45,7 +45,6 @@ public:
     }
     void setGamePlaceHolder(VulkanImage* placeHolder){
         descriptorSet->getSamplers()[1]->setSamplerImageView(placeHolder->getView());
-
     }
 
     void setUiPlaceHolder(VulkanImage* placeHolder){

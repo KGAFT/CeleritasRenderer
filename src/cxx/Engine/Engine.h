@@ -17,7 +17,7 @@
 #include "Pipelines/GBufferPipeline.h"
 #include "Pipelines/GameAssebmlyPipeline.h"
 #include <Vulkan/VulkanImage/VulkanCubemapImage.h>
-
+#include <Vulkan/ImGUIVulkan/ImGUIVulkan.h>
 struct EngineDevice {
     std::string name;
     VkPhysicalDevice device;
@@ -39,6 +39,7 @@ public:
         for (int i = 0; i < extCount; ++i) {
             extensions.push_back(exts[i]);
         }
+
 
         if (!instance->createInstance(appName, debugBuild, extensions)) {
             throw std::runtime_error("Failed to init Vulkan API");
@@ -147,6 +148,7 @@ public:
         gameAssemblyPipeline->setAo(shadowManager->getOutput());
         shadowManager->setupLightView(glm::vec3(-5,-8.0f,5.0f), 200);
         window->registerResizeCallback(this);
+        asmPipeline->initUi(window->getWindowHandle());
     }
 
     void update() {
@@ -163,9 +165,16 @@ public:
         }
         shadowManager->endShadowPass(manager->getData()->viewMatrix, manager->getData()->cameraPosition);
         gameAssemblyPipeline->update();
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
 
+        ImGui::NewFrame();
+
+        ImGui::ShowDemoWindow();
+        ImGui::Render();
         asmPipeline->getData().mode = 1;
         asmPipeline->update();
+        ImGui::EndFrame();
     }
 
     void resized(int width, int height) override {
