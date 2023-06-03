@@ -1,6 +1,8 @@
 //
 // Created by Daniil on 05.02.2023.
 //
+#pragma once
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

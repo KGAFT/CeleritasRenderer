@@ -4,8 +4,8 @@
 
 
 #include "Camera.h"
-#include "../../Window/IMouseMovementCallback.h"
-#include "../../Window/Window.h"
+#include "../../../Window/IMouseMovementCallback.h"
+#include "../../../Window/Window.h"
 #pragma once
 
 class CameraRotationCallBack : public IMouseMovementCallback {

@@ -7,7 +7,7 @@
 
 #include "Camera.h"
 #include "GLFW/glfw3.h"
-#include "../../Window/IKeyActionCallback.h"
+#include "../../../Window/IKeyActionCallback.h"
 
 class CameraMovementCallBack : public IKeyActionCallback {
 private:

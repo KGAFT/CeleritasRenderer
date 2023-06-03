@@ -1,5 +1,8 @@
 #version 450
 
+#define SELECTION_TYPE_TRIANGE 1
+#define SElECTION_TYPE_MESH 2
+#define SELECTION_TYPE_NONE 3
 
 layout(location = 0) in vec3 fragmentPosition;
 layout(location = 1) in vec2 textureCoordinates;
@@ -51,6 +54,7 @@ float getEmissivePower(vec2 UvsCoords, vec4 albedoColor){
     }
     return 0;
 }
+
 
 void main() {
     position = vec4(fragmentPosition, 1.0f);

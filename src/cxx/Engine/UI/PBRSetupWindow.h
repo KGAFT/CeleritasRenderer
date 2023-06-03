@@ -4,7 +4,7 @@
 #pragma once
 
 #include "UIBase.h"
-#include "../Pipelines/GameAssebmlyPipeline.h"
+#include "../Pipelines/RenderPipelineImplementation/GameAssebmlyPipeline.h"
 class PBRSetupWindow : public UIBase{
 public:
     PBRSetupWindow(LightConfiguration& lightConfig) : UIBase("PBR Setting"), lightConfig(lightConfig){
