@@ -9,6 +9,7 @@
 #include "ShadowManager.h"
 #include "RenderPipelineImplementation/GBufferPipeline.h"
 #include "RenderPipelineImplementation/GameAssebmlyPipeline.h"
+#include "../../TestKeyboardCallback.h"
 #include <Vulkan/VulkanDevice/VulkanDevice.h>
 #include <Vulkan/VulkanSwapChain.h>
 #include <Vulkan/VulkanLogger/DefaultVulkanLoggerCallback.h>
@@ -21,7 +22,7 @@ namespace RenderingEngine{
         VkPhysicalDeviceProperties properties;
     };
 
-    class Engine{
+    class Engine : public IWindowResizeCallback{
     private:
         static inline VulkanInstance *instance = nullptr;
         static inline bool debugBuild = false;
@@ -62,9 +63,10 @@ namespace RenderingEngine{
         CameraManager *manager;
         ShadowManager* shadowManager;
         VulkanDevice *device;
-
+        std::vector<Mesh*> registeredMeshes;
         Window *window;
         VulkanSwapChain *swapChain;
+    public:
         Engine(EngineDevice &deviceToCreate, Window *window) : window(window) {
             if (instance == nullptr) {
                 throw std::runtime_error("Error: you need to create instance firstly");
@@ -75,7 +77,64 @@ namespace RenderingEngine{
             gBufferPipeline = new GBufferPipeline(device, window->getWidth(), window->getHeight());
             gameAssemblyPipeline = new GameAssemblyPipeline(device, window->getWidth(), window->getHeight());
             shadowManager = new ShadowManager(device, 4096, window->getWidth(), window->getHeight());
+            asmPipeline = new AssemblyPipeline(device, swapChain, window->getWidth(), window->getHeight());
+            manager = new CameraManager(gBufferPipeline->getCameraData());
+            gameAssemblyPipeline->setGBufferPipeline(gBufferPipeline);
+            gameAssemblyPipeline->setAo(shadowManager->getOutput());
+            asmPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
+            asmPipeline->confirmPlaceHolders();
+            window->registerResizeCallback(this);
+            window->registerKeyCallback(new TestKeyboardCallback(window));
+        }
 
+        void registerMesh(Mesh* mesh){
+            gBufferPipeline->registerMaterial(mesh->getMaterial());
+            shadowManager->registerMesh(mesh);
+            registeredMeshes.push_back(mesh);
+        }
+
+        void unRegisterMesh(Mesh* mesh){
+            gBufferPipeline->unRegisterMaterial(mesh->getMaterial());
+            shadowManager->unRegisterMesh(mesh);
+        }
+
+        void setSkybox(VulkanCubemapImage* skyboxImage){
+            gameAssemblyPipeline->setSkyBox(skyboxImage);
+
+        }
+
+        void drawRegisteredMeshes(){
+            manager->update();
+            gBufferPipeline->beginRender();
+            shadowManager->beginShadowPass();
+            for (const auto &item: registeredMeshes){
+                item->updateWorldMatrix();
+                gBufferPipeline->processMesh(item);
+                shadowManager->processMesh(item);
+            }
+            gBufferPipeline->endRender();
+            shadowManager->endShadowPass(manager->getData()->viewMatrix, manager->getData()->cameraPosition);
+
+            gameAssemblyPipeline->update();
+            asmPipeline->getData().mode = 1;
+            asmPipeline->update();
+        }
+
+        VulkanDevice *getDevice() const {
+            return device;
+        }
+
+        void resized(int width, int height) override {
+            vkDeviceWaitIdle(device->getDevice());
+            gBufferPipeline->resize(width,height);
+            gameAssemblyPipeline->resize(width,height);
+            shadowManager->resizeOutput(width, height);
+            gameAssemblyPipeline->setGBufferPipeline(gBufferPipeline);
+            gameAssemblyPipeline->setAo(shadowManager->getOutput());
+            asmPipeline->resize(width, height);
+            asmPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
+            asmPipeline->setUiPlaceHolder(gameAssemblyPipeline->getOutputImages()[0]);
+            asmPipeline->confirmPlaceHolders();
         }
     };
 };

@@ -47,7 +47,7 @@ namespace RenderingEngine{
         AssemblyPipelineUboData data{};
         VulkanDescriptorSet* descriptorSet;
         PipelineEndConfig endConfig{};
-
+    public:
         void setGamePlaceHolder(VulkanImage* placeHolder){
             descriptorSet->getSamplers()[1]->setSamplerImageView(placeHolder->getView());
         }

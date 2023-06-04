@@ -39,6 +39,10 @@ namespace RenderingEngine{
             shadowAssemblyPipeline->registerMeshMaterial(mesh->getMaterial());
         }
 
+        void unRegisterMesh(Mesh* mesh){
+            shadowAssemblyPipeline->unRegisterMeshMaterial(mesh->getMaterial());
+        }
+
         void endShadowPass(glm::mat4 viewMatrix, glm::vec3 cameraPosition){
             depthBuffer->clearImage(0,0,0,0,shadowCmd);
             depthBuffer->copyFromImage(shadowBufferPipeline->getDepthImages()[0], shadowCmd);

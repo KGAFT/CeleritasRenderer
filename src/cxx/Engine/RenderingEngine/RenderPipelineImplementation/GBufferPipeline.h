@@ -75,49 +75,58 @@ namespace RenderingEngine{
             return config;
         }
 
-        PushConstantData &getCameraData()  {
-            return cameraData;
+        PushConstantData *getCameraData()  {
+            return &cameraData;
         }
 
 
         void registerMaterial(Material *material) {
-            VulkanDescriptorSet *descriptorSet = acquireDescriptorSet();
-            descriptorSet->attachToObject(material);
-            descriptorSet->getSamplers()[0]->setSamplerImageView(material->getAlbedoTexture()->getView());
-            descriptorSet->getSamplers()[1]->setSamplerImageView(material->getNormalMap()->getView());
-            if (material->getMetallicRoughnessTexture()) {
-                descriptorSet->getSamplers()[6]->setSamplerImageView(
-                        material->getMetallicRoughnessTexture()->getView());
-                descriptorSet->getSamplers()[2]->setSamplerImageView(material->getAlbedoTexture()->getView());
-                descriptorSet->getSamplers()[3]->setSamplerImageView(material->getAlbedoTexture()->getView());
-            } else {
-                descriptorSet->getSamplers()[2]->setSamplerImageView(material->getMetallicTexture()->getView());
-                descriptorSet->getSamplers()[3]->setSamplerImageView(material->getRoughnessTexture()->getView());
-                descriptorSet->getSamplers()[6]->setSamplerImageView(material->getAlbedoTexture()->getView());
-            }
-            if (material->getAoTexture()) {
-                descriptorSet->getSamplers()[4]->setSamplerImageView(material->getAoTexture()->getView());
-            } else {
-                descriptorSet->getSamplers()[4]->setSamplerImageView(material->getAlbedoTexture()->getView());
-            }
-            if (material->getEmissiveTexture()) {
-                descriptorSet->getSamplers()[5]->setSamplerImageView(material->getEmissiveTexture()->getView());
-            } else {
-                descriptorSet->getSamplers()[5]->setSamplerImageView(material->getAlbedoTexture()->getView());
-            }
-            if (material->getOpacityMapTexture()) {
-                descriptorSet->getSamplers()[7]->setSamplerImageView(material->getOpacityMapTexture()->getView());
-            } else {
-                descriptorSet->getSamplers()[7]->setSamplerImageView(material->getAlbedoTexture()->getView());
-            }
+            if(materialDescriptors.count(material)==0){
+                VulkanDescriptorSet *descriptorSet = acquireDescriptorSet();
+                descriptorSet->attachToObject(material);
+                descriptorSet->getSamplers()[0]->setSamplerImageView(material->getAlbedoTexture()->getView());
+                descriptorSet->getSamplers()[1]->setSamplerImageView(material->getNormalMap()->getView());
+                if (material->getMetallicRoughnessTexture()) {
+                    descriptorSet->getSamplers()[6]->setSamplerImageView(
+                            material->getMetallicRoughnessTexture()->getView());
+                    descriptorSet->getSamplers()[2]->setSamplerImageView(material->getAlbedoTexture()->getView());
+                    descriptorSet->getSamplers()[3]->setSamplerImageView(material->getAlbedoTexture()->getView());
+                } else {
+                    descriptorSet->getSamplers()[2]->setSamplerImageView(material->getMetallicTexture()->getView());
+                    descriptorSet->getSamplers()[3]->setSamplerImageView(material->getRoughnessTexture()->getView());
+                    descriptorSet->getSamplers()[6]->setSamplerImageView(material->getAlbedoTexture()->getView());
+                }
+                if (material->getAoTexture()) {
+                    descriptorSet->getSamplers()[4]->setSamplerImageView(material->getAoTexture()->getView());
+                } else {
+                    descriptorSet->getSamplers()[4]->setSamplerImageView(material->getAlbedoTexture()->getView());
+                }
+                if (material->getEmissiveTexture()) {
+                    descriptorSet->getSamplers()[5]->setSamplerImageView(material->getEmissiveTexture()->getView());
+                } else {
+                    descriptorSet->getSamplers()[5]->setSamplerImageView(material->getAlbedoTexture()->getView());
+                }
+                if (material->getOpacityMapTexture()) {
+                    descriptorSet->getSamplers()[7]->setSamplerImageView(material->getOpacityMapTexture()->getView());
+                } else {
+                    descriptorSet->getSamplers()[7]->setSamplerImageView(material->getAlbedoTexture()->getView());
+                }
 
 
 
-            descriptorSet->getUniformBuffers()[0]->write(&config);
-            descriptorSet->updateDescriptorSet(0);
-            materialDescriptors.insert(std::pair(material, descriptorSet));
+                descriptorSet->getUniformBuffers()[0]->write(&config);
+                descriptorSet->updateDescriptorSet(0);
+                materialDescriptors.insert(std::pair(material, descriptorSet));
+            }
+
         }
 
+        void unRegisterMaterial(Material* material){
+            if(materialDescriptors.count(material)>0){
+                materialDescriptors.at(material)->attachToObject(nullptr);
+                materialDescriptors.erase(material);
+            }
+        }
 
         VulkanImage *getPositionsImage() {
             return RenderPipeline::getOutputImages()[0];

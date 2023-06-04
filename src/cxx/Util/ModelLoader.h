@@ -10,7 +10,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../Engine/GraphicalObjects/Mesh.h"
+#include "../Engine/RenderingEngine/GraphicalObjects/Mesh.h"
 #include "AssimpGLMHelper.h"
 
 

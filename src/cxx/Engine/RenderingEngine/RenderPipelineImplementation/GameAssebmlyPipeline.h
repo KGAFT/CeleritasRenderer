@@ -82,7 +82,7 @@ namespace RenderingEngine{
         VertexConfig vertexConfig{};
         VulkanDescriptorSet* gBufferDescriptorSet;
 
-
+    public:
         void update(){
             if(gBufferPipeline!=nullptr){
                 gBufferDescriptorSet->getUniformBuffers()[0]->write(&lightConfig);
@@ -97,7 +97,7 @@ namespace RenderingEngine{
         }
         void setSkyBox(VulkanCubemapImage* skyBox){
             gBufferDescriptorSet->getSamplers()[5]->setSamplerImageView(skyBox->getImageView());
-
+            gBufferDescriptorSet->updateDescriptorSet(0);
         }
         void setGBufferPipeline(GBufferPipeline* gBufferPipeline){
             GameAssemblyPipeline::gBufferPipeline = gBufferPipeline;

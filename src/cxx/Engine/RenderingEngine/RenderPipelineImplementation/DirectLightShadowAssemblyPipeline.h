@@ -4,11 +4,11 @@
 #pragma once
 
 #include "../RenderPipeline.h"
-#include "../../PrimitiveObjects/Quad.h"
+#include "../PrimitiveObjects/Quad.h"
 #include "Vulkan/VulkanBuffers/VertexBuffer.h"
 #include "Vulkan/VulkanBuffers/IndexBuffer.h"
-#include "../../GraphicalObjects/Material.h"
-#include "../../GraphicalObjects/Mesh.h"
+#include "../GraphicalObjects/Material.h"
+#include "../GraphicalObjects/Mesh.h"
 #include "glm/gtc/matrix_transform.hpp"
 
 
@@ -100,20 +100,29 @@ namespace RenderingEngine{
 
 
         void registerMeshMaterial(Material* material){
-            VulkanDescriptorSet* descriptorSet = RenderPipeline::acquireDescriptorSet();
-            descriptorSet->attachToObject(material);
-            if(material->getAoTexture()!=nullptr) {
-                descriptorSet->getSamplers()[1]->setSamplerImageView(material->getAoTexture()->getView());
+            if(materialDescriptors.count(material)==0){
+                VulkanDescriptorSet* descriptorSet = RenderPipeline::acquireDescriptorSet();
+                descriptorSet->attachToObject(material);
+                if(material->getAoTexture()!=nullptr) {
+                    descriptorSet->getSamplers()[1]->setSamplerImageView(material->getAoTexture()->getView());
+                }
+                if(material->getNormalMap()!=nullptr){
+                    descriptorSet->getSamplers()[2]->setSamplerImageView(material->getNormalMap()->getView());
+                }
+                if(shadowMap!=nullptr){
+                    descriptorSet->getSamplers()[0]->setSamplerImageView(shadowMap->getView());
+                }
+                descriptorSet->getUniformBuffers()[0]->write(&config);
+                descriptorSet->updateDescriptorSet(0);
+                materialDescriptors.insert(std::pair(material, descriptorSet));
             }
-            if(material->getNormalMap()!=nullptr){
-                descriptorSet->getSamplers()[2]->setSamplerImageView(material->getNormalMap()->getView());
+        }
+
+        void unRegisterMeshMaterial(Material* material){
+            if(materialDescriptors.count(material)>0){
+                materialDescriptors.at(material)->attachToObject(nullptr);
+                materialDescriptors.erase(material);
             }
-            if(shadowMap!=nullptr){
-                descriptorSet->getSamplers()[0]->setSamplerImageView(shadowMap->getView());
-            }
-            descriptorSet->getUniformBuffers()[0]->write(&config);
-            descriptorSet->updateDescriptorSet(0);
-            materialDescriptors.insert(std::pair(material, descriptorSet));
         }
 
         ShadowAssemblerConfig &getConfig() {

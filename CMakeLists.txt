@@ -6,7 +6,7 @@ project(CeleritasEngine)
 
 
 #Set path to your's vulkan sdk here
-set(VulkanSDKPath /home/kgaft/VulkanSDK/1.3.243.0/x86_64)
+set(VulkanSDKPath /home/kgaft/VulkanSDK/1.3.250.0/x86_64)
 
 set(CMAKE_CXX_STANDARD 17)
 
