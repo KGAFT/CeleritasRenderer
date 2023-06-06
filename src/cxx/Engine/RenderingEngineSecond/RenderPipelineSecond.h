@@ -23,8 +23,18 @@ namespace RenderEngine{
         VulkanSyncManager* syncManager;
         std::vector<VulkanImage *> outputImages;
         std::vector<VkImageView> imageViews;
-    public:
+        unsigned int imagePerStepAmount;
+    protected:
         void initialize(RenderEngine::RenderPipelineBuilder &builder);
+        VulkanDescriptorSet* acquireDescriptorSet();
+        void releaseDescriptorSet(VulkanDescriptorSet* descriptorSet);
+        std::vector<VulkanPushConstant*> &getPushConstants();
+        VkCommandBuffer beginRender();
+        void endRenderPass();
+        void endRender();
+        std::vector<VkImage>& getDepthImages();
+        std::vector<VulkanImage *> &getOutputImages();
+        void resize(int width, int height);
     private:
         bool initializeRenderOutputs(RenderEngine::RenderPipelineBuilder &builder);
     };

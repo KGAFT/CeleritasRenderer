@@ -34,7 +34,7 @@ void RenderEngine::RenderPipelineSecond::initialize(RenderEngine::RenderPipeline
                                                         builder.imageRenderOutputAmount,
                                                         outputImages[0]->getFormat());
     }
-
+    this->imagePerStepAmount = builder.imageRenderOutputAmount;
 }
 
 bool RenderEngine::RenderPipelineSecond::initializeRenderOutputs(RenderEngine::RenderPipelineBuilder &builder) {
@@ -50,4 +50,58 @@ bool RenderEngine::RenderPipelineSecond::initializeRenderOutputs(RenderEngine::R
     }
     return true;
 }
+
+VulkanDescriptorSet* RenderEngine::RenderPipelineSecond::acquireDescriptorSet() {
+    return endRenderPipeline->acquireDescriptorSet();
+}
+
+void RenderEngine::RenderPipelineSecond::releaseDescriptorSet(VulkanDescriptorSet *descriptorSet) {
+    descriptorSet->attachToObject(nullptr);
+}
+
+std::vector<VulkanPushConstant *> &RenderEngine::RenderPipelineSecond::getPushConstants() {
+    return endRenderPipeline->getPushConstants();
+}
+
+VkCommandBuffer RenderEngine::RenderPipelineSecond::beginRender() {
+    VkCommandBuffer cmd = endRenderPipeline->beginRender();
+    if (endRenderPipeline->getPushConstants().size() > 0)
+    {
+        endRenderPipeline->updatePushConstants();
+    }
+    return cmd;
+}
+
+void RenderEngine::RenderPipelineSecond::endRenderPass() {
+    endRenderPipeline->endRenderPass();
+}
+
+void RenderEngine::RenderPipelineSecond::endRender() {
+    endRenderPipeline->endRender();
+}
+
+std::vector<VkImage>& RenderEngine::RenderPipelineSecond::getDepthImages(){
+    return endRenderPipeline->getDepthImages();
+}
+
+std::vector<VulkanImage *> &RenderEngine::RenderPipelineSecond::getOutputImages()  {
+    return outputImages;
+}
+
+void RenderEngine::RenderPipelineSecond::resize(int width, int height) {
+    vkDeviceWaitIdle(device->getDevice());
+    if(swapChain==nullptr){
+        imageViews.clear();
+        for (const auto &item: outputImages){
+            item->resize(width, height);
+            imageViews.push_back(item->getView());
+        }
+        endRenderPipeline->resized(width, height, imageViews, this->imagePerStepAmount, outputImages[0]->getFormat());
+    }
+    else{
+        endRenderPipeline->resized(width,height);
+    }
+}
+
+
 

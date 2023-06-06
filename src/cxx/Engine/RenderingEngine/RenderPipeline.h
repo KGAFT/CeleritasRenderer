@@ -75,7 +75,7 @@ public:
     }
 
     void endRender(){
-        endRenderPipeline->endRender();
+        endRenderPipeline->endRenderPass();
         isRender = false;
     }
 
