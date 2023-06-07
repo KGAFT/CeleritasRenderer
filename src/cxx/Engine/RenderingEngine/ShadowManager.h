@@ -45,7 +45,8 @@ namespace RenderingEngine{
 
         void endShadowPass(glm::mat4 viewMatrix, glm::vec3 cameraPosition){
             depthBuffer->clearImage(0,0,0,0,shadowCmd);
-            depthBuffer->copyFromImage(shadowBufferPipeline->getDepthImages()[0], shadowCmd);
+            shadowBufferPipeline->endRenderPass();
+            depthBuffer->copyFromImage(shadowBufferPipeline->getDepthImages()[0], VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, shadowCmd);
             shadowBufferPipeline->endRender();
             shadowAssemblyPipeline->beginRender();
             for (const auto &item: meshesBuffer){
@@ -58,6 +59,7 @@ namespace RenderingEngine{
                 shadowAssemblyPipeline->processMesh(item);
 
             }
+            shadowAssemblyPipeline->endRenderPass();
             shadowAssemblyPipeline->endRender();
             meshesBuffer.clear();
         }

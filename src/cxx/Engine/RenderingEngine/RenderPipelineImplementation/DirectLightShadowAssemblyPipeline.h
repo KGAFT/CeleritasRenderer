@@ -72,8 +72,8 @@ namespace RenderingEngine{
             mesh->draw(currentCmd);
         }
 
-        void endRender(){
-            RenderPipeline::endRender();
+        void endRenderPass(){
+            RenderPipeline::endRenderPass();
         }
 
         VulkanDescriptorSet* populateConfigForMaterial(Material* material){

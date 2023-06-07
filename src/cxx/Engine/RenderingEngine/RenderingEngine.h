@@ -103,6 +103,10 @@ namespace RenderingEngine{
 
         }
 
+        VulkanSwapChain *getSwapChain() {
+            return swapChain;
+        }
+
         void drawRegisteredMeshes(){
             manager->update();
             gBufferPipeline->beginRender();
@@ -112,6 +116,7 @@ namespace RenderingEngine{
                 gBufferPipeline->processMesh(item);
                 shadowManager->processMesh(item);
             }
+            gBufferPipeline->endRenderPass();
             gBufferPipeline->endRender();
             shadowManager->endShadowPass(manager->getData()->viewMatrix, manager->getData()->cameraPosition);
 

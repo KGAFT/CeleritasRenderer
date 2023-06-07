@@ -92,6 +92,7 @@ namespace RenderingEngine{
                 quadVBO->bind(cmd);
                 quadIBO->bind(cmd);
                 quadIBO->draw(cmd);
+                RenderPipeline::endRenderPass();
                 RenderPipeline::endRender();
             }
         }

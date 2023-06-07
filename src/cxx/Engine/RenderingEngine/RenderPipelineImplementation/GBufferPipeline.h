@@ -27,7 +27,6 @@ namespace RenderingEngine{
 
             endConfig.pushConstantInfos.push_back({VK_SHADER_STAGE_VERTEX_BIT, sizeof(PushConstantData)});
             endConfig.uniformBuffers.push_back({0, sizeof(GBufferConfig), VK_SHADER_STAGE_FRAGMENT_BIT});
-            endConfig.alphaBlend = true;
             for (int i = 1; i <= 8; i++) {
                 endConfig.samplers.push_back({i, VK_SHADER_STAGE_FRAGMENT_BIT});
             }
@@ -67,8 +66,8 @@ namespace RenderingEngine{
             mesh->draw(currentCmd);
         }
 
-        void endRender() {
-            RenderPipeline::endRender();
+        void endRenderPass() {
+            RenderPipeline::endRenderPass();
         }
 
         GBufferConfig &getConfig()  {

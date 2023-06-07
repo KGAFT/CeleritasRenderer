@@ -2,6 +2,7 @@
 #include "Window/Monitor.h"
 #include "Engine/RenderingEngine/RenderingEngine.h"
 #include "Util/ModelLoader.h"
+#include "Engine/RenderingEngineSecond/RenderingPipelines/AssemblyPipeline.h"
 #include <glm/glm.hpp>
 #include <array>
 
@@ -26,6 +27,8 @@ int main() {
    // std::cin>>count;
     count = 0;
     RenderingEngine::Engine engine(devices[count], Window::getInstance());
+    RenderEngine::AssemblyPipeline assemblyPipeline(engine.getDevice(), engine.getSwapChain(), 800, 600);
+
     ModelLoader loader(engine.getDevice());
     std::vector<Mesh*> helmetMeshes = loader.loadModel("models/Helmet/DamagedHelmet.gltf", true);
     VulkanImage *albedoIm = VulkanImage::loadTexture("models/Helmet/Default_albedo.jpg", engine.getDevice());

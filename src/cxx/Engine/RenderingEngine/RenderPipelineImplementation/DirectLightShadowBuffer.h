@@ -66,8 +66,8 @@ namespace RenderingEngine {
             return viewData;
         }
 
-        void endRender() {
-            RenderPipeline::endRender();
+        void endRenderPass() {
+            RenderPipeline::endRenderPass();
         }
 
     };

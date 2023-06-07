@@ -14,7 +14,7 @@
 namespace RenderEngine{
     class RenderPipelineSecond {
     public:
-        RenderPipelineSecond(VulkanDevice* device, VulkanSwapChain swapChain);
+        RenderPipelineSecond(VulkanDevice* device, VulkanSwapChain* swapChain);
     private:
         VulkanDevice* device;
         VulkanSwapChain* swapChain;
@@ -35,6 +35,9 @@ namespace RenderEngine{
         std::vector<VkImage>& getDepthImages();
         std::vector<VulkanImage *> &getOutputImages();
         void resize(int width, int height);
+        void initUi(GLFWwindow* window);
+        void updatePushConstants();
+        VkPipelineLayout getPipelineLayout();
     private:
         bool initializeRenderOutputs(RenderEngine::RenderPipelineBuilder &builder);
     };

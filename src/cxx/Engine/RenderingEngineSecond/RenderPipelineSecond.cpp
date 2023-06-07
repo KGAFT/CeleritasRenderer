@@ -4,7 +4,7 @@
 
 #include "RenderPipelineSecond.h"
 
-RenderEngine::RenderPipelineSecond::RenderPipelineSecond(VulkanDevice *device, VulkanSwapChain swapChain) {
+RenderEngine::RenderPipelineSecond::RenderPipelineSecond(VulkanDevice *device, VulkanSwapChain* swapChain) : device(device), swapChain(swapChain) {
 
 }
 
@@ -23,7 +23,7 @@ void RenderEngine::RenderPipelineSecond::initialize(RenderEngine::RenderPipeline
                                                         &builder.endConfiguration,
                                                         builder.startFramebufferWidth,
                                                         builder.startFramebufferHeight, swapChain->getSwapChainImageViews(),
-                                                        0, swapChain->getSwapChainImageFormat());
+                                                        builder.imageRenderOutputAmount, swapChain->getSwapChainImageFormat());
     }
     else{
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader,
@@ -101,6 +101,18 @@ void RenderEngine::RenderPipelineSecond::resize(int width, int height) {
     else{
         endRenderPipeline->resized(width,height);
     }
+}
+
+void RenderEngine::RenderPipelineSecond::initUi(GLFWwindow *window){
+    endRenderPipeline->initIMGUI(window);
+}
+
+VkPipelineLayout RenderEngine::RenderPipelineSecond::getPipelineLayout() {
+    return endRenderPipeline->getPipelineLayout();
+}
+
+void RenderEngine::RenderPipelineSecond::updatePushConstants() {
+    endRenderPipeline->updatePushConstants();
 }
 
 

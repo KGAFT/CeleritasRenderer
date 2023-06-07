@@ -74,9 +74,14 @@ public:
         return endRenderPipeline;
     }
 
-    void endRender(){
+
+    void endRenderPass(){
         endRenderPipeline->endRenderPass();
         isRender = false;
+    }
+
+    void endRender(){
+        endRenderPipeline->endRender();
     }
 
     void initUi(GLFWwindow* window){
