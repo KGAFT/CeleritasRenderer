@@ -5,8 +5,8 @@
 #pragma once
 
 #include "../RenderPipelineSecond.h"
-#include "../../RenderingEngine/GraphicalObjects/Material.h"
-#include "../../RenderingEngine/GraphicalObjects/Mesh.h"
+#include "../GraphicalObjects/Material.h"
+#include "../GraphicalObjects/Mesh.h"
 #include <glm/glm.hpp>
 
 namespace RenderEngine{
@@ -23,7 +23,7 @@ namespace RenderEngine{
         glm::vec3 cameraPosition;
     };
 
-    class GBufferPipeline : public RenderPipelineSecond{
+    class GBufferPipeline : public RenderPipeline{
     public:
         GBufferPipeline(VulkanDevice* device, int width, int height);
     private:

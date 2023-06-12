@@ -4,11 +4,11 @@
 
 #include "RenderPipelineSecond.h"
 
-RenderEngine::RenderPipelineSecond::RenderPipelineSecond(VulkanDevice *device, VulkanSwapChain* swapChain) : device(device), swapChain(swapChain) {
+RenderEngine::RenderPipeline::RenderPipeline(VulkanDevice *device, VulkanSwapChain* swapChain) : device(device), swapChain(swapChain) {
 
 }
 
-void RenderEngine::RenderPipelineSecond::initialize(RenderEngine::RenderPipelineBuilder &builder) {
+void RenderEngine::RenderPipeline::initialize(RenderEngine::RenderPipelineBuilder &builder) {
     if(builder.isComplete()){
         syncManager = new VulkanSyncManager(device, swapChain);
         shader = ShaderLoader::loadShaders(builder.pathToShader, device);
@@ -37,7 +37,7 @@ void RenderEngine::RenderPipelineSecond::initialize(RenderEngine::RenderPipeline
     this->imagePerStepAmount = builder.imageRenderOutputAmount;
 }
 
-bool RenderEngine::RenderPipelineSecond::initializeRenderOutputs(RenderEngine::RenderPipelineBuilder &builder) {
+bool RenderEngine::RenderPipeline::initializeRenderOutputs(RenderEngine::RenderPipelineBuilder &builder) {
     if(builder.imageRenderOutputAmount==0 and swapChain==nullptr){
         throw std::runtime_error("Error: you did not specified output images");
     }
@@ -51,19 +51,19 @@ bool RenderEngine::RenderPipelineSecond::initializeRenderOutputs(RenderEngine::R
     return true;
 }
 
-VulkanDescriptorSet* RenderEngine::RenderPipelineSecond::acquireDescriptorSet() {
+VulkanDescriptorSet* RenderEngine::RenderPipeline::acquireDescriptorSet() {
     return endRenderPipeline->acquireDescriptorSet();
 }
 
-void RenderEngine::RenderPipelineSecond::releaseDescriptorSet(VulkanDescriptorSet *descriptorSet) {
+void RenderEngine::RenderPipeline::releaseDescriptorSet(VulkanDescriptorSet *descriptorSet) {
     descriptorSet->attachToObject(nullptr);
 }
 
-std::vector<VulkanPushConstant *> &RenderEngine::RenderPipelineSecond::getPushConstants() {
+std::vector<VulkanPushConstant *> &RenderEngine::RenderPipeline::getPushConstants() {
     return endRenderPipeline->getPushConstants();
 }
 
-VkCommandBuffer RenderEngine::RenderPipelineSecond::beginRender() {
+VkCommandBuffer RenderEngine::RenderPipeline::beginRender() {
     VkCommandBuffer cmd = endRenderPipeline->beginRender();
     if (endRenderPipeline->getPushConstants().size() > 0)
     {
@@ -72,23 +72,23 @@ VkCommandBuffer RenderEngine::RenderPipelineSecond::beginRender() {
     return cmd;
 }
 
-void RenderEngine::RenderPipelineSecond::endRenderPass() {
+void RenderEngine::RenderPipeline::endRenderPass() {
     endRenderPipeline->endRenderPass();
 }
 
-void RenderEngine::RenderPipelineSecond::endRender() {
+void RenderEngine::RenderPipeline::endRender() {
     endRenderPipeline->endRender();
 }
 
-std::vector<VkImage>& RenderEngine::RenderPipelineSecond::getDepthImages(){
+std::vector<VkImage>& RenderEngine::RenderPipeline::getDepthImages(){
     return endRenderPipeline->getDepthImages();
 }
 
-std::vector<VulkanImage *> &RenderEngine::RenderPipelineSecond::getOutputImages()  {
+std::vector<VulkanImage *> &RenderEngine::RenderPipeline::getOutputImages()  {
     return outputImages;
 }
 
-void RenderEngine::RenderPipelineSecond::resize(int width, int height) {
+void RenderEngine::RenderPipeline::resize(int width, int height) {
     vkDeviceWaitIdle(device->getDevice());
     if(swapChain==nullptr){
         imageViews.clear();
@@ -103,15 +103,15 @@ void RenderEngine::RenderPipelineSecond::resize(int width, int height) {
     }
 }
 
-void RenderEngine::RenderPipelineSecond::initUi(GLFWwindow *window){
+void RenderEngine::RenderPipeline::initUi(GLFWwindow *window){
     endRenderPipeline->initIMGUI(window);
 }
 
-VkPipelineLayout RenderEngine::RenderPipelineSecond::getPipelineLayout() {
+VkPipelineLayout RenderEngine::RenderPipeline::getPipelineLayout() {
     return endRenderPipeline->getPipelineLayout();
 }
 
-void RenderEngine::RenderPipelineSecond::updatePushConstants() {
+void RenderEngine::RenderPipeline::updatePushConstants() {
     endRenderPipeline->updatePushConstants();
 }
 

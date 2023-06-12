@@ -4,7 +4,7 @@
 
 #include "GameAssemblyPipeline.h"
 
-RenderEngine::GameAssemblyPipeline::GameAssemblyPipeline(VulkanDevice *device, int width, int height) : RenderPipelineSecond(device, nullptr), device(device){
+RenderEngine::GameAssemblyPipeline::GameAssemblyPipeline(VulkanDevice *device, int width, int height) : RenderPipeline(device, nullptr), device(device){
     RenderPipelineBuilder builder;
     builder.setPathToShader("shaders/GameAssemblyPipeline")
             ->setStartFramebufferWidth(width)
@@ -16,8 +16,8 @@ RenderEngine::GameAssemblyPipeline::GameAssemblyPipeline(VulkanDevice *device, i
     }
     builder.addPushConstant(sizeof(VertexConfig), VK_SHADER_STAGE_VERTEX_BIT);
     builder.addUniformBuffer(0, sizeof(LightConfiguration), VK_SHADER_STAGE_FRAGMENT_BIT);
-    RenderPipelineSecond::initialize(builder);
-    gBufferDescriptor = RenderPipelineSecond::acquireDescriptorSet();
+    RenderPipeline::initialize(builder);
+    gBufferDescriptor = RenderPipeline::acquireDescriptorSet();
     quadDrawMesh = acquireQuadMesh(device);
 }
 
@@ -41,11 +41,11 @@ RenderEngine::VertexConfig &RenderEngine::GameAssemblyPipeline::getVertexConfig(
 }
 
 void RenderEngine::GameAssemblyPipeline::update() {
-    VkCommandBuffer cmd = RenderPipelineSecond::beginRender();
-    RenderPipelineSecond::getPushConstants()[0]->setData(&vertexConfig);
+    VkCommandBuffer cmd = RenderPipeline::beginRender();
+    RenderPipeline::getPushConstants()[0]->setData(&vertexConfig);
     gBufferDescriptor->getUniformBuffers()[0]->write(&lightConfig);
-    gBufferDescriptor->bind(0, cmd, RenderPipelineSecond::getPipelineLayout());
+    gBufferDescriptor->bind(0, cmd, RenderPipeline::getPipelineLayout());
     quadDrawMesh->draw(cmd);
-    RenderPipelineSecond::endRenderPass();
-    RenderPipelineSecond::endRender();
+    RenderPipeline::endRenderPass();
+    RenderPipeline::endRender();
 }

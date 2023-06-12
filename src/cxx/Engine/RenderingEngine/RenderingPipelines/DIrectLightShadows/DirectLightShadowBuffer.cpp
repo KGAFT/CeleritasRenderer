@@ -4,7 +4,7 @@
 
 #include "DirectLightShadowBuffer.h"
 
-RenderEngine::DirectLightShadowBuffer::DirectLightShadowBuffer(VulkanDevice *device, int width, int height) : RenderPipelineSecond(device, nullptr), device(device){
+RenderEngine::DirectLightShadowBuffer::DirectLightShadowBuffer(VulkanDevice *device, int width, int height) : RenderPipeline(device, nullptr), device(device){
     RenderPipelineBuilder builder;
     builder.setPathToShader("shaders/DirectLightShadowBuffer")
             ->setStartFramebufferWidth(width)
@@ -14,8 +14,8 @@ RenderEngine::DirectLightShadowBuffer::DirectLightShadowBuffer(VulkanDevice *dev
             ->addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
             ->addPushConstant(sizeof(LightViewData), VK_SHADER_STAGE_VERTEX_BIT)
             ->setImageRenderOutputAmount(1);
-    RenderPipelineSecond::initialize(builder);
-    RenderPipelineSecond::getPushConstants()[0]->setData(&viewData);
+    RenderPipeline::initialize(builder);
+    RenderPipeline::getPushConstants()[0]->setData(&viewData);
 }
 
 void
@@ -26,17 +26,17 @@ RenderEngine::DirectLightShadowBuffer::recalculateMatrixForLightSource(glm::vec3
 }
 
 void RenderEngine::DirectLightShadowBuffer::beginRender() {
-    currentCmd = RenderPipelineSecond::beginRender();
+    currentCmd = RenderPipeline::beginRender();
 }
 
 void RenderEngine::DirectLightShadowBuffer::processMesh(Mesh *mesh) {
     viewData.worldMatrix = mesh->getWorldMatrix();
-    RenderPipelineSecond::getPushConstants()[0]->setData(&viewData);
-    RenderPipelineSecond::updatePushConstants();
+    RenderPipeline::getPushConstants()[0]->setData(&viewData);
+    RenderPipeline::updatePushConstants();
     mesh->draw(currentCmd);
 }
 
 void RenderEngine::DirectLightShadowBuffer::endRender() {
-    RenderPipelineSecond::endRenderPass();
-    RenderPipelineSecond::endRender();
+    RenderPipeline::endRenderPass();
+    RenderPipeline::endRender();
 }

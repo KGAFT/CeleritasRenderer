@@ -4,11 +4,11 @@
 #pragma once
 
 #include "../RenderPipelineSecond.h"
-#include "../../RenderingEngine/GraphicalObjects/Material.h"
-#include "../../RenderingEngine/GraphicalObjects/Mesh.h"
+#include "../GraphicalObjects/Material.h"
+#include "../GraphicalObjects/Mesh.h"
 #include "GBufferPipeline.h"
 #include <glm/glm.hpp>
-#include "../../RenderingEngine/PrimitiveObjects/Quad.h"
+#include "../PrimitiveObjects/Quad.h"
 
 #define LIGHT_BLOCKS_AMOUNT 100
 
@@ -43,7 +43,7 @@ namespace RenderEngine{
         glm::vec3 cameraPosition = glm::vec3(0);
     };
 
-    class GameAssemblyPipeline : public RenderPipelineSecond {
+    class GameAssemblyPipeline : public RenderPipeline {
     public:
         GameAssemblyPipeline(VulkanDevice* device, int width, int height);
     private:

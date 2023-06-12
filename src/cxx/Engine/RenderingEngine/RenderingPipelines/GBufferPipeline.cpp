@@ -4,7 +4,7 @@
 
 #include "GBufferPipeline.h"
 
-RenderEngine::GBufferPipeline::GBufferPipeline(VulkanDevice *device, int width, int height) : RenderPipelineSecond(device, nullptr){
+RenderEngine::GBufferPipeline::GBufferPipeline(VulkanDevice *device, int width, int height) : RenderPipeline(device, nullptr){
     RenderPipelineBuilder builder;
     builder.setPathToShader("shader/GBufferPipeline")
     ->addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
@@ -16,19 +16,23 @@ RenderEngine::GBufferPipeline::GBufferPipeline(VulkanDevice *device, int width, 
         builder.addSampler(i, VK_SHADER_STAGE_FRAGMENT_BIT);
     }
     builder.setStartFramebufferWidth(width)->setStartFramebufferHeight(height);
-    RenderPipelineSecond::initialize(builder);
-    RenderPipelineSecond::getPushConstants()[0]->setData(&worldTransformData);
+    RenderPipeline::initialize(builder);
+    RenderPipeline::getPushConstants()[0]->setData(&worldTransformData);
 }
 
 void RenderEngine::GBufferPipeline::registerMaterial(Material *material) {
     VulkanDescriptorSet* descriptorSet;
     if(materialDescriptors.count(material)==0){
-        descriptorSet = RenderPipelineSecond::acquireDescriptorSet();
+        descriptorSet = RenderPipeline::acquireDescriptorSet();
         descriptorSet->attachToObject(material);
     }
     else{
         descriptorSet = materialDescriptors.at(material);
     }
+    gBufferConfig.aoEnabled = material->getAoTexture()!=nullptr;
+    gBufferConfig.combinedMetallicRoughness = material->getMetallicRoughnessTexture()!=nullptr;
+    gBufferConfig.emissiveEnabled = material->getEmissiveTexture()!=nullptr;
+    gBufferConfig.opacityMapEnabled = material->getOpacityMapTexture()!=nullptr;
     descriptorSet->getUniformBuffers()[0]->write(&gBufferConfig);
 
     descriptorSet->attachToObject(material);
@@ -71,7 +75,7 @@ void RenderEngine::GBufferPipeline::unRegisterMaterial(Material *material) {
 }
 
 void RenderEngine::GBufferPipeline::beginRender() {
-    currentCmd = RenderPipelineSecond::beginRender();
+    currentCmd = RenderPipeline::beginRender();
 }
 
 void RenderEngine::GBufferPipeline::drawMesh(Mesh *mesh) {
@@ -79,35 +83,35 @@ void RenderEngine::GBufferPipeline::drawMesh(Mesh *mesh) {
         throw std::runtime_error("Error: your mesh is use unregistered material, please register it!");
     }
     VulkanDescriptorSet* materialDescriptor = materialDescriptors.at(mesh->getMaterial());
-    materialDescriptor->getUniformBuffers()[0]->write(&gBufferConfig);
-    materialDescriptor->bind(0, currentCmd, RenderPipelineSecond::getPipelineLayout());
+
+    materialDescriptor->bind(0, currentCmd, RenderPipeline::getPipelineLayout());
     worldTransformData.worldMatrix = mesh->getWorldMatrix();
-    RenderPipelineSecond::updatePushConstants();
+    RenderPipeline::updatePushConstants();
     mesh->draw(currentCmd);
 
 }
 
 void RenderEngine::GBufferPipeline::endRender() {
-    RenderPipelineSecond::endRenderPass();
-    RenderPipelineSecond::endRender();
+    RenderPipeline::endRenderPass();
+    RenderPipeline::endRender();
 }
 
 VulkanImage *RenderEngine::GBufferPipeline::getPositionsImage() {
-    return RenderPipelineSecond::getOutputImages()[0];
+    return RenderPipeline::getOutputImages()[0];
 }
 
 VulkanImage *RenderEngine::GBufferPipeline::getAlbedoMapImage() {
-    return RenderPipelineSecond::getOutputImages()[1];
+    return RenderPipeline::getOutputImages()[1];
 }
 
 VulkanImage *RenderEngine::GBufferPipeline::getNormalMapImage() {
-    return RenderPipelineSecond::getOutputImages()[2];
+    return RenderPipeline::getOutputImages()[2];
 }
 
 VulkanImage *RenderEngine::GBufferPipeline::getMetallicRoughnessEmissiveInvao()  {
-    return RenderPipelineSecond::getOutputImages()[3];
+    return RenderPipeline::getOutputImages()[3];
 }
 
 VulkanImage* RenderEngine::GBufferPipeline::getAoImage(){
-    return RenderPipelineSecond::getOutputImages()[4];
+    return RenderPipeline::getOutputImages()[4];
 }

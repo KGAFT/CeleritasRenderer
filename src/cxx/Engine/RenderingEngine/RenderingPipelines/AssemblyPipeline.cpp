@@ -4,7 +4,7 @@
 
 #include "AssemblyPipeline.h"
 
-RenderEngine::AssemblyPipeline::AssemblyPipeline(VulkanDevice *device, VulkanSwapChain *swapChain, int width, int height) : RenderPipelineSecond(device, swapChain), device(device), swapChain(swapChain){
+RenderEngine::AssemblyPipeline::AssemblyPipeline(VulkanDevice *device, VulkanSwapChain *swapChain, int width, int height) : RenderPipeline(device, swapChain), device(device), swapChain(swapChain){
     RenderPipelineBuilder builder;
     builder.setImageRenderOutputAmount(1)
     ->addPushConstant(sizeof(AssemblyPipelineSetup), VK_SHADER_STAGE_FRAGMENT_BIT)
@@ -12,13 +12,13 @@ RenderEngine::AssemblyPipeline::AssemblyPipeline(VulkanDevice *device, VulkanSwa
             ->addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
             ->addVertexInput(1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT)
             ->setStartFramebufferWidth(width)->setStartFramebufferHeight(height)->setPathToShader("shaders/OutputPipeline");
-    RenderPipelineSecond::initialize(builder);
-    inputsDescriptorSet = RenderPipelineSecond::acquireDescriptorSet();
+    RenderPipeline::initialize(builder);
+    inputsDescriptorSet = RenderPipeline::acquireDescriptorSet();
     inputsDescriptorSet->attachToObject(this);
 
     quadDrawMesh = acquireQuadMesh(device);
     setup = {};
-    RenderPipelineSecond::getPushConstants()[0]->setData(&setup);
+    RenderPipeline::getPushConstants()[0]->setData(&setup);
 }
 
 void RenderEngine::AssemblyPipeline::setGamePlaceHolder(VulkanImage* placeHolder) {
@@ -29,9 +29,9 @@ void RenderEngine::AssemblyPipeline::setGamePlaceHolder(VulkanImage* placeHolder
 }
 
 void RenderEngine::AssemblyPipeline::update() {
-    VkCommandBuffer cmd = RenderPipelineSecond::beginRender();
+    VkCommandBuffer cmd = RenderPipeline::beginRender();
     quadDrawMesh->draw(cmd);
-    RenderPipelineSecond::endRenderPass();
-    RenderPipelineSecond::endRender();
+    RenderPipeline::endRenderPass();
+    RenderPipeline::endRender();
 }
 

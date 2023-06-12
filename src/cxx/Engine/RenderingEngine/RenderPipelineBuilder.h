@@ -7,7 +7,7 @@
 
 namespace RenderEngine{
     class RenderPipelineBuilder {
-        friend class RenderPipelineSecond;
+        friend class RenderPipeline;
     public:
         RenderPipelineBuilder();
     private:

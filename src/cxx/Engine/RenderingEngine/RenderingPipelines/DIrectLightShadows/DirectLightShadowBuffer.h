@@ -4,11 +4,11 @@
 #pragma once
 
 
-#include "../RenderPipelineSecond.h"
-#include "../../RenderingEngine/GraphicalObjects/Material.h"
-#include "../../RenderingEngine/GraphicalObjects/Mesh.h"
+#include "../../RenderPipeline.h"
+#include "../../GraphicalObjects/Material.h"
+#include "../../GraphicalObjects/Mesh.h"
 #include <glm/glm.hpp>
-#include "../../RenderingEngine/PrimitiveObjects/Quad.h"
+#include "../../PrimitiveObjects/Quad.h"
 
 namespace RenderEngine{
     struct LightViewData {
@@ -16,7 +16,7 @@ namespace RenderEngine{
         glm::mat4 worldMatrix;
     };
 
-    class DirectLightShadowBuffer : public RenderPipelineSecond{
+    class DirectLightShadowBuffer : public RenderPipeline{
     public:
         DirectLightShadowBuffer(VulkanDevice* device, int width, int height);
     private:
