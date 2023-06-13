@@ -2,7 +2,7 @@
 // Created by kgaft on 6/6/23.
 //
 
-#include "RenderPipelineSecond.h"
+#include "RenderPipeline.h"
 
 RenderEngine::RenderPipeline::RenderPipeline(VulkanDevice *device, VulkanSwapChain* swapChain) : device(device), swapChain(swapChain) {
 

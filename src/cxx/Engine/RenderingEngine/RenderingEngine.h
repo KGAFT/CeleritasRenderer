@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <Vulkan/VulkanDevice.h>
+#include <Vulkan/VulkanDevice/VulkanDevice.h>
 
 namespace RenderEngine{
     struct EngineDevice{

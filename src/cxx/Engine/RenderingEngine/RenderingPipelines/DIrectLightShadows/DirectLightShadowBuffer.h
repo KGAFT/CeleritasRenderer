@@ -30,6 +30,7 @@ namespace RenderEngine{
         void endRender();
         void endRenderPass();
         std::vector<VkImage>& getDepthImages();
+        LightViewData& getViewData();
         void resize(int width, int height);
     };
 }

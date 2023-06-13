@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "../RenderPipelineSecond.h"
+#include "../RenderPipeline.h"
 #include "../GraphicalObjects/Material.h"
 #include "../GraphicalObjects/Mesh.h"
 #include "GBufferPipeline.h"

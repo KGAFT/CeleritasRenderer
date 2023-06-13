@@ -5,3 +5,6 @@
 [submodule "modules/VulkanContext"]
 	path = modules/VulkanContext
 	url = https://github.com/KGAFT/VulkanContext
+[submodule "modulesToCompile/assimp"]
+	path = modulesToCompile/assimp
+	url = https://github.com/assimp/assimp
