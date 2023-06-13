@@ -39,9 +39,14 @@ void DirectLightShadowAssemblyPipeline::processMesh(Mesh *mesh)
     mesh->draw(currentCmd);
 }
 
-void DirectLightShadowAssemblyPipeline::endRender()
+void DirectLightShadowAssemblyPipeline::endRenderPass()
 {
     RenderPipeline::endRenderPass();
+}
+
+void DirectLightShadowAssemblyPipeline::endRender()
+{
+
     RenderPipeline::endRender();
 }
 
@@ -98,4 +103,14 @@ ShadowAssemblerConfig &DirectLightShadowAssemblyPipeline::getConfig()
 WorldTransformData &DirectLightShadowAssemblyPipeline::getWorldTransformData()
 {
     return wtData;
+}
+
+std::vector<VulkanImage *> &DirectLightShadowAssemblyPipeline::getOutputImages()
+{
+    return RenderPipeline::getOutputImages();
+}
+
+void DirectLightShadowAssemblyPipeline::resize(int width, int height)
+{
+    RenderPipeline::resize(width, height);
 }

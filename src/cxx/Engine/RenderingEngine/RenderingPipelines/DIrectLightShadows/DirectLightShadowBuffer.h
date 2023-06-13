@@ -25,9 +25,12 @@ namespace RenderEngine{
         VkCommandBuffer currentCmd;
     public:
         void recalculateMatrixForLightSource(glm::vec3 lightPos, int maxLightShadowDistance);
-        void beginRender();
+        VkCommandBuffer beginRender();
         void processMesh(Mesh* mesh);
         void endRender();
+        void endRenderPass();
+        std::vector<VkImage>& getDepthImages();
+        void resize(int width, int height);
     };
 }
 

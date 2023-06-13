@@ -25,8 +25,9 @@ RenderEngine::DirectLightShadowBuffer::recalculateMatrixForLightSource(glm::vec3
     viewData.lightSpaceMatrix = lightProjection * lightView;
 }
 
-void RenderEngine::DirectLightShadowBuffer::beginRender() {
+VkCommandBuffer RenderEngine::DirectLightShadowBuffer::beginRender() {
     currentCmd = RenderPipeline::beginRender();
+    return currentCmd;
 }
 
 void RenderEngine::DirectLightShadowBuffer::processMesh(Mesh *mesh) {
@@ -36,7 +37,17 @@ void RenderEngine::DirectLightShadowBuffer::processMesh(Mesh *mesh) {
     mesh->draw(currentCmd);
 }
 
-void RenderEngine::DirectLightShadowBuffer::endRender() {
-    RenderPipeline::endRenderPass();
+void RenderEngine::DirectLightShadowBuffer::endRender(){
     RenderPipeline::endRender();
+}
+void RenderEngine::DirectLightShadowBuffer::endRenderPass(){
+    RenderPipeline::endRenderPass();
+}
+
+std::vector<VkImage>& RenderEngine::DirectLightShadowBuffer::getDepthImages(){
+    return RenderPipeline::getDepthImages();
+}
+
+void RenderEngine::DirectLightShadowBuffer::resize(int width, int height){
+    RenderPipeline::resize(width, height);
 }

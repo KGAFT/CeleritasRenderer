@@ -1,15 +1,16 @@
 #pragma once
 
-#include "../RenderPipelineSecond.h"
+#include "../RenderPipeline.h"
 #include "../GraphicalObjects/Material.h"
 #include "../GraphicalObjects/Mesh.h"
+#include "../PrimitiveObjects/Skybox.h"
 #include <Vulkan/VulkanImage/VulkanCubemapImage.h>
 #include <glm/glm.hpp>
 namespace RenderEngine
 {
     struct SkyboxConfig
     {
-        mat4 cameraMatrix;
+        glm::mat4 cameraMatrix;
     };
     class SkyboxPipeline : public RenderPipeline
     {
@@ -20,8 +21,9 @@ namespace RenderEngine
         VulkanDevice *device;
         VulkanDescriptorSet *descriptorSet;
         SkyboxConfig skyboxConfig{};
+        Mesh* skyboxMesh;
     public:
-        void update();
+        void update(glm::mat4 cameraMatrix);
         void setSkyboxImage(VulkanCubemapImage* skyboxImage);
     };
 

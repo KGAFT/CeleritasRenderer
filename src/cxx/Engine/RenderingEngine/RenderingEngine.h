@@ -2,16 +2,21 @@
 // Created by kgaft on 6/7/23.
 //
 
-#ifndef CELERITASENGINE_RENDERUNGENGINESECOND_H
-#define CELERITASENGINE_RENDERUNGENGINESECOND_H
+#pragma once
+
+#include <Vulkan/VulkanDevice.h>
 
 namespace RenderEngine{
-    class EngineSecond{
+    struct EngineDevice{
+        const char* name;
+        VkPhysicalDevice base;
+    };
+    
+    class Engine{
+        public:
 
     };
-
 }
 
 
 
-#endif //CELERITASENGINE_RENDERUNGENGINESECOND_H

@@ -40,12 +40,16 @@ namespace RenderEngine
         public:
             VkCommandBuffer beginRender();
             void processMesh(Mesh* mesh);
+            void endRenderPass();
             void endRender();
             void registerMaterial(Material* material);
             void setShadowMap(VulkanImage* shadowMap);
             void unRegisterMeshMaterial(Material* material);
             ShadowAssemblerConfig& getConfig();
             WorldTransformData& getWorldTransformData();
+            std::vector<VulkanImage*>& getOutputImages();
+            void resize(int width, int height);
+
     };
 
 }

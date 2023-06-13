@@ -1,8 +1,8 @@
 #include "ShadowManager.h"
 
-using namespace RenderEngine::ShadowManager;
+using namespace RenderEngine;
 
-ShadowManager(VulkanDevice *device, int bufferQuadLen, int windowWidth, int windowHeight) : device(device)
+ShadowManager::ShadowManager(VulkanDevice *device, int bufferQuadLen, int windowWidth, int windowHeight) : device(device)
 {
     shadowBufferPipeline = new DirectLightShadowBuffer(device, bufferQuadLen, bufferQuadLen);
     depthBuffer = VulkanImage::createImageWithFormat(device, bufferQuadLen, bufferQuadLen, findDepthFormat());
@@ -10,33 +10,33 @@ ShadowManager(VulkanDevice *device, int bufferQuadLen, int windowWidth, int wind
     shadowAssemblyPipeline->setShadowMap(depthBuffer);
 }
 
-void setupLightView(glm::vec3 lightPosition, float maxLightDistance)
+void ShadowManager::setupLightView(glm::vec3 lightPosition, float maxLightDistance)
 {
     shadowBufferPipeline->recalculateMatrixForLightSource(lightPosition, maxLightDistance);
     shadowAssemblyPipeline->getConfig().lightPosition = lightPosition;
 }
 
-void beginShadowPass()
+void ShadowManager::beginShadowPass()
 {
     shadowCmd = shadowBufferPipeline->beginRender();
 }
-void processMesh(Mesh *mesh)
+void ShadowManager::processMesh(Mesh *mesh)
 {
     shadowBufferPipeline->processMesh(mesh);
     meshesBuffer.push_back(mesh);
 }
 
-void registerMesh(Mesh *mesh)
+void ShadowManager::registerMesh(Mesh *mesh)
 {
-    shadowAssemblyPipeline->registerMeshMaterial(mesh->getMaterial());
+    shadowAssemblyPipeline->registerMaterial(mesh->getMaterial());
 }
 
-void unRegisterMesh(Mesh *mesh)
+void ShadowManager::unRegisterMesh(Mesh *mesh)
 {
     shadowAssemblyPipeline->unRegisterMeshMaterial(mesh->getMaterial());
 }
 
-void endShadowPass(glm::mat4 viewMatrix, glm::vec3 cameraPosition)
+void ShadowManager::endShadowPass(glm::mat4 viewMatrix, glm::vec3 cameraPosition)
 {
     depthBuffer->clearImage(0, 0, 0, 0, shadowCmd);
     shadowBufferPipeline->endRenderPass();
@@ -47,9 +47,9 @@ void endShadowPass(glm::mat4 viewMatrix, glm::vec3 cameraPosition)
     {
         shadowAssemblyPipeline->getConfig().normalMapEnabled = item->getMaterial()->getNormalMap() != nullptr;
         shadowAssemblyPipeline->getConfig().previousAoEnabled = item->getMaterial()->getAoTexture() != nullptr;
-        shadowAssemblyPipeline->getWorldTransfomData().lightSpaceMatrix = shadowBufferPipeline->getViewData().lightSpaceMatrix;
-        shadowAssemblyPipeline->getWorldTransfomData().viewMatrix = viewMatrix;
-        shadowAssemblyPipeline->getWorldTransfomData().cameraPosition = cameraPosition;
+        shadowAssemblyPipeline->getWorldTransformData().lightSpaceMatrix = shadowBufferPipeline->getViewData().lightSpaceMatrix;
+        shadowAssemblyPipeline->getWorldTransformData().viewMatrix = viewMatrix;
+        shadowAssemblyPipeline->getWorldTransformData().cameraPosition = cameraPosition;
 
         shadowAssemblyPipeline->processMesh(item);
     }
@@ -58,46 +58,24 @@ void endShadowPass(glm::mat4 viewMatrix, glm::vec3 cameraPosition)
     meshesBuffer.clear();
 }
 
-void endShadowPass(glm::mat4 viewMatrix, glm::vec3 cameraPosition)
-{
-    depthBuffer->clearImage(0, 0, 0, 0, shadowCmd);
-    shadowBufferPipeline->endRenderPass();
-    depthBuffer->copyFromImage(shadowBufferPipeline->getDepthImages()[0], VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, shadowCmd);
-    shadowBufferPipeline->endRender();
-    shadowAssemblyPipeline->beginRender();
-    for (const auto &item : meshesBuffer)
-    {
-        shadowAssemblyPipeline->getConfig().normalMapEnabled = item->getMaterial()->getNormalMap() != nullptr;
-        shadowAssemblyPipeline->getConfig().previousAoEnabled = item->getMaterial()->getAoTexture() != nullptr;
-        shadowAssemblyPipeline->getWorldTransfomData().lightSpaceMatrix = shadowBufferPipeline->getViewData().lightSpaceMatrix;
-        shadowAssemblyPipeline->getWorldTransfomData().viewMatrix = viewMatrix;
-        shadowAssemblyPipeline->getWorldTransfomData().cameraPosition = cameraPosition;
-
-        shadowAssemblyPipeline->processMesh(item);
-    }
-    shadowAssemblyPipeline->endRenderPass();
-    shadowAssemblyPipeline->endRender();
-    meshesBuffer.clear();
-}
-
-VulkanImage *getOutput()
+VulkanImage *ShadowManager::getOutput()
 {
     return shadowAssemblyPipeline->getOutputImages()[0];
 }
 
-void resizeOutput(int width, int height)
+void ShadowManager::resizeOutput(int width, int height)
 {
     shadowAssemblyPipeline->resize(width, height);
 }
 
-void resizeInternal(int squareLen)
+void ShadowManager::resizeInternal(int squareLen)
 {
     shadowBufferPipeline->resize(squareLen, squareLen);
     depthBuffer->resize(squareLen, squareLen);
     shadowAssemblyPipeline->setShadowMap(depthBuffer);
 }
 
-VkFormat findDepthFormat()
+VkFormat ShadowManager::findDepthFormat()
 {
     return device->findSupportedFormat(
         {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
