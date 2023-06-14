@@ -1,4 +1,5 @@
-//
+
+
 // Created by kgaft on 6/6/23.
 //
 
@@ -42,6 +43,3 @@ namespace RenderEngine{
         bool initializeRenderOutputs(RenderEngine::RenderPipelineBuilder &builder);
     };
 }
-
-
-
