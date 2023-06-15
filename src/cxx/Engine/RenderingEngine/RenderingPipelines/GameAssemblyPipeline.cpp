@@ -11,11 +11,12 @@ RenderEngine::GameAssemblyPipeline::GameAssemblyPipeline(VulkanDevice *device, i
             ->setStartFramebufferHeight(height)
             ->addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
             ->addVertexInput(1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT);
-    for(int i = 1; i<7; i++){
+    for(int i = 1; i<8; i++){
         builder.addSampler(i, VK_SHADER_STAGE_FRAGMENT_BIT);
     }
     builder.addPushConstant(sizeof(VertexConfig), VK_SHADER_STAGE_VERTEX_BIT);
     builder.addUniformBuffer(0, sizeof(LightConfiguration), VK_SHADER_STAGE_FRAGMENT_BIT);
+    builder.setImageRenderOutputAmount(1);
     RenderPipeline::initialize(builder);
     gBufferDescriptor = RenderPipeline::acquireDescriptorSet();
     quadDrawMesh = acquireQuadMesh(device);
@@ -30,6 +31,21 @@ void RenderEngine::GameAssemblyPipeline::setGBuffer(RenderEngine::GBufferPipelin
             gBufferPipeline->getMetallicRoughnessEmissiveInvao()->getView());
     gBufferDescriptor->getSamplers()[4]->setSamplerImageView(gBufferPipeline->getAoImage()->getView());
     gBufferDescriptor->updateDescriptorSet(0);
+}
+
+void RenderEngine::GameAssemblyPipeline::setAo(VulkanImage *ao)
+{
+    gBufferDescriptor->getSamplers()[4]->setSamplerImageView(ao->getView());
+}
+
+void RenderEngine::GameAssemblyPipeline::setBackground(VulkanImage *background)
+{
+    gBufferDescriptor->getSamplers()[6]->setSamplerImageView(background->getView());
+}
+
+void RenderEngine::GameAssemblyPipeline::setReflectionImage(VulkanImage *reflection)
+{
+    gBufferDescriptor->getSamplers()[5]->setSamplerImageView(reflection->getView());
 }
 
 RenderEngine::LightConfiguration &RenderEngine::GameAssemblyPipeline::getLightConfig()  {
@@ -48,4 +64,9 @@ void RenderEngine::GameAssemblyPipeline::update() {
     quadDrawMesh->draw(cmd);
     RenderPipeline::endRenderPass();
     RenderPipeline::endRender();
+}
+
+VulkanImage *RenderEngine::GameAssemblyPipeline::getOutput()
+{
+    return RenderPipeline::getOutputImages()[0];
 }

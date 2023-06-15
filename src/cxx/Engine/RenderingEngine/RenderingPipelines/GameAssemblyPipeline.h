@@ -54,9 +54,13 @@ namespace RenderEngine{
         Mesh* quadDrawMesh;
     public:
         void setGBuffer(GBufferPipeline* gBufferPipeline);
+        void setAo(VulkanImage* ao);
+        void setBackground(VulkanImage* background);
+        void setReflectionImage(VulkanImage* reflection);
         LightConfiguration &getLightConfig();
         VertexConfig &getVertexConfig();
         void update();
+        VulkanImage* getOutput();
     };
 }
 

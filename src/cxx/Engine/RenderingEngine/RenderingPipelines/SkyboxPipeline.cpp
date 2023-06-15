@@ -35,3 +35,8 @@ void SkyboxPipeline::setSkyboxImage(VulkanCubemapImage *skyboxImage)
     descriptorSet->getSamplers()[0]->setSamplerImageView(skyboxImage->getImageView());
     descriptorSet->updateDescriptorSet(0);
 }
+
+VulkanImage *RenderEngine::SkyboxPipeline::getOutput()
+{
+    return RenderPipeline::getOutputImages()[0];
+}

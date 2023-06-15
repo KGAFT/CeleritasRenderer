@@ -18,7 +18,7 @@ namespace RenderEngine
         VulkanImage *depthBuffer;
         VkCommandBuffer shadowCmd;
         std::vector<Mesh *> meshesBuffer;
-
+    public:
         void setupLightView(glm::vec3 lightPosition, float maxLightDistance);
 
         void beginShadowPass();

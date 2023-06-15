@@ -6,16 +6,16 @@
 
 RenderEngine::GBufferPipeline::GBufferPipeline(VulkanDevice *device, int width, int height) : RenderPipeline(device, nullptr){
     RenderPipelineBuilder builder;
-    builder.setPathToShader("shader/GBufferPipeline")
+    builder.setPathToShader("shaders/GBufferPBR")
     ->addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
-    ->addVertexInput(0, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT)
-    ->addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
+    ->addVertexInput(1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT)
+    ->addVertexInput(2, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
             ->addPushConstant(sizeof(WorldTransformData), VK_SHADER_STAGE_VERTEX_BIT)
             ->addUniformBuffer(0, sizeof(GBufferConfig), VK_SHADER_STAGE_FRAGMENT_BIT);
     for(int i = 1; i<9; i++){
         builder.addSampler(i, VK_SHADER_STAGE_FRAGMENT_BIT);
     }
-    builder.setStartFramebufferWidth(width)->setStartFramebufferHeight(height);
+    builder.setStartFramebufferWidth(width)->setStartFramebufferHeight(height)->setImageRenderOutputAmount(5);
     RenderPipeline::initialize(builder);
     RenderPipeline::getPushConstants()[0]->setData(&worldTransformData);
 }

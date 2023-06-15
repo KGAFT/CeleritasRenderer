@@ -38,6 +38,7 @@ layout(set = 0, binding = 3) uniform sampler2D normalSampler;
 layout(set = 0, binding = 4) uniform sampler2D metallicRoughnessEmissiveSampler;
 layout(set = 0, binding = 5) uniform sampler2D aoMap;
 layout (set = 0, binding = 6) uniform samplerCube prefilteredMap;
+layout(set = 0, binding = 7) uniform sampler2D background;
 layout(location = 0) out vec4 fragColor;
 
 
@@ -128,41 +129,46 @@ vec3 getReflection(float roughness, vec3 reflectanceVec){
 }
 void main() {
     fragmentPosition = texture(verticesSampler, uv).xyz;
-    vec3 processedNormals = texture(normalSampler, uv).xyz;
-    vec4 albedoSource = texture(albedoSampler, uv);
-    vec3 albedo = pow(albedoSource.rgb, vec3(2.2));
-    vec4 pbrData = texture(metallicRoughnessEmissiveSampler, uv);
+    if(fragmentPosition.xyz!=vec3(0)){
+        vec3 processedNormals = texture(normalSampler, uv).xyz;
+        vec4 albedoSource = texture(albedoSampler, uv);
+        vec3 albedo = pow(albedoSource.rgb, vec3(2.2));
+        vec4 pbrData = texture(metallicRoughnessEmissiveSampler, uv);
 
-    float metallic = pbrData.r;
-    float roughness = pbrData.g;
-    vec3 emissive = albedo*pbrData.b;
-    float ao = texture(aoMap, uv).r;
-    float opacity = albedoSource.a;
-   // vec3 reflection = getReflection(roughness, uv);
+        float metallic = pbrData.r;
+        float roughness = pbrData.g;
+        vec3 emissive = albedo*pbrData.b;
+        float ao = texture(aoMap, uv).r;
+        float opacity = albedoSource.a;
+        // vec3 reflection = getReflection(roughness, uv);
     
-    vec3 worldViewVector = normalize(cameraPosition - fragmentPosition);
-    vec3 reflection = getReflection(roughness, reflect(worldViewVector, processedNormals));
-    vec3 startFresnelSchlick = vec3(0.04);
-    startFresnelSchlick = mix(startFresnelSchlick, albedo, metallic);
+        vec3 worldViewVector = normalize(cameraPosition - fragmentPosition);
+        vec3 reflection = getReflection(roughness, reflect(worldViewVector, processedNormals));
+        vec3 startFresnelSchlick = vec3(0.04);
+        startFresnelSchlick = mix(startFresnelSchlick, albedo, metallic);
 
-    vec3 Lo = vec3(0.0);
+        vec3 Lo = vec3(0.0);
 
-    for (int c = 0; c<lightUbo.enabledDirects; c++){
-        Lo+=processDirectionaLight(lightUbo.directLights[c], processedNormals, worldViewVector, startFresnelSchlick, roughness, metallic, albedo);
+        for (int c = 0; c<lightUbo.enabledDirects; c++){
+            Lo+=processDirectionaLight(lightUbo.directLights[c], processedNormals, worldViewVector, startFresnelSchlick, roughness, metallic, albedo);
+        }
+        for (int c = 0; c<lightUbo.enabledPoints; c++){
+            Lo+=processPointLight(lightUbo.pointLights[c], processedNormals, worldViewVector, startFresnelSchlick, roughness, metallic, albedo);
+        }
+
+        vec3 fresnelRoughness = fresnelSchlickRoughness(max(dot(processedNormals, worldViewVector), 0.0), startFresnelSchlick, roughness);
+        vec3 specularContribution = reflection*fresnelRoughness*0.025f;
+
+        vec3 ambient = (vec3(lightUbo.ambientIntensity) * albedo * ao +specularContribution);
+
+        vec3 color = ambient + Lo;
+
+        color+=(emissive*pow(1, lightUbo.emissiveShininess)*lightUbo.emissiveIntensity);
+        color = postProcessColor(color);
+
+        fragColor = vec4(color, 1);
     }
-    for (int c = 0; c<lightUbo.enabledPoints; c++){
-        Lo+=processPointLight(lightUbo.pointLights[c], processedNormals, worldViewVector, startFresnelSchlick, roughness, metallic, albedo);
+    else{
+        fragColor = texture(background, uv);
     }
-
-    vec3 fresnelRoughness = fresnelSchlickRoughness(max(dot(processedNormals, worldViewVector), 0.0), startFresnelSchlick, roughness);
-    vec3 specularContribution = reflection*fresnelRoughness*0.025f;
-
-    vec3 ambient = (vec3(lightUbo.ambientIntensity) * albedo * ao +specularContribution);
-
-    vec3 color = ambient + Lo;
-
-    color+=(emissive*pow(1, lightUbo.emissiveShininess)*lightUbo.emissiveIntensity);
-    color = postProcessColor(color);
-
-    fragColor = vec4(color, 1);
 }

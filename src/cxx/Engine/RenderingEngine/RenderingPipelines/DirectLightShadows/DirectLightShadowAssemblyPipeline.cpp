@@ -20,7 +20,7 @@ DirectLightShadowAssemblyPipeline::DirectLightShadowAssemblyPipeline(VulkanDevic
         ->addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
         ->addVertexInput(1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT)
         ->addVertexInput(2, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
-        ->addPushConstant(sizeof(WorldTransformData), VK_SHADER_STAGE_VERTEX_BIT);
+        ->addPushConstant(sizeof(LightWorldTransformData), VK_SHADER_STAGE_VERTEX_BIT);
     RenderPipeline::initialize(builder);
 }
 
@@ -100,7 +100,7 @@ ShadowAssemblerConfig &DirectLightShadowAssemblyPipeline::getConfig()
     return config;
 }
 
-WorldTransformData &DirectLightShadowAssemblyPipeline::getWorldTransformData()
+LightWorldTransformData &DirectLightShadowAssemblyPipeline::getWorldTransformData()
 {
     return wtData;
 }

@@ -13,6 +13,6 @@ layout(location = 0) out vec3 texCoords;
 void main() {
     texCoords = position;
     vec4 outPosition = skyboxConfig.cameraMatrix*vec4(position, 1.0f);
-    position.y*=-1;
+    outPosition.y*=-1;
     gl_Position = outPosition.xyww;
 }

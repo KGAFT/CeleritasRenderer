@@ -37,3 +37,26 @@ void Engine::enumerateSupportedDevice(std::vector<EngineDevice>& output){
         output.push_back({element.second.deviceName, element.first});
     }
 }
+
+RenderEngine::Engine::Engine(EngineDevice &targetDevice)
+{
+    if(instance == nullptr){
+        throw std::runtime_error("Failed to create engine object, you need to initialize context firstly!");
+    }
+    device = new VulkanDevice(targetDevice.base, targetWindow->getWindowSurface(instance->getInstance()), instance->getInstance(), debugBuild);
+    swapChain = new VulkanSwapChain(device, targetWindow->getWidth(), targetWindow->getHeight());
+    assemblyPipeline = new AssemblyPipeline(device, swapChain, targetWindow->getWidth(), targetWindow->getHeight());
+    gameAssemblyPipeline = new GameAssemblyPipeline(device, targetWindow->getWidth(), targetWindow->getHeight());
+    gBufferPipeline = new GBufferPipeline(device, targetWindow->getWidth(), targetWindow->getHeight());
+    skyboxPipeline = new SkyboxPipeline(device, targetWindow->getWidth(), targetWindow->getHeight());
+    shadowManager = new ShadowManager(device, 1024, targetWindow->getWidth(), targetWindow->getHeight());
+    setupPipelinesConnections();
+}
+
+void RenderEngine::Engine::setupPipelinesConnections()
+{
+    gameAssemblyPipeline->setGBuffer(gBufferPipeline);
+    gameAssemblyPipeline->setAo(shadowManager->getOutput());
+    gameAssemblyPipeline->setBackground(skyboxPipeline->getOutput());
+    assemblyPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutput());
+}

@@ -18,7 +18,7 @@ namespace RenderEngine
         alignas(4) int previousAoEnabled;
     };
 
-    struct WorldTransformData
+    struct LightWorldTransformData
     {
         glm::mat4 lightSpaceMatrix;
         glm::mat4 worldMatrix;
@@ -33,7 +33,7 @@ namespace RenderEngine
         private:
             VulkanDevice* device;
             ShadowAssemblerConfig config{};
-            WorldTransformData wtData{};
+            LightWorldTransformData wtData{};
             VkCommandBuffer currentCmd;
             std::map<Material *, VulkanDescriptorSet *> materialDescriptors;
             VulkanImage* shadowMap;
@@ -46,7 +46,7 @@ namespace RenderEngine
             void setShadowMap(VulkanImage* shadowMap);
             void unRegisterMeshMaterial(Material* material);
             ShadowAssemblerConfig& getConfig();
-            WorldTransformData& getWorldTransformData();
+            LightWorldTransformData& getWorldTransformData();
             std::vector<VulkanImage*>& getOutputImages();
             void resize(int width, int height);
 

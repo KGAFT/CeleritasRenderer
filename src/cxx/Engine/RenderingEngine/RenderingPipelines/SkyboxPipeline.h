@@ -25,6 +25,7 @@ namespace RenderEngine
     public:
         void update(glm::mat4 cameraMatrix);
         void setSkyboxImage(VulkanCubemapImage* skyboxImage);
+        VulkanImage* getOutput();
     };
 
 }

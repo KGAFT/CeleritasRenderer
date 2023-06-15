@@ -26,6 +26,9 @@ int main() {
         std::cin>>deviceId;
     }
     std::cout<<"Choosed device for rendering: "<<devices[deviceId].name<<std::endl;
-    
+    RenderEngine::Engine engine(devices[deviceId]);
+    while(!window->needToClose()){
+        window->postRenderEvents();
+    }
     return 0;
 }
