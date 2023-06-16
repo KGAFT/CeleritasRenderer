@@ -11,7 +11,7 @@ SkyboxPipeline::SkyboxPipeline(VulkanDevice *device, int width, int height) : Re
         ->setStartFramebufferWidth(width)
         ->setStartFramebufferHeight(height)
         ->setImageRenderOutputAmount(1)
-        ->addSampler(0, VK_SHADER_STAGE_FRAGMENT_BIT);
+        ->addSampler(0, VK_SHADER_STAGE_FRAGMENT_BIT)->setAlphablending(false)->setCulling(VK_CULL_MODE_FRONT_BIT);
     RenderPipeline::initialize(builder);
     RenderPipeline::getPushConstants()[0]->setData(&skyboxConfig);
     descriptorSet = RenderPipeline::acquireDescriptorSet();

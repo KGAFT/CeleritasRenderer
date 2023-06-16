@@ -23,7 +23,7 @@ void RenderEngine::RenderPipeline::initialize(RenderEngine::RenderPipelineBuilde
                                                         &builder.endConfiguration,
                                                         builder.startFramebufferWidth,
                                                         builder.startFramebufferHeight, swapChain->getSwapChainImageViews(),
-                                                        builder.imageRenderOutputAmount, swapChain->getSwapChainImageFormat());
+                                                        builder.imageRenderOutputAmount, swapChain->getSwapChainImageFormat(), builder.alphaBlending, builder.culling);
     }
     else{
         endRenderPipeline = new VulkanEndRenderPipeline(device, syncManager, shader,
@@ -32,7 +32,7 @@ void RenderEngine::RenderPipeline::initialize(RenderEngine::RenderPipelineBuilde
                                                         builder.startFramebufferHeight,
                                                         imageViews,
                                                         builder.imageRenderOutputAmount,
-                                                        outputImages[0]->getFormat());
+                                                        outputImages[0]->getFormat(), builder.alphaBlending, builder.culling);
     }
     this->imagePerStepAmount = builder.imageRenderOutputAmount;
 }

@@ -49,6 +49,18 @@ RenderEngine::RenderPipelineBuilder* RenderEngine::RenderPipelineBuilder::setSta
     return this;
 }
 
+RenderEngine::RenderPipelineBuilder* RenderEngine::RenderPipelineBuilder::setAlphablending(bool alphaBlending)
+{
+    this->alphaBlending = alphaBlending;
+    return this;
+}
+
+RenderEngine::RenderPipelineBuilder* RenderEngine::RenderPipelineBuilder::setCulling(VkCullModeFlags culling)
+{
+    this->culling = culling;
+    return this;
+}
+
 RenderEngine::RenderPipelineBuilder::RenderPipelineBuilder() {
 
 }

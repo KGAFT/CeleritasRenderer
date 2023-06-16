@@ -16,7 +16,8 @@ namespace RenderEngine{
         unsigned int imageRenderOutputAmount = 0;
         int startFramebufferWidth = 0;
         int startFramebufferHeight = 0;
-
+        bool alphaBlending = true;
+        VkCullModeFlags culling = VK_CULL_MODE_NONE;
     public:
         RenderPipelineBuilder* addPushConstant(size_t structSize, VkShaderStageFlags shaderStages);
 
@@ -34,6 +35,9 @@ namespace RenderEngine{
 
         RenderPipelineBuilder* setStartFramebufferHeight(int startFramebufferHeight);
 
+        RenderPipelineBuilder* setAlphablending(bool alphaBlending);
+
+        RenderPipelineBuilder* setCulling(VkCullModeFlags culling);
     private:
         bool isComplete();
     };
