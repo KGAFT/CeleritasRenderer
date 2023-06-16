@@ -88,6 +88,8 @@ std::vector<VulkanImage *> &RenderEngine::RenderPipeline::getOutputImages()  {
     return outputImages;
 }
 
+
+
 void RenderEngine::RenderPipeline::resize(int width, int height) {
     vkDeviceWaitIdle(device->getDevice());
     if(swapChain==nullptr){
@@ -115,5 +117,7 @@ void RenderEngine::RenderPipeline::updatePushConstants() {
     endRenderPipeline->updatePushConstants();
 }
 
-
-
+void RenderEngine::RenderPipeline::bindDescriptorSet(VulkanDescriptorSet *descriptorSet)
+{
+    endRenderPipeline->bindImmediate(descriptorSet);
+}

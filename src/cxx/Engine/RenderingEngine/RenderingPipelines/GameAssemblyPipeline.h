@@ -9,7 +9,7 @@
 #include "GBufferPipeline.h"
 #include <glm/glm.hpp>
 #include "../PrimitiveObjects/Quad.h"
-
+#include <Vulkan/VulkanImage/VulkanCubemapImage.h>
 #define LIGHT_BLOCKS_AMOUNT 100
 
 namespace RenderEngine{
@@ -56,11 +56,12 @@ namespace RenderEngine{
         void setGBuffer(GBufferPipeline* gBufferPipeline);
         void setAo(VulkanImage* ao);
         void setBackground(VulkanImage* background);
-        void setReflectionImage(VulkanImage* reflection);
+        void setReflectionImage(VulkanCubemapImage* reflection);
         LightConfiguration &getLightConfig();
         VertexConfig &getVertexConfig();
         void update();
         VulkanImage* getOutput();
+        void confirmInputs();
     };
 }
 

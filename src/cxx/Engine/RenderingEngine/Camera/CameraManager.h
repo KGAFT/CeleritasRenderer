@@ -9,13 +9,9 @@
 #include "CameraRotationCallBack.h"
 #include "../../../Window/Window.h"
 #include "CameraResizeCallBack.h"
+#include "../RenderingPipelines/GBufferPipeline.h"
 
-struct PushConstantData{
-    glm::mat4 viewMatrix;
-    glm::mat4 worldMatrix;
-    glm::vec3 cameraPosition;
-};
-
+namespace RenderEngine{
 class CameraManager{
 private:
     static inline CameraManager* cameraManagerInstance = nullptr;
@@ -26,10 +22,10 @@ private:
     CameraMovementCallBack* currentCameraMovementCallback = new CameraMovementCallBack(currentCamera, 0.02f);
     CameraRotationCallBack* currentCameraRotationCallBack = new CameraRotationCallBack(currentCamera, 0.5f);
     CameraResizeCallBack* cameraResizeCallBack = new CameraResizeCallBack(currentCamera);
-    PushConstantData* data;
+    WorldTransformData* data;
 
 public:
-    CameraManager(PushConstantData* data){
+    CameraManager(WorldTransformData* data){
         this->data = data;
         Window::getInstance()->registerResizeCallback(cameraResizeCallBack);
         Window::getInstance()->registerKeyCallback(currentCameraMovementCallback);
@@ -52,8 +48,10 @@ public:
         return currentCamera;
     }
 
-    PushConstantData *getData() const {
+    WorldTransformData *getData() {
         return data;
     }
 };
 
+
+}

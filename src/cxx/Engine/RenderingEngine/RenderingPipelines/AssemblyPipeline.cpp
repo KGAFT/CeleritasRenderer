@@ -30,6 +30,7 @@ void RenderEngine::AssemblyPipeline::setGamePlaceHolder(VulkanImage* placeHolder
 
 void RenderEngine::AssemblyPipeline::update() {
     VkCommandBuffer cmd = RenderPipeline::beginRender();
+    RenderPipeline::bindDescriptorSet(inputsDescriptorSet);
     quadDrawMesh->draw(cmd);
     RenderPipeline::endRenderPass();
     RenderPipeline::endRender();

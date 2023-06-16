@@ -50,7 +50,75 @@ RenderEngine::Engine::Engine(EngineDevice &targetDevice)
     gBufferPipeline = new GBufferPipeline(device, targetWindow->getWidth(), targetWindow->getHeight());
     skyboxPipeline = new SkyboxPipeline(device, targetWindow->getWidth(), targetWindow->getHeight());
     shadowManager = new ShadowManager(device, 1024, targetWindow->getWidth(), targetWindow->getHeight());
+    cameraManager = new CameraManager(gBufferPipeline->getWorldTransformData());
+    targetWindow->registerKeyCallback(new TestKeyboardCallback(targetWindow));
+    shadowManager->setupLightView(glm::vec3(-5,-8.0f,5.0f), 200);
     setupPipelinesConnections();
+}
+
+void RenderEngine::Engine::setSkybox(VulkanCubemapImage *cubemap)
+{
+    gameAssemblyPipeline->setReflectionImage(cubemap);
+    skyboxPipeline->setSkyboxImage(cubemap);
+    gameAssemblyPipeline->confirmInputs();
+}
+
+void RenderEngine::Engine::resizeOutput(int width, int height)
+{
+    vkDeviceWaitIdle(device->getDevice());
+    gBufferPipeline->resize(width, height);
+    skyboxPipeline->resize(width, height);
+    shadowManager->resizeOutput(width, height);
+
+    gameAssemblyPipeline->resize(width, height);
+    gameAssemblyPipeline->setGBuffer(gBufferPipeline);
+    gameAssemblyPipeline->setAo(shadowManager->getOutput());
+    gameAssemblyPipeline->setBackground(skyboxPipeline->getOutput());
+    gameAssemblyPipeline->confirmInputs();
+
+    assemblyPipeline->resize(width, height);
+    assemblyPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutput());
+}
+
+void RenderEngine::Engine::resized(int width, int height)
+{
+    resizeOutput(width, height);
+}
+
+void RenderEngine::Engine::registerMesh(Mesh *mesh)
+{
+    meshesToDraw.push_back(mesh);
+    gBufferPipeline->registerMaterial(mesh->getMaterial());
+    shadowManager->registerMesh(mesh);
+
+}
+
+void RenderEngine::Engine::drawRegisteredMeshes()
+{
+    cameraManager->update();
+    gBufferPipeline->beginRender();
+    shadowManager->beginShadowPass();
+    for(const auto& mesh : meshesToDraw){
+        mesh->updateWorldMatrix();
+        gBufferPipeline->drawMesh(mesh);
+        shadowManager->processMesh(mesh);
+    }
+    gBufferPipeline->endRender();
+    shadowManager->endShadowPass(cameraManager->getData()->viewMatrix, cameraManager->getData()->cameraPosition);
+    skyboxPipeline->update(cameraManager->getData()->viewMatrix);
+    gameAssemblyPipeline->getVertexConfig().cameraPosition = cameraManager->getData()->cameraPosition;
+    gameAssemblyPipeline->update();
+    assemblyPipeline->update();
+}
+
+VulkanDevice *RenderEngine::Engine::getDevice()
+{
+    return device;
+}
+
+LightConfiguration &RenderEngine::Engine::getLightConfig()
+{
+    return gameAssemblyPipeline->getLightConfig();
 }
 
 void RenderEngine::Engine::setupPipelinesConnections()
@@ -58,5 +126,6 @@ void RenderEngine::Engine::setupPipelinesConnections()
     gameAssemblyPipeline->setGBuffer(gBufferPipeline);
     gameAssemblyPipeline->setAo(shadowManager->getOutput());
     gameAssemblyPipeline->setBackground(skyboxPipeline->getOutput());
+    gameAssemblyPipeline->confirmInputs();
     assemblyPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutput());
 }

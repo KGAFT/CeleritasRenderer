@@ -11,7 +11,7 @@ namespace RenderEngine{
     public:
         RenderPipelineBuilder();
     private:
-        PipelineEndConfig endConfiguration;
+        PipelineEndConfig endConfiguration{};
         const char* pathToShader = nullptr;
         unsigned int imageRenderOutputAmount = 0;
         int startFramebufferWidth = 0;

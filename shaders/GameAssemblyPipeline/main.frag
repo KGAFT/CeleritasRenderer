@@ -129,7 +129,7 @@ vec3 getReflection(float roughness, vec3 reflectanceVec){
 }
 void main() {
     fragmentPosition = texture(verticesSampler, uv).xyz;
-    if(fragmentPosition.xyz!=vec3(0)){
+    if(fragmentPosition.x!=0 || fragmentPosition.y!=0 || fragmentPosition.z!=0){
         vec3 processedNormals = texture(normalSampler, uv).xyz;
         vec4 albedoSource = texture(albedoSampler, uv);
         vec3 albedo = pow(albedoSource.rgb, vec3(2.2));

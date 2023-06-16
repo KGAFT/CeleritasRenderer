@@ -22,6 +22,7 @@ DirectLightShadowAssemblyPipeline::DirectLightShadowAssemblyPipeline(VulkanDevic
         ->addVertexInput(2, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
         ->addPushConstant(sizeof(LightWorldTransformData), VK_SHADER_STAGE_VERTEX_BIT);
     RenderPipeline::initialize(builder);
+    RenderPipeline::getPushConstants()[0]->setData(&wtData);
 }
 
 VkCommandBuffer DirectLightShadowAssemblyPipeline::beginRender()

@@ -16,7 +16,7 @@ Mesh *acquireQuadMesh(VulkanDevice *device)
             0, 1, 2,
             3, 2, 1};
 
-        quadMesh = new Mesh(new VertexBuffer(5, 4, device, QuadVertices), new IndexBuffer(device, QuadIndices, 6));
+        quadMesh = new Mesh(new VertexBuffer(5*sizeof(float), 4, device, QuadVertices), new IndexBuffer(device, QuadIndices, 6));
     }
     return quadMesh;
 }

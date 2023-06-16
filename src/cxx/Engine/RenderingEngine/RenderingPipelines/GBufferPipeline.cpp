@@ -96,6 +96,11 @@ void RenderEngine::GBufferPipeline::endRender() {
     RenderPipeline::endRender();
 }
 
+RenderEngine::WorldTransformData * RenderEngine::GBufferPipeline::getWorldTransformData()
+{
+    return &worldTransformData;
+}
+
 VulkanImage *RenderEngine::GBufferPipeline::getPositionsImage() {
     return RenderPipeline::getOutputImages()[0];
 }

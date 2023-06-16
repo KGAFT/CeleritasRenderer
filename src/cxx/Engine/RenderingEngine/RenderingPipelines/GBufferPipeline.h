@@ -37,6 +37,7 @@ namespace RenderEngine{
         void beginRender();
         void drawMesh(Mesh* mesh);
         void endRender();
+        WorldTransformData* getWorldTransformData();
         VulkanImage *getPositionsImage();
         VulkanImage *getAlbedoMapImage();
         VulkanImage *getNormalMapImage();
