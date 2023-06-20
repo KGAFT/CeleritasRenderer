@@ -7,6 +7,6 @@ layout (set = 0, binding = 0) uniform samplerCube cubemap;
 layout(location = 0) out vec4 FragColor;
 
 void main() {
-    FragColor = texture(cubemap, texCoords);
+    FragColor = vec4(0);
     
 }

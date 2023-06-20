@@ -4,6 +4,7 @@
 #include "../GraphicalObjects/Material.h"
 #include "../GraphicalObjects/Mesh.h"
 #include "../PrimitiveObjects/Skybox.h"
+#include "../../../Util/ModelLoader.h"
 #include <Vulkan/VulkanImage/VulkanCubemapImage.h>
 #include <glm/glm.hpp>
 namespace RenderEngine

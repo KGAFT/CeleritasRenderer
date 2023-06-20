@@ -5,7 +5,7 @@ using namespace RenderEngine;
 SkyboxPipeline::SkyboxPipeline(VulkanDevice *device, int width, int height) : RenderPipeline(device, nullptr), device(device)
 {
     RenderPipelineBuilder builder;
-    builder.addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
+    builder.addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)->addVertexInput(1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT)->addVertexInput(2, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
         ->addPushConstant(sizeof(SkyboxConfig), VK_SHADER_STAGE_VERTEX_BIT)
         ->setPathToShader("shaders/SkyboxPipeline")
         ->setStartFramebufferWidth(width)
@@ -16,7 +16,9 @@ SkyboxPipeline::SkyboxPipeline(VulkanDevice *device, int width, int height) : Re
     RenderPipeline::getPushConstants()[0]->setData(&skyboxConfig);
     descriptorSet = RenderPipeline::acquireDescriptorSet();
     descriptorSet->attachToObject(this);
-    skyboxMesh = acquireSkyboxMesh(device);
+    ModelLoader loader(device);
+    skyboxMesh = loader.loadModel("models/cube.obj", false)[0];
+    loader.clear();
 }
 
 void SkyboxPipeline::update(glm::mat4 cameraMatrix)
