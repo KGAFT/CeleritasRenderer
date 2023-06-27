@@ -38,7 +38,7 @@ void RenderEngine::RenderPipeline::initialize(RenderEngine::RenderPipelineBuilde
 }
 
 bool RenderEngine::RenderPipeline::initializeRenderOutputs(RenderEngine::RenderPipelineBuilder &builder) {
-    if(builder.imageRenderOutputAmount==0 and swapChain==nullptr){
+    if(builder.imageRenderOutputAmount==0 && swapChain==nullptr){
         throw std::runtime_error("Error: you did not specified output images");
     }
     if(swapChain!=nullptr){

@@ -36,7 +36,7 @@ RenderEngine::RenderPipelineBuilder* RenderEngine::RenderPipelineBuilder::setIma
 }
 
 bool RenderEngine::RenderPipelineBuilder::isComplete() {
-    return !endConfiguration.vertexInputs.empty() and pathToShader!=nullptr and startFramebufferHeight!=0 and startFramebufferWidth!=0 and imageRenderOutputAmount!=0;
+    return !endConfiguration.vertexInputs.empty() && pathToShader!=nullptr && startFramebufferHeight!=0 && startFramebufferWidth!=0 && imageRenderOutputAmount!=0;
 }
 
 RenderEngine::RenderPipelineBuilder* RenderEngine::RenderPipelineBuilder::setStartFramebufferWidth(int startFramebufferWidth) {
