@@ -31,6 +31,7 @@ namespace RenderEngine{
         GBufferConfig gBufferConfig{};
         std::map<Material*, VulkanDescriptorSet*> materialDescriptors;
         VkCommandBuffer currentCmd;
+        VulkanImage* defaultImg;
     public:
         void registerMaterial(Material* material);
         void unRegisterMaterial(Material* material);

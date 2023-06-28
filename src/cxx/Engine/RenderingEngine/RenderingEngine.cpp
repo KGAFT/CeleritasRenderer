@@ -97,6 +97,7 @@ void RenderEngine::Engine::drawRegisteredMeshes()
 {
     cameraManager->update();
     gBufferPipeline->beginRender();
+    
     shadowManager->beginShadowPass();
     for(const auto& mesh : meshesToDraw){
         mesh->updateWorldMatrix();
@@ -105,7 +106,7 @@ void RenderEngine::Engine::drawRegisteredMeshes()
     }
     gBufferPipeline->endRender();
     shadowManager->endShadowPass(cameraManager->getData()->viewMatrix, cameraManager->getData()->cameraPosition);
-    skyboxPipeline->update(cameraManager->getData()->viewMatrix);
+   // skyboxPipeline->update(cameraManager->getData()->viewMatrix);
     gameAssemblyPipeline->getVertexConfig().cameraPosition = cameraManager->getData()->cameraPosition;
     gameAssemblyPipeline->update();
     assemblyPipeline->update();

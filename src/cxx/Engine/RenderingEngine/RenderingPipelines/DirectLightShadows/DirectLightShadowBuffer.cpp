@@ -11,8 +11,8 @@ RenderEngine::DirectLightShadowBuffer::DirectLightShadowBuffer(VulkanDevice *dev
         ->setStartFramebufferWidth(width)
         ->setStartFramebufferHeight(height)
         ->addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
-        ->addVertexInput(0, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT)
-        ->addVertexInput(0, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
+        ->addVertexInput(1, 2, sizeof(float), VK_FORMAT_R32G32_SFLOAT)
+        ->addVertexInput(2, 3, sizeof(float), VK_FORMAT_R32G32B32_SFLOAT)
         ->addPushConstant(sizeof(LightViewData), VK_SHADER_STAGE_VERTEX_BIT)
         ->setImageRenderOutputAmount(1);
     RenderPipeline::initialize(builder);

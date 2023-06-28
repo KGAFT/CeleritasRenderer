@@ -18,6 +18,7 @@ RenderEngine::GBufferPipeline::GBufferPipeline(VulkanDevice *device, int width, 
     builder.setStartFramebufferWidth(width)->setStartFramebufferHeight(height)->setImageRenderOutputAmount(5);
     RenderPipeline::initialize(builder);
     RenderPipeline::getPushConstants()[0]->setData(&worldTransformData);
+    defaultImg = VulkanImage::createImage(device, 400, 400);
 }
 
 void RenderEngine::GBufferPipeline::registerMaterial(Material *material) {

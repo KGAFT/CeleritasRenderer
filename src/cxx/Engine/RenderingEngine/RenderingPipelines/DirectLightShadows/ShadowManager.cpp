@@ -38,9 +38,9 @@ void ShadowManager::unRegisterMesh(Mesh *mesh)
 
 void ShadowManager::endShadowPass(glm::mat4 viewMatrix, glm::vec3 cameraPosition)
 {
-    depthBuffer->clearImage(0, 0, 0, 0, shadowCmd);
+
     shadowBufferPipeline->endRenderPass();
-    depthBuffer->copyFromImage(shadowBufferPipeline->getDepthImages()[0], VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, shadowCmd);
+    depthBuffer->copyFromImage(shadowBufferPipeline->getDepthImages()[0], VK_IMAGE_LAYOUT_GENERAL, shadowCmd, true);
     shadowBufferPipeline->endRender();
     shadowAssemblyPipeline->beginRender();
     for (const auto &item : meshesBuffer)
