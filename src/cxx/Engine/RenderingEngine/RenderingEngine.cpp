@@ -38,7 +38,7 @@ void Engine::enumerateSupportedDevice(std::vector<EngineDevice>& output){
     }
 }
 
-RenderEngine::Engine::Engine(EngineDevice &targetDevice)
+RenderEngine::Engine::Engine(EngineDevice &targetDevice, Window* window)
 {
     if(instance == nullptr){
         throw std::runtime_error("Failed to create engine object, you need to initialize context firstly!");
@@ -50,8 +50,8 @@ RenderEngine::Engine::Engine(EngineDevice &targetDevice)
     gBufferPipeline = new GBufferPipeline(device, targetWindow->getWidth(), targetWindow->getHeight());
     skyboxPipeline = new SkyboxPipeline(device, targetWindow->getWidth(), targetWindow->getHeight());
     shadowManager = new ShadowManager(device, 1024, targetWindow->getWidth(), targetWindow->getHeight());
-    cameraManager = new CameraManager(gBufferPipeline->getWorldTransformData());
-    targetWindow->registerKeyCallback(new TestKeyboardCallback(targetWindow));
+    cameraManager = new CameraManager(gBufferPipeline->getWorldTransformData(), window);
+    targetWindow->getInputSystem().registerKeyCallback(new TestKeyboardCallback(targetWindow));
     shadowManager->setupLightView(glm::vec3(-5,-8.0f,5.0f), 200);
     setupPipelinesConnections();
 }
@@ -129,4 +129,8 @@ void RenderEngine::Engine::setupPipelinesConnections()
     gameAssemblyPipeline->setBackground(skyboxPipeline->getOutput());
     gameAssemblyPipeline->confirmInputs();
     assemblyPipeline->setGamePlaceHolder(gameAssemblyPipeline->getOutput());
+}
+
+vector<Mesh *> &Engine::getMeshesToDraw() {
+    return meshesToDraw;
 }

@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "../../../Window/IWindowResizeCallback.h"
+#include "Window/Window.hpp"
 #include "Camera.h"
 class CameraResizeCallBack : public IWindowResizeCallback{
 private:

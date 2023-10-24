@@ -7,35 +7,35 @@
 
 #include "Camera.h"
 #include "GLFW/glfw3.h"
-#include "../../../Window/IKeyActionCallback.h"
+#include "Window/Window.hpp"
 
-class CameraMovementCallBack : public IKeyActionCallback {
+class CameraMovementCallBack : public IWindowKeyCallback {
 private:
     Camera *camera;
     float sensitivity;
-    unsigned int keys[6]{
-            GLFW_KEY_W,
-            GLFW_KEY_A,
-            GLFW_KEY_S,
-            GLFW_KEY_D,
-            GLFW_KEY_SPACE,
-            GLFW_KEY_C
+    WindowKey keys[6]{
+            {GLFW_KEY_W, KEY_PRESSED},
+            {GLFW_KEY_A, KEY_PRESSED},
+            {GLFW_KEY_S, KEY_PRESSED},
+            {GLFW_KEY_D, KEY_PRESSED},
+            {GLFW_KEY_SPACE, KEY_PRESSED},
+            {GLFW_KEY_C, KEY_PRESSED}
     };
 public:
     CameraMovementCallBack(Camera *camera, float sensitivity) : camera(camera),
                                                                 sensitivity(sensitivity) {}
 
-    
-    int *getKeys(int* amount) override{
-        *amount = 6;
-        return (int*)keys;
+
+    unsigned int getKeys(WindowKey **output) override {
+        *output = keys;
+        return 6;
     }
 
-    void keyPressed(int keyCode) override {
+    void keyPressed(WindowKey* key) override {
         float fwbAmplifier = 0;
         float leftRightAmplifier = 0;
         float upDownAmplifier = 0;
-        switch (keyCode) {
+        switch (key->keyGlfwScanCode) {
             case GLFW_KEY_W:
                 fwbAmplifier += sensitivity;
                 break;
@@ -57,6 +57,10 @@ public:
         }
         camera->moveCam(fwbAmplifier, leftRightAmplifier, upDownAmplifier);
 
+    }
+
+    size_t getHoldDelay() override {
+        return 0;
     }
 
     Camera *getCamera() const {

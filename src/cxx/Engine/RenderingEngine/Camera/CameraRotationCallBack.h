@@ -4,11 +4,11 @@
 
 
 #include "Camera.h"
-#include "../../../Window/IMouseMovementCallback.h"
-#include "../../../Window/Window.h"
+#include "Window/Window.hpp"
+
 #pragma once
 
-class CameraRotationCallBack : public IMouseMovementCallback {
+class CameraRotationCallBack : public IWindowMouseMovementCallback {
 private:
     Camera *camera;
     float sensitivity;
@@ -18,16 +18,19 @@ public:
         this->sensitivity = sensitivity;
     }
 
-    void mouseMoved(double xChange, double yChange) override {
-        camera->rotateCam(sensitivity *-1*xChange, sensitivity * yChange);
+    void moved(glm::vec2 oldPos, glm::vec2 newPos) override {
+        camera->rotateCam(sensitivity * -1 * (newPos.x-oldPos.x), sensitivity * (newPos.y-oldPos.y));
     }
+
+    WindowInputMode getRequireWorkMode() override {
+        return MODE_FREE_CURSOR;
+    }
+
 
     Camera *getCamera() const {
         return camera;
     }
-    int getCallbackMode() override{
-        return WINDOW_ACTION_CURSOR_MODE;
-    }
+
     void setCamera(Camera *camera) {
         CameraRotationCallBack::camera = camera;
     }

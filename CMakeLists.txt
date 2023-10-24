@@ -4,11 +4,12 @@ project(CeleritasEngine)
 
 
 #Set path to your's vulkan sdk here
-set(VulkanSDKPath /home/kgaft/VulkanSDK/1.3.250.0/x86_64)
+set(VulkanSDKPath /usr/lib/vulkan_sdk/1.3.261.1/x86_64)
 
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories("NativeModules/include")
+include_directories(src/cxx)
 
 file(GLOB_RECURSE LIN_SHARED_LIBS NativeModules/bin/*.so )
 file(GLOB_RECURSE WIN_SHARED_LIBS NativeModules/bin/*.dll )

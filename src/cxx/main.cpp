@@ -1,18 +1,17 @@
-#include "Window/Window.h"
-#include "Window/Monitor.h"
+#include "Window/Window.hpp"
+#include "Window/Monitor.hpp"
 #include "Util/ModelLoader.h"
 #include <glm/glm.hpp>
 #include <array>
 #include "Engine/RenderingEngine/RenderingEngine.h"
 
 int main() {
-    Window::initializeContext();
-    Window* window = Window::createWindow(1680, 1060, "CeleritasEngine", nullptr);
+    glfwInit();
+    Window* window = Window::createWindow(800, 600, "CeleritasEngine", nullptr, false);
     RenderEngine::Engine::initializeContexts("CeleritasEngine", window, false);
     std::vector<RenderEngine::EngineDevice> devices;
 
     RenderEngine::Engine::enumerateSupportedDevice(devices);
-    RenderEngine::EngineDevice* targetDevice;
     int deviceId = 0;
     if(devices.size()>1){
         std::cout<<"The engine has found several graphics adapters, please choose which one you wanna use!"<<std::endl;
@@ -23,11 +22,11 @@ int main() {
             count++;
         }
         std::cout<<"Please enter specified device id: ";
-        std::cin>>deviceId;
+       // std::cin>>deviceId;
     }
-    std::cout<<"Choosed device for rendering: "<<devices[deviceId].name<<std::endl;
-    RenderEngine::Engine engine(devices[deviceId]);
-    window->registerResizeCallback(&engine);
+    std::cout<<"Choosed device for rendering: "<<devices[0].name<<std::endl;
+    RenderEngine::Engine engine(devices[0], window);
+    window->addResizeCallback(&engine);
 
     CubemapTextureInfo cubeMapInfo{};
     cubeMapInfo.pathToFrontFace = "models/SkyBox/cloudy/bluecloud_ft.jpg";
@@ -45,13 +44,15 @@ int main() {
         item->getMaterial()->setAoTexture(nullptr);
         item->getMaterial()->setOpacityMapTexture(nullptr);
         item->getMaterial()->setAlbedoTexture(albedoIm);
-        item->setPosition(glm::vec3(0, 0, 10));
+        item->setPosition(glm::vec3(10, 0, 0));
         item->setScale(glm::vec3(5, 5, 5));
         engine.registerMesh(item);
     }
     loader.clear();
-
-    
+    Mesh* cubeMesh = acquireSkyboxMesh(engine.getDevice());
+    cubeMesh->setPosition(glm::vec3(1,0,0));
+    cubeMesh->setMaterial(engine.getMeshesToDraw()[0]->getMaterial());
+    engine.registerMesh(cubeMesh);
     engine.getLightConfig().enabledDirects = 1;
     engine.getLightConfig().directLights[0].color = glm::vec3(1, 1, 1);
     engine.getLightConfig().directLights[0].direction = glm::vec3(0, 5, -5);

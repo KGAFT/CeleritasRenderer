@@ -1,29 +1,26 @@
 #pragma once 
 #include <GLFW/glfw3.h>
-#include "Window/Window.h"
-#include "Window/IKeyActionCallback.h"
+#include "Window/Window.hpp"
 
-class TestKeyboardCallback : public IKeyActionCallback{
+class TestKeyboardCallback : public IWindowKeyCallback{
 private:
-	std::vector<int> keys;
+	std::vector<WindowKey> keys;
 	Window* window;
 public:
 	TestKeyboardCallback(Window* window) : window(window) {
-		keys.push_back(GLFW_KEY_F1);
-		keys.push_back(GLFW_KEY_DELETE);
+		keys.push_back(WindowKey{GLFW_KEY_F1, KEY_CLICKED});
 	}
 
-	int* getKeys(int* amount) override {
-		*amount = keys.size();
-		return keys.data();
-	}
-	void keyPressed(int key) override {
-		switch (key) {
-		case GLFW_KEY_F1:
-			window->setWindowMode(!window->getInputMode());
-			break;
-		case GLFW_KEY_DELETE:
-			delete this;
-		}
-	}
+    void keyPressed(WindowKey *key) override {
+        window->getInputSystem().setMode(MODE_RETURN_INTO_CENTER);
+    }
+
+    unsigned int getKeys(WindowKey **output) override {
+        *output = keys.data();
+        return keys.size();
+    }
+
+    size_t getHoldDelay() override {
+        return 0;
+    }
 };
